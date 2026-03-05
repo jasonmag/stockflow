@@ -1,0 +1,8 @@
+<%= form_with model: supplier do |f| %>
+<p><%= f.text_field :name, placeholder: "Name" %></p>
+<p><%= f.text_field :contact_name, placeholder: "Contact" %></p>
+<p><%= f.email_field :contact_email, placeholder: "Email" %></p>
+<p><%= f.text_field :contact_phone, placeholder: "Phone" %></p>
+<p><%= f.text_area :address, placeholder: "Address" %></p>
+<%= f.submit %>
+<% end %>

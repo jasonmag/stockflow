@@ -1,0 +1,5 @@
+<%= form_with model: location do |f| %>
+<p><%= f.text_field :name, placeholder: "Name" %></p>
+<p><%= f.select :location_type, Location.location_types.keys %></p>
+<%= f.submit %>
+<% end %>

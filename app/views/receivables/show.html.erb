@@ -1,0 +1,3 @@
+<h1><%= @receivable.reference.presence || @receivable.customer.name %></h1>
+<p>Status: <%= @receivable.status %></p>
+<%= link_to "Edit", edit_receivable_path(@receivable) %>

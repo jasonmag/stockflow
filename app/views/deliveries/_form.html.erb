@@ -1,0 +1,12 @@
+<%= form_with model: delivery do |f| %>
+  <p><%= f.label :customer_id %><%= f.collection_select :customer_id, current_business.customers, :id, :name %></p>
+  <p><%= f.label :delivered_on %><%= f.date_field :delivered_on %></p>
+  <p><%= f.label :from_location_id %><%= f.collection_select :from_location_id, current_business.locations, :id, :name, include_blank: true %></p>
+  <p><%= f.label :show_prices %><%= f.check_box :show_prices %></p>
+  <%= f.fields_for :delivery_items do |item| %>
+    <p><%= item.collection_select :product_id, current_business.products, :id, :name %></p>
+    <p><%= item.number_field :quantity, step: 0.01 %></p>
+    <p><%= item.number_field :unit_price_cents %></p>
+  <% end %>
+  <%= f.submit %>
+<% end %>

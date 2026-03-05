@@ -1,0 +1,6 @@
+<h1>Receivables</h1>
+<%= link_to "New", new_receivable_path %>
+<% @receivables.each do |row| %>
+  <p><%= link_to(row.reference.presence || row.customer.name, row) %> - <%= row.status %>
+  <% unless row.collected? %><%= button_to "Mark Collected", mark_collected_receivable_path(row), method: :patch %><% end %></p>
+<% end %>

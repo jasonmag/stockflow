@@ -1,0 +1,3 @@
+<h1>Deliveries</h1>
+<%= link_to "New", new_delivery_path %>
+<% @deliveries.each do |delivery| %><p><%= link_to delivery.delivery_number, delivery %> - <%= delivery.status %></p><% end %>

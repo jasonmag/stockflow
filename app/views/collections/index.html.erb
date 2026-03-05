@@ -1,0 +1,2 @@
+<h1>Collections</h1>
+<% @collections.each do |c| %><p><%= c.collected_on %> - <%= money(c.amount_cents) %></p><% end %>

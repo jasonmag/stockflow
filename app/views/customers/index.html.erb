@@ -1,0 +1,2 @@
+<h1>Customers</h1><%= link_to "New", new_customer_path %>
+<% @customers.each do |row| %><p><%= link_to row.name, row %></p><% end %>

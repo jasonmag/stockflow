@@ -1,0 +1,4 @@
+<h1>Expenses</h1>
+<%= link_to "New", new_expense_path %>
+<p>Personal MTD: <%= money(@personal_out_of_pocket_mtd) %> | Business MTD: <%= money(@business_paid_mtd) %> | Total MTD: <%= money(@total_expenses_mtd) %></p>
+<% @expenses.each do |expense| %><p><%= link_to expense.payee, expense %> - <%= money(expense.amount_cents, expense.currency) %></p><% end %>

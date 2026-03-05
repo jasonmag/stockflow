@@ -1,0 +1,3 @@
+<h1>Stock Movements</h1>
+<%= link_to "New", new_stock_movement_path %>
+<% @stock_movements.each do |row| %><p><%= row.occurred_on %> - <%= row.movement_type %> - <%= row.product.name %> - <%= row.quantity %></p><% end %>

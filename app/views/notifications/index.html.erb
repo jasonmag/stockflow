@@ -1,0 +1,2 @@
+<h1>Notifications</h1>
+<% @unread.each do |n| %><p><%= n.message %> <%= button_to "Read", mark_read_notification_path(n), method: :patch %></p><% end %>

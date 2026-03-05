@@ -1,0 +1,2 @@
+<h1>Payments</h1>
+<% @payments.each do |p| %><p><%= p.paid_on %> - <%= money(p.amount_cents) %></p><% end %>

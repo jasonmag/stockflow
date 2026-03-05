@@ -1,0 +1,11 @@
+<h1><%= @delivery.delivery_number %></h1>
+<p>Status: <%= @delivery.status %></p>
+<%= button_to "Generate PDF", generate_pdf_delivery_path(@delivery), method: :post %>
+<%= link_to "Download PDF", download_pdf_delivery_path(@delivery) %>
+<%= form_with url: email_pdf_delivery_path(@delivery), method: :post do |f| %>
+  <p><%= f.label :recipients %><%= f.text_field :recipients %></p>
+  <p><%= f.label :subject %><%= f.text_field :subject %></p>
+  <p><%= f.label :message %><%= f.text_area :message %></p>
+  <%= f.submit "Email PDF" %>
+<% end %>
+<%= button_to "Mark Delivered", mark_delivered_delivery_path(@delivery), method: :patch unless @delivery.delivered? %>

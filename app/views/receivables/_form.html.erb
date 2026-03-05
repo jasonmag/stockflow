@@ -1,0 +1,7 @@
+<%= form_with model: receivable do |f| %>
+  <p><%= f.label :customer_id %><%= f.collection_select :customer_id, current_business.customers, :id, :name %></p>
+  <p><%= f.label :reference %><%= f.text_field :reference %></p>
+  <p><%= f.label :due_on %><%= f.date_field :due_on %></p>
+  <p><%= f.label :amount_cents %><%= f.number_field :amount_cents %></p>
+  <%= f.submit %>
+<% end %>

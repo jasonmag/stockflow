@@ -1,0 +1,3 @@
+<h1>Purchase #<%= @purchase.id %></h1>
+<p>Status: <%= @purchase.status %></p>
+<%= button_to "Receive", receive_purchase_path(@purchase), method: :patch unless @purchase.received? %>

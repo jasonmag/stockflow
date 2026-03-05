@@ -1,0 +1,340 @@
+You are building a production-ready Ruby on Rails app using the LATEST stable Rails 8.x and modern Ruby (use latest stable Ruby 3.4.x unless specified otherwise). The app must be deployable with Kamal (Docker-based deploy), and run well as a browser-first web app (mobile/tablet compatible).
+
+Tech stack:
+- Ruby on Rails 8.x (latest stable)
+- Ruby 3.4.x (latest stable)
+- Hotwire: Turbo + Stimulus
+- TailwindCSS
+- Postgres in production, SQLite in development
+- ActiveStorage (local in dev; S3-compatible in production)
+- Background jobs: Solid Queue (Rails-native) for reminders and email delivery
+- Kamal for deployment (with container registry)
+
+App goal:
+Inventory + cashflow + receivables/payables system for a small supplier business (supermarket + vending).
+MVP must include generating a Delivery Report PDF (printable) and emailing it to recipients.
+
+========================================================
+1) AUTH + BUSINESS SCOPING (Multi-business)
+========================================================
+- Implement authentication (prefer Rails 8 built-in auth generator if available; otherwise Devise).
+- Models:
+  - User
+  - Business
+  - Membership (user_id, business_id, role enum {owner, staff})
+- Current business:
+  - Store current_business_id in session.
+  - Business switcher UI in navbar.
+- All domain records must include business_id and be scoped by current_business in controllers and queries.
+
+========================================================
+2) EXPENSES + FUNDING SOURCE (Personal vs Business)
+========================================================
+- Expense fields:
+  business_id, occurred_on (date), payee (string), category_id,
+  amount_cents (int), currency (string),
+  funding_source enum {personal, business},
+  payment_method enum {cash, bank, card},
+  notes (text)
+- Attach receipt via ActiveStorage (one attachment minimum).
+- UI:
+  - index with filters (date range, category, funding_source, payee search)
+  - new/edit/show
+- Insight cards:
+  - personal out-of-pocket MTD
+  - business-paid MTD
+  - total expenses MTD
+
+========================================================
+3) PAYABLES + PAYMENTS + REMINDERS
+========================================================
+- Payable fields:
+  business_id,
+  payable_type enum {supplier, credit_card, loan, rent, utilities, other},
+  payee (string),
+  amount_cents, currency,
+  due_on (date),
+  status enum {unpaid, paid, overdue},
+  notes (text),
+  recurring_rule (string nullable; MVP can be one-off only)
+- Payment model:
+  business_id,
+  payable_id nullable,
+  expense_id nullable,
+  paid_on (date),
+  amount_cents,
+  method enum {cash, bank, card},
+  notes (text)
+- UI:
+  - Upcoming (next 30 days) list, Overdue list, All payables list
+  - Mark paid action (Turbo frame updates status and lists)
+  - Payments history on payable show page
+
+========================================================
+4) PRODUCTS + LOCATIONS + STOCK MOVEMENTS (Inventory Ledger)
+========================================================
+- Product:
+  business_id, name, sku nullable, unit enum/string (pc/box/case),
+  reorder_level integer nullable, active boolean default true
+- Location:
+  business_id, name,
+  location_type enum {home, storage, warehouse, vending, customer, other}
+- StockMovement:
+  business_id,
+  movement_type enum {in, out, transfer, adjustment},
+  product_id,
+  quantity (decimal),
+  unit_cost_cents integer nullable (required for movement_type=in),
+  from_location_id nullable,
+  to_location_id nullable,
+  occurred_on (date),
+  reference_type/reference_id nullable (polymorphic link),
+  notes (text)
+- Validation rules:
+  - in: requires to_location, from_location must be null
+  - out: requires from_location, to_location must be null
+  - transfer: requires both
+  - adjustment: requires a location and quantity can be positive/negative (choose one approach and enforce it consistently)
+- Implement service objects:
+  - Inventory::OnHandCalculator (on-hand per product per location + totals)
+  - Inventory::StockValidator (checks sufficient stock before stock-out / delivery)
+- UI:
+  - Products CRUD
+  - Locations CRUD
+  - Stock Movements: separate “Stock In / Stock Out / Transfer / Adjustment” flows
+  - Inventory view:
+    - by product totals
+    - drilldown by location
+    - low-stock badge where on-hand <= reorder_level
+
+========================================================
+5) PURCHASES + COST TRACKING
+========================================================
+- Supplier:
+  business_id, name, optional contact fields
+- Purchase:
+  business_id, supplier_id, purchased_on (date),
+  receiving_location_id,
+  funding_source enum {personal, business},
+  notes (text),
+  status enum {draft, received} (MVP)
+- PurchaseItem:
+  purchase_id, product_id, quantity (decimal), unit_cost_cents (int)
+- Receive workflow:
+  - On receive, create StockMovement records type=in per item into receiving_location_id with unit_cost_cents
+  - Mark purchase status = received
+- Costing:
+  - Weighted average cost helper based on stock-in movements (per product)
+
+========================================================
+6) RECEIVABLES + COLLECTIONS (Cash In) + REMINDERS
+========================================================
+- Customer:
+  business_id, name, optional address/contact fields
+- Receivable:
+  business_id, customer_id, reference string,
+  delivered_on date nullable,
+  due_on date,
+  amount_cents, currency,
+  status enum {pending, collected, late},
+  notes (text)
+- Collection:
+  business_id, receivable_id nullable,
+  collected_on date,
+  amount_cents,
+  method enum {cash, bank},
+  notes (text)
+- UI:
+  - Receivables list: due soon (next 30 days), overdue, all
+  - Mark collected action: creates Collection + updates receivable status via Turbo
+  - Collections history page (optional MVP)
+
+========================================================
+6.5) DELIVERIES + DELIVERY REPORT (PDF + EMAIL) [MVP REQUIRED]
+========================================================
+Implement a Delivery workflow for supermarkets/customers that generates a printable PDF and can email it.
+
+A) Models
+- Delivery:
+  business_id,
+  customer_id,
+  delivered_on (date),
+  delivery_number (string unique per business, e.g. DR-YYYY-000001),
+  status enum {draft, delivered, void},
+  from_location_id (required to mark delivered),
+  notes (text)
+- DeliveryItem:
+  delivery_id,
+  product_id,
+  quantity (decimal),
+  unit_price_cents (int nullable)   -- optional: keep but allow hiding prices in PDF
+- DeliveryEmailLog:
+  delivery_id,
+  sent_by_user_id,
+  recipients (text),
+  subject (string),
+  message (text),
+  sent_at datetime,
+  status enum {queued, sent, failed},
+  error_message (text nullable)
+
+B) Delivery UI / Screens
+- Deliveries index:
+  filters by customer/date/status; quick actions:
+   View, Edit, Generate PDF, Download PDF, Email PDF, Mark Delivered
+- Delivery form:
+  customer, delivered_on, from_location, notes
+  nested items (DeliveryItem): product select + quantity (+ optional unit_price)
+- Delivery show:
+  display items, totals, status, stock-out link records, PDF status, email history
+  buttons:
+    - Generate/Regenerate PDF (Turbo)
+    - Download PDF (ActiveStorage)
+    - Email PDF (form: recipients + subject + message)
+    - Mark as Delivered
+
+C) PDF generation
+- Use Prawn gem to generate a Delivery Report PDF (avoid headless browser dependency).
+- PDF content must include:
+  - Business name (and optional contact info if available)
+  - Title: "Delivery Report"
+  - delivery_number, delivered_on
+  - customer name (and optional address)
+  - items table: product name, unit, quantity
+  - (optional) show unit_price and totals if unit_price present AND a toggle says show_prices
+  - notes
+  - signature lines: Delivered by / Received by / Date
+  - page numbers
+- Storage:
+  - Attach PDF to the Delivery via ActiveStorage (e.g., delivery.report_pdf attachment).
+  - Regeneration should replace existing attachment.
+
+D) Emailing the report
+- Implement DeliveryReportMailer:
+  - send_report(delivery_id, recipients, subject, message)
+  - attach the Delivery PDF
+- Provide a DeliveryReportEmailJob (ActiveJob) to send in background (Solid Queue).
+- Email form:
+  - recipients input accepts comma/semicolon-separated emails
+  - validate format; if invalid, show errors
+- On submit:
+  - create DeliveryEmailLog status=queued
+  - enqueue job
+- In job:
+  - send email
+  - update log status=sent with sent_at
+  - on exception update status=failed with error_message
+
+E) Inventory integration (critical)
+- When Delivery is marked delivered:
+  - validate from_location present
+  - validate sufficient stock for each item (block and show errors if insufficient)
+  - create StockMovement records of type=out per item:
+    business_id, product_id, quantity,
+    from_location_id, occurred_on=delivered_on,
+    reference_type="Delivery", reference_id=delivery.id,
+    notes="Delivery <delivery_number> to <customer>"
+  - update delivery status to delivered
+- If delivery is voided:
+  - MVP: disallow voiding once delivered OR require a reversal workflow (choose one and document).
+  - Prefer MVP: disallow voiding if delivered.
+
+========================================================
+7) DASHBOARD (End-of-day Insights)
+========================================================
+Dashboard should show:
+- Upcoming payables (next 7 / 30 days)
+- Overdue payables
+- Upcoming receivables (collections due next 7 / 30)
+- Overdue receivables
+- Low stock alerts
+- Month-to-date:
+  - expenses total
+  - personal out-of-pocket total
+  - collections total
+  - net cashflow = collections - expenses - payments
+- Today:
+  - deliveries made today + link to delivery reports
+
+========================================================
+8) REMINDERS + NOTIFICATIONS (MVP)
+========================================================
+- Notification:
+  business_id, user_id,
+  notifiable_type/id,
+  message, due_on,
+  status enum {unread, read}
+- Business settings:
+  reminder_lead_days integer default 7
+- Daily job:
+  - generates notifications for payables due in lead days, and overdue payables
+  - generates notifications for receivables due in lead days, and overdue receivables
+- Notifications inbox UI:
+  - list unread/read
+  - mark read (Turbo)
+
+========================================================
+9) UI/UX REQUIREMENTS
+========================================================
+- Tailwind layout:
+  responsive nav, tables, cards, badges, empty states
+- Turbo/Stimulus:
+  - inline status updates for payable paid / receivable collected / delivery delivered
+  - optional modal forms for quick actions
+- Currency helpers:
+  - store cents; display formatted currency (2 decimals)
+
+========================================================
+10) AUTHORIZATION RULES
+========================================================
+- Owner: full CRUD
+- Staff:
+  - can create/edit deliveries and stock movements
+  - can view dashboard
+  - cannot delete financial records (expenses/payables/collections)
+  - cannot change business settings
+Use a simple policy layer (Pundit) or controller checks.
+
+========================================================
+11) DEPLOYMENT REQUIREMENTS (KAMAL + DOCKER)
+========================================================
+- Provide:
+  - Dockerfile for Rails 8 production (multi-stage, bootsnap precompile, assets precompile)
+  - .dockerignore
+  - Kamal config (deploy.yml):
+    - registry settings (Docker Hub or GHCR)
+    - env + secrets:
+      RAILS_MASTER_KEY
+      SECRET_KEY_BASE
+      DATABASE_URL or POSTGRES settings
+      ACTIVE_STORAGE service env vars (S3 compatible)
+      SMTP settings for Action Mailer in production
+    - accessories:
+      - Postgres as accessory container by default
+      - (optional) Redis only if needed; prefer Solid Queue without extra deps
+- Production readiness:
+  - /up healthcheck route for Kamal
+  - migrations run on deploy (document the commands)
+- README includes:
+  - local dev setup
+  - how to set secrets
+  - how to deploy with Kamal
+  - how to configure SMTP and S3 storage
+
+========================================================
+12) SEEDS + TESTS
+========================================================
+- Seeds:
+  - owner user
+  - business
+  - sample customers (supermarket)
+  - sample products + locations
+- Tests (request/system):
+  - create expense
+  - mark payable paid
+  - receive purchase -> creates stock-in movements
+  - create delivery -> mark delivered -> creates stock-out movements
+  - generate delivery PDF -> attachment exists
+  - email delivery PDF -> enqueues job + creates DeliveryEmailLog
+
+Deliver the full codebase with clean structure, clear README, and production-ready defaults.

@@ -1,0 +1,8 @@
+<%= form_with model: product do |f| %>
+<p><%= f.text_field :name, placeholder: "Name" %></p>
+<p><%= f.text_field :sku, placeholder: "SKU" %></p>
+<p><%= f.text_field :unit, placeholder: "Unit" %></p>
+<p><%= f.number_field :reorder_level %></p>
+<p><%= f.check_box :active %> Active</p>
+<%= f.submit %>
+<% end %>

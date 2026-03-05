@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "Stockflow" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body>
+    <div class="min-h-screen bg-slate-50">
+      <nav class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3 justify-between">
+          <div class="flex items-center gap-4">
+            <%= link_to "Stockflow", root_path, class: "font-semibold text-slate-900" %>
+            <% if Current.user %>
+              <%= link_to "Dashboard", dashboard_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Expenses", expenses_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Payables", payables_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Receivables", receivables_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Purchases", purchases_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Deliveries", deliveries_path, class: "text-sm text-slate-700" %>
+              <%= link_to "Inventory", stock_movements_path, class: "text-sm text-slate-700" %>
+            <% end %>
+          </div>
+          <div class="flex items-center gap-2">
+            <% if Current.user && Current.user.businesses.any? %>
+              <%= form_with url: switch_business_path, method: :patch, class: "flex items-center gap-2" do |f| %>
+                <%= f.select :business_id, options_from_collection_for_select(Current.user.businesses, :id, :name, current_business&.id), {}, class: "border rounded px-2 py-1 text-sm" %>
+                <%= f.submit "Switch", class: "text-sm bg-slate-900 text-white px-2 py-1 rounded" %>
+              <% end %>
+            <% end %>
+            <% if Current.user %>
+              <%= button_to "Sign out", session_path, method: :delete, class: "text-sm border rounded px-2 py-1" %>
+            <% end %>
+          </div>
+        </div>
+      </nav>
+
+      <main class="max-w-7xl mx-auto p-4">
+        <% if notice.present? %><p class="mb-3 rounded bg-emerald-100 text-emerald-800 px-3 py-2"><%= notice %></p><% end %>
+        <% if alert.present? %><p class="mb-3 rounded bg-rose-100 text-rose-800 px-3 py-2"><%= alert %></p><% end %>
+        <%= yield %>
+      </main>
+    </div>
+  </body>
+</html>

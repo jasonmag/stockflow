@@ -1,0 +1,3 @@
+<h1>Purchases</h1>
+<%= link_to "New", new_purchase_path %>
+<% @purchases.each do |purchase| %><p><%= link_to "Purchase ##{purchase.id}", purchase %> - <%= purchase.status %></p><% end %>

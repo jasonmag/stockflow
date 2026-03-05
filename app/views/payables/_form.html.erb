@@ -1,0 +1,8 @@
+<%= form_with model: payable do |f| %>
+  <p><%= f.label :payable_type %><%= f.select :payable_type, Payable.payable_types.keys %></p>
+  <p><%= f.label :payee %><%= f.text_field :payee %></p>
+  <p><%= f.label :amount_cents %><%= f.number_field :amount_cents %></p>
+  <p><%= f.label :currency %><%= f.text_field :currency %></p>
+  <p><%= f.label :due_on %><%= f.date_field :due_on %></p>
+  <%= f.submit %>
+<% end %>

@@ -1,0 +1,11 @@
+<%= form_with model: purchase do |f| %>
+  <p><%= f.label :supplier_id %><%= f.collection_select :supplier_id, current_business.suppliers, :id, :name %></p>
+  <p><%= f.label :purchased_on %><%= f.date_field :purchased_on %></p>
+  <p><%= f.label :receiving_location_id %><%= f.collection_select :receiving_location_id, current_business.locations, :id, :name %></p>
+  <%= f.fields_for :purchase_items do |item| %>
+    <p><%= item.collection_select :product_id, current_business.products, :id, :name %></p>
+    <p><%= item.number_field :quantity, step: 0.01 %></p>
+    <p><%= item.number_field :unit_cost_cents %></p>
+  <% end %>
+  <%= f.submit %>
+<% end %>

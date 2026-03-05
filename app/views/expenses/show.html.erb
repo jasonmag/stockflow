@@ -1,0 +1,3 @@
+<h1><%= @expense.payee %></h1>
+<p><%= money(@expense.amount_cents, @expense.currency) %></p>
+<%= link_to "Edit", edit_expense_path(@expense) %>

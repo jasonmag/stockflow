@@ -1,0 +1,11 @@
+<%= form_with model: expense do |f| %>
+  <p><%= f.label :occurred_on %><%= f.date_field :occurred_on %></p>
+  <p><%= f.label :payee %><%= f.text_field :payee %></p>
+  <p><%= f.label :category_id %><%= f.collection_select :category_id, current_business.categories, :id, :name %></p>
+  <p><%= f.label :amount_cents %><%= f.number_field :amount_cents %></p>
+  <p><%= f.label :currency %><%= f.text_field :currency %></p>
+  <p><%= f.label :funding_source %><%= f.select :funding_source, Expense.funding_sources.keys %></p>
+  <p><%= f.label :payment_method %><%= f.select :payment_method, Expense.payment_methods.keys %></p>
+  <p><%= f.file_field :receipt %></p>
+  <%= f.submit %>
+<% end %>
