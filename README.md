@@ -56,6 +56,16 @@ bin/rails db:seed
 bin/dev
 ```
 
+## GitHub Repository Setup
+
+If you already created the GitHub repo, run:
+
+```bash
+git remote add origin git@github.com:jasonmag/stockflow.git
+git branch -M main
+git push -u origin main
+```
+
 Demo owner login:
 
 - Email: `owner@stockflow.local`
