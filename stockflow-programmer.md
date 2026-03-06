@@ -26,6 +26,10 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
   - Store current_business_id in session.
   - Business switcher UI in navbar.
 - All domain records must include business_id and be scoped by current_business in controllers and queries.
+- Hardening requirement (implemented):
+  - Add cross-tenant association validation so related records must match the same business.
+  - Example checks: Purchase->Supplier/Location, Delivery->Customer/Location/Items, StockMovement->Product/Locations/Reference.
+  - Reject mismatched IDs with model validation errors (prevents crafted cross-tenant POST/PATCH payloads).
 
 ========================================================
 2) EXPENSES + FUNDING SOURCE (Personal vs Business)
@@ -365,6 +369,19 @@ Starter Tailwind component checklist (implementation order):
   - cannot change business settings
 Use a simple policy layer (Pundit) or controller checks.
 
+Implemented controller-check baseline:
+- `ApplicationController` enforces a global staff operation guard.
+- Allowed for staff: dashboard, deliveries, stock movements, notifications, user guide, sign out, business switch.
+- Owner/system-admin required for restricted domains.
+
+System admin (platform-level) implemented:
+- `users.system_admin` boolean flag.
+- Admin namespace:
+  - `/admin` dashboard
+  - `/admin/users` (view users, toggle system admin, manage memberships)
+  - `/admin/businesses` (view tenants and members)
+- System admins can manage users/business memberships across all tenants.
+
 ========================================================
 11) DEPLOYMENT REQUIREMENTS (KAMAL + DOCKER)
 ========================================================
@@ -406,6 +423,9 @@ Use a simple policy layer (Pundit) or controller checks.
   - create delivery -> mark delivered -> creates stock-out movements
   - generate delivery PDF -> attachment exists
   - email delivery PDF -> enqueues job + creates DeliveryEmailLog
+  - cross-tenant validation checks for purchases/deliveries/stock movements
+  - staff authorization guard check
+  - system admin namespace access checks
 
 Deliver the full codebase with clean structure, clear README, and production-ready defaults.
 

@@ -1,0 +1,88 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @user.email_address %></h1>
+    <p class="mt-1 text-sm text-slate-600">System-wide user access and tenant memberships.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit User", edit_admin_user_path(@user), class: "btn btn-primary" %>
+    <%= link_to "Back to Users", admin_users_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Email</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @user.email_address %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">System Admin</dt>
+      <dd class="mt-1"><%= status_badge(@user.system_admin? ? :enabled : :disabled) %></dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Memberships</h2>
+  <% if @memberships.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Business</th>
+            <th>Role</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @memberships.each do |membership| %>
+            <tr>
+              <td class="font-medium text-slate-900"><%= link_to membership.business.name, admin_business_path(membership.business), class: "hover:underline" %></td>
+              <td>
+                <%= form_with model: [ :admin, membership ], class: "flex items-center gap-2" do |f| %>
+                  <%= f.select :role, Membership.roles.keys.map { |role| [role.humanize, role] }, {}, class: "field-input w-32" %>
+                  <%= f.submit "Save", class: "btn btn-secondary" %>
+                <% end %>
+              </td>
+              <td class="text-right">
+                <%= button_to "Remove", admin_membership_path(membership), method: :delete, class: "btn btn-ghost", data: { turbo_confirm: "Remove this membership?" } %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No business memberships.</p>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Add Membership</h2>
+  <% if @available_businesses.any? %>
+    <%= form_with url: admin_memberships_path, method: :post, class: "grid gap-3 md:grid-cols-4" do |f| %>
+      <%= f.hidden_field :user_id, value: @user.id, name: "membership[user_id]" %>
+      <div class="md:col-span-2">
+        <label class="field-label" for="membership_business_id">Business</label>
+        <select id="membership_business_id" name="membership[business_id]" class="field-input">
+          <% @available_businesses.each do |business| %>
+            <option value="<%= business.id %>"><%= business.name %></option>
+          <% end %>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="membership_role">Role</label>
+        <select id="membership_role" name="membership[role]" class="field-input">
+          <% Membership.roles.keys.each do |role| %>
+            <option value="<%= role %>"><%= role.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <%= f.submit "Add", class: "btn btn-primary w-full" %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-sm text-slate-600">User already belongs to all businesses.</p>
+  <% end %>
+</section>

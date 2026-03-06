@@ -1,0 +1,81 @@
+<div class="mb-6">
+  <h1 class="page-title">User Guide</h1>
+  <p class="mt-1 text-sm text-slate-600">Inventory workflow from purchase to delivery, returns, spoilage, and own consumption.</p>
+</div>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Quick Checklist</h2>
+  <ol class="list-decimal space-y-2 pl-5 text-sm text-slate-700">
+    <li>Create purchase and verify item lines.</li>
+    <li>Receive purchase only after physical goods check.</li>
+    <li>Pick inventory directly or transfer to dispatch area.</li>
+    <li>Create delivery draft with correct source location.</li>
+    <li>Mark delivery as delivered only after handoff confirmation.</li>
+    <li>Record returns as positive adjustments.</li>
+    <li>Record spoilage and own use as negative adjustments.</li>
+    <li>Reconcile purchases, deliveries, and stock movements end-of-day.</li>
+  </ol>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Step-by-Step Workflow</h2>
+
+  <div class="space-y-4 text-sm text-slate-700">
+    <div>
+      <h3 class="font-semibold text-slate-900">1. Purchase Items</h3>
+      <p>Go to <strong>Purchases</strong> -> <strong>New Purchase</strong>, set supplier/date/receiving location, add line items, then save draft.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">2. Receive to Storage</h3>
+      <p>Open the purchase and click <strong>Receive</strong> after physical verification. This creates stock-in ledger entries.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">3. Collect for Delivery</h3>
+      <p>Either deliver from main storage or stage stock first using <strong>Stock Movements</strong> with movement type <strong>transfer</strong>.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">4. Deliver to Supermarket</h3>
+      <p>Create a delivery draft with customer, delivery date, source location, and line items. Use PDF actions if needed, then click <strong>Mark Delivered</strong>.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">5. Record Returns</h3>
+      <p>Use <strong>Stock Movements</strong> with movement type <strong>adjustment</strong> and a positive quantity to add returned items back.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">6. Record Spoilage</h3>
+      <p>Use <strong>adjustment</strong> with a negative quantity to remove damaged/expired stock.</p>
+    </div>
+
+    <div>
+      <h3 class="font-semibold text-slate-900">7. Record Own Consumption</h3>
+      <p>Use <strong>adjustment</strong> with a negative quantity, with notes for internal usage reason.</p>
+    </div>
+  </div>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Stock Movement Rules</h2>
+  <ul class="list-disc space-y-2 pl-5 text-sm text-slate-700">
+    <li><strong>in</strong>: Adds stock to <code>to_location</code>.</li>
+    <li><strong>out</strong>: Deducts stock from <code>from_location</code>.</li>
+    <li><strong>transfer</strong>: Moves stock between locations.</li>
+    <li><strong>adjustment</strong>: Manual correction on one location (use positive or negative quantity).</li>
+  </ul>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Notes Standard</h2>
+  <p class="mb-2 text-sm text-slate-700">Use prefixes so records are easy to audit:</p>
+  <ul class="list-disc space-y-1 pl-5 text-sm text-slate-700">
+    <li><code>PURCHASE:</code> invoice or PO reference</li>
+    <li><code>DELIVERY:</code> dispatch or receiving remarks</li>
+    <li><code>RETURN:</code> delivery number and reason</li>
+    <li><code>SPOILAGE:</code> cause and batch/date</li>
+    <li><code>OWN_USE:</code> person/department and purpose</li>
+  </ul>
+</section>

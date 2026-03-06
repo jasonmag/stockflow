@@ -1,0 +1,115 @@
+require "test_helper"
+
+class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
+  setup do
+    @owner = User.create!(email_address: "owner-security@example.com", password: "password123", password_confirmation: "password123")
+    @staff = User.create!(email_address: "staff-security@example.com", password: "password123", password_confirmation: "password123")
+    @system_admin = User.create!(email_address: "sysadmin-security@example.com", password: "password123", password_confirmation: "password123", system_admin: true)
+
+    @business_one = Business.create!(name: "Business One")
+    @business_two = Business.create!(name: "Business Two")
+
+    Membership.create!(user: @owner, business: @business_one, role: :owner)
+    Membership.create!(user: @owner, business: @business_two, role: :owner)
+    Membership.create!(user: @staff, business: @business_one, role: :staff)
+
+    @category_one = Category.create!(business: @business_one, name: "Ops")
+    @supplier_one = Supplier.create!(business: @business_one, name: "Supplier One")
+    @supplier_two = Supplier.create!(business: @business_two, name: "Supplier Two")
+    @location_one = Location.create!(business: @business_one, name: "Warehouse One", location_type: :warehouse)
+    @location_two = Location.create!(business: @business_two, name: "Warehouse Two", location_type: :warehouse)
+    @customer_one = Customer.create!(business: @business_one, name: "Market One")
+    @product_one = Product.create!(business: @business_one, name: "Prod One", unit: "pc")
+    @product_two = Product.create!(business: @business_two, name: "Prod Two", unit: "pc")
+  end
+
+  test "staff cannot access owner-only operations pages" do
+    sign_in_as(@staff)
+
+    get new_expense_path
+
+    assert_redirected_to root_path
+    assert_equal "Not authorized.", flash[:alert]
+  end
+
+  test "non-system admin cannot access admin namespace" do
+    sign_in_as(@owner)
+
+    get admin_root_path
+
+    assert_redirected_to root_path
+    assert_equal "Only system admins can do that.", flash[:alert]
+  end
+
+  test "system admin can access admin namespace without memberships" do
+    sign_in_as(@system_admin)
+
+    get admin_root_path
+
+    assert_response :success
+  end
+
+  test "purchase rejects supplier from another business" do
+    sign_in_as(@owner)
+
+    assert_no_difference("Purchase.count") do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier_two.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location_one.id,
+          funding_source: :business,
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product_one.id,
+              quantity: 1,
+              unit_cost_cents: 100
+            }
+          }
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  test "delivery rejects item product from another business" do
+    sign_in_as(@owner)
+
+    assert_no_difference("Delivery.count") do
+      post deliveries_path, params: {
+        delivery: {
+          customer_id: @customer_one.id,
+          delivered_on: Date.current,
+          from_location_id: @location_one.id,
+          delivery_items_attributes: {
+            "0" => {
+              product_id: @product_two.id,
+              quantity: 1
+            }
+          }
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  test "stock movement rejects cross-business location" do
+    sign_in_as(@owner)
+
+    assert_no_difference("StockMovement.count") do
+      post stock_movements_path, params: {
+        stock_movement: {
+          movement_type: :out,
+          product_id: @product_one.id,
+          quantity: 1,
+          from_location_id: @location_two.id,
+          occurred_on: Date.current
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+end

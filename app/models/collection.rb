@@ -1,4 +1,6 @@
 class Collection < ApplicationRecord
+  include BusinessScopeValidation
+
   belongs_to :business
   belongs_to :receivable, optional: true
 
@@ -6,4 +8,5 @@ class Collection < ApplicationRecord
 
   validates :collected_on, :amount_cents, :method, presence: true
   validates :amount_cents, numericality: { greater_than: 0 }
+  validates_same_business_of :receivable
 end

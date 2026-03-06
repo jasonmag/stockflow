@@ -1,4 +1,6 @@
 class Delivery < ApplicationRecord
+  include BusinessScopeValidation
+
   belongs_to :business
   belongs_to :customer
   belongs_to :from_location, class_name: "Location", optional: true
@@ -11,6 +13,7 @@ class Delivery < ApplicationRecord
   enum :status, { draft: 0, delivered: 1, void: 2 }
 
   validates :delivery_number, :delivered_on, presence: true
+  validates_same_business_of :customer, :from_location
 
   before_validation :assign_delivery_number, on: :create
 

@@ -1,4 +1,6 @@
 class Expense < ApplicationRecord
+  include BusinessScopeValidation
+
   belongs_to :business
   belongs_to :category
   has_one_attached :receipt
@@ -10,6 +12,7 @@ class Expense < ApplicationRecord
   validates :occurred_on, :payee, :amount_cents, :currency, presence: true
   validates :amount_cents, numericality: { greater_than: 0 }
   validates :receipt, presence: true
+  validates_same_business_of :category
 
   scope :for_month_to_date, -> { where(occurred_on: Date.current.beginning_of_month..Date.current) }
 end

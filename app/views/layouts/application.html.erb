@@ -80,6 +80,10 @@
               <%= nav_link_to "Purchases", purchases_path %>
               <%= nav_link_to "Deliveries", deliveries_path %>
               <%= nav_link_to "Inventory", stock_movements_path %>
+              <%= nav_link_to "User Guide", user_guide_path %>
+              <% if system_admin? %>
+                <%= nav_link_to "Admin", admin_root_path %>
+              <% end %>
             </div>
           <% end %>
         </div>

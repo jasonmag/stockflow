@@ -11,4 +11,8 @@ class User < ApplicationRecord
   def owner_of?(business)
     memberships.where(business:, role: :owner).exists?
   end
+
+  def role_for(business)
+    memberships.find_by(business:)&.role
+  end
 end

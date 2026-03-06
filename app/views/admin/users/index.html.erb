@@ -1,0 +1,36 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Admin Users</h1>
+    <p class="mt-1 text-sm text-slate-600">Manage system admin status and per-business memberships.</p>
+  </div>
+  <%= link_to "System Admin Home", admin_root_path, class: "btn btn-secondary" %>
+</div>
+
+<section class="card">
+  <% if @users.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>System Admin</th>
+            <th>Memberships</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @users.each do |user| %>
+            <tr>
+              <td class="font-medium text-slate-900"><%= user.email_address %></td>
+              <td><%= status_badge(user.system_admin? ? :enabled : :disabled) %></td>
+              <td><%= user.memberships.size %></td>
+              <td class="text-right"><%= link_to "View", admin_user_path(user), class: "btn btn-ghost" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="empty-state">No users found.</p>
+  <% end %>
+</section>

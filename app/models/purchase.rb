@@ -1,4 +1,6 @@
 class Purchase < ApplicationRecord
+  include BusinessScopeValidation
+
   belongs_to :business
   belongs_to :supplier
   belongs_to :receiving_location, class_name: "Location"
@@ -9,6 +11,7 @@ class Purchase < ApplicationRecord
   enum :status, { draft: 0, received: 1 }
 
   validates :purchased_on, :receiving_location, presence: true
+  validates_same_business_of :supplier, :receiving_location
 
   def receive!
     transaction do

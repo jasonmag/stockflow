@@ -1,0 +1,63 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">System Admin</h1>
+    <p class="mt-1 text-sm text-slate-600">Cross-tenant management for users, businesses, and memberships.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Users", admin_users_path, class: "btn btn-secondary" %>
+    <%= link_to "Businesses", admin_businesses_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<div class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <article class="card">
+    <p class="kpi-label">Businesses</p>
+    <p class="kpi-value"><%= @business_count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Users</p>
+    <p class="kpi-value"><%= @user_count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Memberships</p>
+    <p class="kpi-value"><%= @membership_count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">System Admins</p>
+    <p class="kpi-value"><%= @system_admin_count %></p>
+  </article>
+</div>
+
+<div class="grid gap-4 xl:grid-cols-2">
+  <section class="card">
+    <h2 class="mb-3 text-base font-semibold text-slate-900">Recent Users</h2>
+    <% if @recent_users.any? %>
+      <ul class="space-y-2">
+        <% @recent_users.each do |user| %>
+          <li class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <%= link_to user.email_address, admin_user_path(user), class: "text-sm font-medium text-slate-900 hover:underline" %>
+            <%= status_badge(user.system_admin? ? :enabled : :disabled) %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="empty-state">No users yet.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <h2 class="mb-3 text-base font-semibold text-slate-900">Recent Businesses</h2>
+    <% if @recent_businesses.any? %>
+      <ul class="space-y-2">
+        <% @recent_businesses.each do |business| %>
+          <li class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2">
+            <%= link_to business.name, admin_business_path(business), class: "text-sm font-medium text-slate-900 hover:underline" %>
+            <span class="text-xs text-slate-500"><%= pluralize(business.memberships.size, "member") %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p class="empty-state">No businesses yet.</p>
+    <% end %>
+  </section>
+</div>

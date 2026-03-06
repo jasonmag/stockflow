@@ -133,3 +133,8 @@ Healthcheck endpoint: `GET /up`
 
 - Delivered records cannot be voided/deleted (MVP safety choice).
 - Financial delete actions are owner-restricted.
+
+## Operations Documentation
+
+- End-to-end inventory operations SOP: `docs/inventory-operations-workflow.md`
+- Operator one-page checklist: `docs/operator-quick-checklist.md`

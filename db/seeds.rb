@@ -3,6 +3,13 @@ owner = User.find_or_create_by!(email_address: "owner@stockflow.local") do |u|
   u.password_confirmation = "password123"
 end
 
+system_admin = User.find_or_create_by!(email_address: "admin@stockflow.local") do |u|
+  u.password = "password123"
+  u.password_confirmation = "password123"
+  u.system_admin = true
+end
+system_admin.update!(system_admin: true)
+
 business = Business.find_or_create_by!(name: "Stockflow Demo Trading") do |b|
   b.contact_email = "ops@stockflow.local"
   b.contact_phone = "+63 917 000 0000"
@@ -55,3 +62,4 @@ end
 
 puts "Seed complete"
 puts "Owner login: owner@stockflow.local / password123"
+puts "System admin login: admin@stockflow.local / password123"

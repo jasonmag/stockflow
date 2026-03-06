@@ -1,0 +1,35 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @business.name %></h1>
+    <p class="mt-1 text-sm text-slate-600">Business membership list.</p>
+  </div>
+  <%= link_to "Back to Businesses", admin_businesses_path, class: "btn btn-secondary" %>
+</div>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Members</h2>
+  <% if @memberships.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>System Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @memberships.each do |membership| %>
+            <tr>
+              <td class="font-medium text-slate-900"><%= link_to membership.user.email_address, admin_user_path(membership.user), class: "hover:underline" %></td>
+              <td><%= status_badge(membership.role) %></td>
+              <td><%= status_badge(membership.user.system_admin? ? :enabled : :disabled) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No memberships for this business.</p>
+  <% end %>
+</section>

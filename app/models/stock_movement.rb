@@ -1,4 +1,6 @@
 class StockMovement < ApplicationRecord
+  include BusinessScopeValidation
+
   belongs_to :business
   belongs_to :product
   belongs_to :from_location, class_name: "Location", optional: true
@@ -9,7 +11,9 @@ class StockMovement < ApplicationRecord
 
   validates :occurred_on, :quantity, :movement_type, presence: true
   validates :unit_cost_cents, presence: true, if: :in?
+  validates_same_business_of :product, :from_location, :to_location
   validate :movement_locations_valid
+  validate :reference_matches_business
 
   scope :inward, -> { where(movement_type: :in) }
 
@@ -28,5 +32,13 @@ class StockMovement < ApplicationRecord
       when :adjustment
         errors.add(:from_location, "or to_location is required for adjustments") if from_location.blank? && to_location.blank?
       end
+    end
+
+    def reference_matches_business
+      return if reference.blank?
+      return unless reference.respond_to?(:business_id)
+      return if reference.business_id == business_id
+
+      errors.add(:reference, "must belong to the current business")
     end
 end

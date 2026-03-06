@@ -2,7 +2,8 @@ class ApplicationController < ActionController::Base
   include Authentication
   before_action :set_current_business
   before_action :ensure_business_selected
-  helper_method :current_business, :owner?
+  before_action :ensure_staff_can_manage_operations!
+  helper_method :current_business, :owner?, :system_admin?
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
@@ -10,6 +11,12 @@ class ApplicationController < ActionController::Base
   private
     def set_current_business
       return unless Current.user
+
+      if system_admin? && Current.user.businesses.empty?
+        session.delete(:current_business_id)
+        Current.business = nil
+        return
+      end
 
       business = Current.user.businesses.find_by(id: session[:current_business_id]) || Current.user.businesses.first
       session[:current_business_id] = business&.id
@@ -22,23 +29,41 @@ class ApplicationController < ActionController::Base
 
     def ensure_business_selected
       return unless Current.user
+      return if admin_namespace?
       return if current_business.present?
+      return redirect_to admin_root_path if system_admin?
 
-      redirect_to new_session_path, alert: "No business membership assigned."
+      redirect_to base_login_path, alert: "No business membership assigned."
     end
 
     def owner?
+      return true if system_admin?
+
       current_business && Current.user&.owner_of?(current_business)
+    end
+
+    def system_admin?
+      Current.user&.system_admin?
     end
 
     def require_owner!
       redirect_to root_path, alert: "Only owners can do that." unless owner?
     end
 
+    def require_system_admin!
+      redirect_to root_path, alert: "Only system admins can do that." unless system_admin?
+    end
+
     def ensure_staff_can_manage_operations!
-      return if owner?
-      return if %w[stock_movements deliveries dashboard].include?(controller_name)
+      return unless Current.user
+      return if admin_namespace?
+      return if system_admin? || owner?
+      return if %w[stock_movements deliveries dashboard user_guides notifications businesses sessions].include?(controller_name)
 
       redirect_to root_path, alert: "Not authorized."
+    end
+
+    def admin_namespace?
+      controller_path.start_with?("admin/")
     end
 end

@@ -1,5 +1,14 @@
 Rails.application.routes.draw do
-  resource :session
+  namespace :admin do
+    root "dashboard#index"
+    resources :users, only: %i[index show edit update]
+    resources :businesses, only: %i[index show]
+    resources :memberships, only: %i[create update destroy]
+  end
+
+  resource :session, only: %i[create destroy]
+  get "base/login", to: "sessions#new", as: :base_login
+  get "base/admin/login", to: "sessions#admin_new", as: :base_admin_login
   resources :passwords, param: :token
   resource :business, only: [] do
     patch :switch
@@ -44,6 +53,7 @@ Rails.application.routes.draw do
       patch :mark_read
     end
   end
+  get "user_guide", to: "user_guides#show"
   get "dashboard", to: "dashboard#index"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
