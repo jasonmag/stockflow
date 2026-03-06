@@ -277,6 +277,11 @@ Dashboard should show:
 9) UI/UX REQUIREMENTS
 ========================================================
 - TailwindCSS must be used as the primary UI layer with a clean, user-friendly, mobile-first design.
+- Theme requirement (mandatory):
+  - Implement at least 3 visual themes (e.g., Ocean, Forest, Classic) using CSS variables + Tailwind component classes.
+  - Include a visible theme switcher in the app shell (navbar/header).
+  - Persist user theme choice in browser localStorage and apply it on first paint to avoid flash/mismatch.
+  - Theme must affect key UI surfaces (background, cards, buttons, badges, links, nav, tables), not only one accent color.
 - Build a reusable UI pattern set (partials/components) for:
   - App shell: top nav, business switcher, page header, breadcrumb
   - Data displays: cards, responsive tables, definition lists, KPI widgets
@@ -313,6 +318,7 @@ Starter Tailwind component checklist (implementation order):
 1. Foundation
    - Configure Tailwind theme tokens (colors, spacing, radius, shadows, typography).
    - Create base layout shell: navbar, business switcher, container, page header.
+   - Add theme variables and at least 3 theme palettes; wire a persistent theme switcher.
 2. Core controls
    - Build button variants (primary/secondary/ghost/danger) and link styles.
    - Build form primitives: input, select, textarea, checkbox, date input, field error text.
