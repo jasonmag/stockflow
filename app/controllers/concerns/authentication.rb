@@ -31,7 +31,7 @@ module Authentication
 
     def request_authentication
       session[:return_to_after_authenticating] = request.url
-      redirect_to(request.path.start_with?("/admin") ? base_admin_login_path : base_login_path)
+      redirect_to(request.path.start_with?("/admin") ? admin_login_path : login_path)
     end
 
     def after_authentication_url

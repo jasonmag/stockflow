@@ -33,7 +33,7 @@ class ApplicationController < ActionController::Base
       return if current_business.present?
       return redirect_to admin_root_path if system_admin?
 
-      redirect_to base_login_path, alert: "No business membership assigned."
+      redirect_to login_path, alert: "No business membership assigned."
     end
 
     def owner?

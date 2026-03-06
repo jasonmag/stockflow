@@ -7,8 +7,8 @@ Rails.application.routes.draw do
   end
 
   resource :session, only: %i[create destroy]
-  get "base/login", to: "sessions#new", as: :base_login
-  get "base/admin/login", to: "sessions#admin_new", as: :base_admin_login
+  get "login", to: "sessions#new", as: :login
+  get "admin/login", to: "sessions#admin_new", as: :admin_login
   resources :passwords, param: :token
   resource :business, only: [] do
     patch :switch
