@@ -1,6 +1,59 @@
-<h1>Payables</h1>
-<%= link_to "New", new_payable_path %>
-<% @payables.each do |row| %>
-  <p><%= link_to row.payee, row %> - <%= row.status %> - <%= row.due_on %>
-  <% unless row.paid? %><%= button_to "Mark Paid", mark_paid_payable_path(row), method: :patch %><% end %></p>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Payables</h1>
+    <p class="mt-1 text-sm text-slate-600">Track due obligations and mark settled balances.</p>
+  </div>
+  <%= link_to "New Payable", new_payable_path, class: "btn btn-primary" %>
+</div>
+
+<div class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <article class="card">
+    <p class="kpi-label">Overdue</p>
+    <p class="kpi-value"><%= @overdue_payables.count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Upcoming (30 days)</p>
+    <p class="kpi-value"><%= @upcoming_payables.count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Total Records</p>
+    <p class="kpi-value"><%= @payables.count %></p>
+  </article>
+</div>
+
+<% if @payables.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Payee</th>
+          <th>Type</th>
+          <th>Due date</th>
+          <th>Status</th>
+          <th>Amount</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payables.each do |row| %>
+          <tr class="<%= 'bg-rose-50' if row.overdue? %>">
+            <td class="font-medium text-slate-900"><%= link_to row.payee, payable_path(row), class: "hover:underline" %></td>
+            <td><%= row.payable_type.humanize %></td>
+            <td><%= row.due_on %></td>
+            <td><%= status_badge(row.status) %></td>
+            <td class="font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></td>
+            <td>
+              <% unless row.paid? %>
+                <%= button_to "Mark Paid", mark_paid_payable_path(row), method: :patch, class: "btn btn-secondary" %>
+              <% else %>
+                <span class="text-xs text-slate-500">Completed</span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No payables yet. Add one to start tracking due payments.</p>
 <% end %>

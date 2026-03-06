@@ -276,13 +276,63 @@ Dashboard should show:
 ========================================================
 9) UI/UX REQUIREMENTS
 ========================================================
-- Tailwind layout:
-  responsive nav, tables, cards, badges, empty states
-- Turbo/Stimulus:
-  - inline status updates for payable paid / receivable collected / delivery delivered
-  - optional modal forms for quick actions
+- TailwindCSS must be used as the primary UI layer with a clean, user-friendly, mobile-first design.
+- Build a reusable UI pattern set (partials/components) for:
+  - App shell: top nav, business switcher, page header, breadcrumb
+  - Data displays: cards, responsive tables, definition lists, KPI widgets
+  - Actions: buttons (primary/secondary/ghost/danger), dropdowns, pagination
+  - Feedback: badges, alerts, toasts/flash messages, form errors, empty states, skeleton loaders
+  - Forms: labeled inputs, selects, date pickers, textareas, input groups, validation hints
+- Design tokens (Tailwind theme):
+  - Define consistent color palette, spacing scale, radius, shadows, and typography in Tailwind config.
+  - Ensure high contrast text and status colors (success/warning/danger/info).
+  - Keep visual hierarchy clear using size/weight/spacing, not color alone.
+- User-friendly layout requirements:
+  - Mobile-first screens that scale cleanly to tablet/desktop.
+  - Sticky table headers for long lists; horizontal scroll wrappers on small screens.
+  - Primary actions visible above the fold; destructive actions visually distinct.
+  - Empty states should include helpful copy and a clear next action.
+- Accessibility requirements:
+  - Keyboard navigable interactive elements with visible focus states.
+  - Minimum touch target size for buttons/controls.
+  - Proper labels, aria attributes where needed, and semantic HTML structure.
+  - Do not rely only on color to convey status.
+- Turbo/Stimulus UX:
+  - Inline status updates for payable paid / receivable collected / delivery delivered.
+  - Use Turbo Frames for partial page refreshes in lists and detail side panels.
+  - Optional modal forms for quick actions; ensure Esc/close behavior and focus management.
+- Domain-specific UI guidance:
+  - Dashboard: KPI cards first, then alerts (overdue/low stock), then activity lists.
+  - Financial pages: default sort by most urgent due date; highlight overdue rows.
+  - Inventory pages: low-stock badges and quick filters (location/product/status).
+  - Deliveries: one-click actions for Generate PDF, Download PDF, Email PDF, Mark Delivered.
 - Currency helpers:
-  - store cents; display formatted currency (2 decimals)
+  - Store cents; display formatted currency (2 decimals) consistently across all components.
+
+Starter Tailwind component checklist (implementation order):
+1. Foundation
+   - Configure Tailwind theme tokens (colors, spacing, radius, shadows, typography).
+   - Create base layout shell: navbar, business switcher, container, page header.
+2. Core controls
+   - Build button variants (primary/secondary/ghost/danger) and link styles.
+   - Build form primitives: input, select, textarea, checkbox, date input, field error text.
+3. Feedback and states
+   - Implement flash/alert components (success/warning/error/info).
+   - Implement badges and status pills for payable/receivable/delivery/inventory states.
+   - Implement empty-state and loading/skeleton components.
+4. Data presentation
+   - Build responsive table wrapper with sticky header and row status styling.
+   - Build card and KPI widgets for dashboard summaries.
+5. Interaction patterns
+   - Add Turbo Frame-ready partials for lists and detail panels.
+   - Add modal/slide-over pattern with proper focus handling and keyboard close behavior.
+6. Domain assembly
+   - Apply components to Dashboard first, then Deliveries, then Payables/Receivables, then Inventory.
+   - Validate consistency of spacing, type scale, button placement, and status color usage.
+7. Quality checks
+   - Run mobile viewport checks for key pages (dashboard, index lists, form pages, delivery show).
+   - Run keyboard-only pass and focus visibility checks.
+   - Verify color contrast and that status is understandable without color alone.
 
 ========================================================
 10) AUTHORIZATION RULES
