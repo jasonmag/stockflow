@@ -1,46 +1,209 @@
 @import "tailwindcss";
 
+:root {
+  --bg-base: #f5f7fb;
+  --bg-soft: #e7edf8;
+  --surface-color: #ffffff;
+  --surface-muted: #f4f7fc;
+  --surface-hover: #e9eef8;
+  --border-color: #cfd8e6;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #64748b;
+  --brand-color: #155e75;
+  --brand-contrast: #ffffff;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --link-color: #1d4ed8;
+  --danger-color: #be123c;
+  --danger-hover: #9f1239;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #ffe4e6;
+  --danger-text: #9f1239;
+  --neutral-bg: #e2e8f0;
+  --neutral-text: #334155;
+}
+
+:root[data-theme="ocean"] {
+  --bg-base: #ecfeff;
+  --bg-soft: #cffafe;
+  --surface-color: #ffffff;
+  --surface-muted: #f0fdff;
+  --surface-hover: #dff8ff;
+  --border-color: #b8e6f2;
+  --text-primary: #0f172a;
+  --text-secondary: #164e63;
+  --text-muted: #0e7490;
+  --brand-color: #0f766e;
+  --brand-contrast: #ffffff;
+  --accent-color: #0e7490;
+  --accent-hover: #155e75;
+  --link-color: #0e7490;
+  --danger-color: #be123c;
+  --danger-hover: #9f1239;
+  --success-bg: #ccfbf1;
+  --success-text: #115e59;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #ffe4e6;
+  --danger-text: #9f1239;
+  --neutral-bg: #dbeafe;
+  --neutral-text: #1e3a8a;
+}
+
+:root[data-theme="forest"] {
+  --bg-base: #f0fdf4;
+  --bg-soft: #dcfce7;
+  --surface-color: #ffffff;
+  --surface-muted: #f3fbf4;
+  --surface-hover: #e2f6e7;
+  --border-color: #c6e3cc;
+  --text-primary: #14532d;
+  --text-secondary: #166534;
+  --text-muted: #3f6212;
+  --brand-color: #365314;
+  --brand-contrast: #ffffff;
+  --accent-color: #15803d;
+  --accent-hover: #166534;
+  --link-color: #166534;
+  --danger-color: #be123c;
+  --danger-hover: #9f1239;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --warning-bg: #fef9c3;
+  --warning-text: #854d0e;
+  --danger-bg: #ffe4e6;
+  --danger-text: #9f1239;
+  --neutral-bg: #e2e8f0;
+  --neutral-text: #334155;
+}
+
+:root[data-theme="classic"] {
+  --bg-base: #f5f7fb;
+  --bg-soft: #e7edf8;
+  --surface-color: #ffffff;
+  --surface-muted: #f4f7fc;
+  --surface-hover: #e9eef8;
+  --border-color: #cfd8e6;
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #64748b;
+  --brand-color: #155e75;
+  --brand-contrast: #ffffff;
+  --accent-color: #2563eb;
+  --accent-hover: #1d4ed8;
+  --link-color: #1d4ed8;
+  --danger-color: #be123c;
+  --danger-hover: #9f1239;
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #ffe4e6;
+  --danger-text: #9f1239;
+  --neutral-bg: #e2e8f0;
+  --neutral-text: #334155;
+}
+
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900;
+    color: var(--text-primary);
+    background:
+      radial-gradient(circle at top right, var(--bg-soft), transparent 38%),
+      linear-gradient(180deg, var(--bg-base) 0%, #ffffff 55%);
+  }
+
+  a {
+    color: var(--link-color);
+  }
+
+  a:hover {
+    color: var(--accent-hover);
   }
 }
 
 @layer components {
+  .app-nav {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--surface-color);
+  }
+
+  .brand-pill {
+    background: var(--brand-color);
+    color: var(--brand-contrast);
+    @apply rounded-lg px-3 py-2 text-sm font-semibold tracking-wide;
+  }
+
   .page-title {
-    @apply text-2xl font-semibold tracking-tight text-slate-900;
+    color: var(--text-primary);
+    @apply text-2xl font-semibold tracking-tight;
   }
 
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-4 shadow-sm;
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    @apply rounded-xl border p-4 shadow-sm;
   }
 
   .kpi-value {
-    @apply mt-1 text-2xl font-semibold tracking-tight text-slate-900;
+    color: var(--text-primary);
+    @apply mt-1 text-2xl font-semibold tracking-tight;
   }
 
   .kpi-label {
-    @apply text-xs font-medium uppercase tracking-wide text-slate-500;
+    color: var(--text-muted);
+    @apply text-xs font-medium uppercase tracking-wide;
   }
 
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    --tw-ring-color: var(--accent-color);
   }
 
   .btn-primary {
-    @apply border-blue-600 bg-blue-600 text-white hover:bg-blue-700;
+    border-color: var(--accent-color);
+    background: var(--accent-color);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
   }
 
   .btn-secondary {
-    @apply border-slate-300 bg-white text-slate-700 hover:bg-slate-100;
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-secondary);
+  }
+
+  .btn-secondary:hover {
+    background: var(--surface-hover);
   }
 
   .btn-ghost {
-    @apply border-transparent bg-transparent text-slate-600 hover:bg-slate-100;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover {
+    background: var(--surface-hover);
   }
 
   .btn-danger {
-    @apply border-rose-600 bg-rose-600 text-white hover:bg-rose-700;
+    border-color: var(--danger-color);
+    background: var(--danger-color);
+    color: #ffffff;
+  }
+
+  .btn-danger:hover {
+    background: var(--danger-hover);
   }
 
   .badge {
@@ -48,19 +211,23 @@
   }
 
   .badge-success {
-    @apply bg-emerald-100 text-emerald-700;
+    background: var(--success-bg);
+    color: var(--success-text);
   }
 
   .badge-warning {
-    @apply bg-amber-100 text-amber-700;
+    background: var(--warning-bg);
+    color: var(--warning-text);
   }
 
   .badge-danger {
-    @apply bg-rose-100 text-rose-700;
+    background: var(--danger-bg);
+    color: var(--danger-text);
   }
 
   .badge-neutral {
-    @apply bg-slate-100 text-slate-700;
+    background: var(--neutral-bg);
+    color: var(--neutral-text);
   }
 
   .flash {
@@ -68,23 +235,31 @@
   }
 
   .flash-notice {
-    @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+    background: var(--success-bg);
+    color: var(--success-text);
+    border-color: color-mix(in srgb, var(--success-text), white 75%);
   }
 
   .flash-alert {
-    @apply border-rose-200 bg-rose-50 text-rose-800;
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border-color: color-mix(in srgb, var(--danger-text), white 75%);
   }
 
   .table-wrap {
-    @apply overflow-x-auto rounded-xl border border-slate-200 bg-white;
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    @apply overflow-x-auto rounded-xl border;
   }
 
   .table-base {
-    @apply min-w-full divide-y divide-slate-200 text-sm;
+    @apply min-w-full text-sm;
   }
 
   .table-base thead {
-    @apply bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-600;
+    background: var(--surface-muted);
+    color: var(--text-muted);
+    @apply text-left text-xs font-semibold uppercase tracking-wide;
   }
 
   .table-base th {
@@ -92,26 +267,35 @@
   }
 
   .table-base td {
-    @apply px-4 py-3 align-top text-slate-700;
+    color: var(--text-secondary);
+    @apply px-4 py-3 align-top;
   }
 
   .table-base tbody tr {
-    @apply border-t border-slate-100;
+    border-top: 1px solid var(--border-color);
   }
 
   .table-base tbody tr:hover {
-    @apply bg-slate-50;
+    background: var(--surface-hover);
   }
 
   .empty-state {
-    @apply rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-600;
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-secondary);
+    @apply rounded-xl border border-dashed p-6 text-center text-sm;
   }
 
   .field-label {
-    @apply mb-1 block text-sm font-medium text-slate-700;
+    color: var(--text-secondary);
+    @apply mb-1 block text-sm font-medium;
   }
 
   .field-input {
-    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500;
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    @apply w-full rounded-lg border px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2;
+    --tw-ring-color: var(--accent-color);
   }
 }
