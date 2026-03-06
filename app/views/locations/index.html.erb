@@ -1,2 +1,32 @@
-<h1>Locations</h1><%= link_to "New", new_location_path %>
-<% @locations.each do |row| %><p><%= link_to row.name, row %></p><% end %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Locations</h1>
+    <p class="mt-1 text-sm text-slate-600">Track where stock is stored, received, and delivered from.</p>
+  </div>
+  <%= link_to "New Location", new_location_path, class: "btn btn-primary" %>
+</div>
+
+<% if @locations.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @locations.each do |row| %>
+          <tr>
+            <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td><%= row.location_type.humanize %></td>
+            <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No locations yet. Add storage points to map inventory movement.</p>
+<% end %>

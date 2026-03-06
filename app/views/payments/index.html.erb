@@ -1,2 +1,31 @@
-<h1>Payments</h1>
-<% @payments.each do |p| %><p><%= p.paid_on %> - <%= money(p.amount_cents) %></p><% end %>
+<div class="mb-6">
+  <h1 class="page-title">Payments</h1>
+  <p class="mt-1 text-sm text-slate-600">History of outgoing payments.</p>
+</div>
+
+<% if @payments.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Paid On</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @payments.each do |p| %>
+          <tr>
+            <td><%= p.paid_on.to_fs(:long) %></td>
+            <td class="font-semibold text-slate-900"><%= money(p.amount_cents) %></td>
+            <td><%= status_badge(p.method) %></td>
+            <td><%= p.notes.presence || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No payment history yet.</p>
+<% end %>

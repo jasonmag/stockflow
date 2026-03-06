@@ -1,2 +1,44 @@
-<h1>Notifications</h1>
-<% @unread.each do |n| %><p><%= n.message %> <%= button_to "Read", mark_read_notification_path(n), method: :patch %></p><% end %>
+<div class="mb-6">
+  <h1 class="page-title">Notifications</h1>
+  <p class="mt-1 text-sm text-slate-600">Unread alerts and reminder history.</p>
+</div>
+
+<section class="card mb-4">
+  <div class="mb-3 flex items-center justify-between">
+    <h2 class="text-base font-semibold text-slate-900">Unread</h2>
+    <span class="badge badge-warning"><%= @unread.count %> open</span>
+  </div>
+
+  <% if @unread.any? %>
+    <div class="space-y-2">
+      <% @unread.each do |n| %>
+        <article class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+          <p class="text-sm font-medium text-slate-900"><%= n.message %></p>
+          <p class="mt-1 text-xs text-slate-600">Due <%= n.due_on.to_fs(:long) %></p>
+          <div class="mt-2">
+            <%= button_to "Mark Read", mark_read_notification_path(n), method: :patch, class: "btn btn-secondary" %>
+          </div>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No unread notifications.</p>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Read</h2>
+
+  <% if @read.any? %>
+    <div class="space-y-2">
+      <% @read.each do |n| %>
+        <article class="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <p class="text-sm font-medium text-slate-900"><%= n.message %></p>
+          <p class="mt-1 text-xs text-slate-600">Updated <%= n.updated_at.to_fs(:long) %></p>
+        </article>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No read notifications yet.</p>
+  <% end %>
+</section>

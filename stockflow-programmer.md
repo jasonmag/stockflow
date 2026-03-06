@@ -314,6 +314,20 @@ Dashboard should show:
 - Currency helpers:
   - Store cents; display formatted currency (2 decimals) consistently across all components.
 
+CRUD UI implementation baseline (must be maintained):
+- All CRUD resources must use Tailwind component classes for consistent UX:
+  - Page headers: `page-title` + subtitle + primary action button.
+  - Forms: wrap in `card`, use `field-label` and `field-input`, show validation errors in `flash flash-alert`.
+  - Actions: use `btn` variants (`btn-primary`, `btn-secondary`, `btn-ghost`, `btn-danger`) for links and form submits.
+  - Lists: use `table-wrap` + `table-base` for data tables with action column on the right.
+  - Show/detail views: render key fields in card-based definition lists (`dl`) and display statuses using `status_badge`.
+  - Empty states: use `empty-state` copy with a clear next action.
+- Apply the same design contract across all domain CRUD pages:
+  - Products, Customers, Suppliers, Locations
+  - Expenses, Payables, Receivables
+  - Purchases, Deliveries, Stock Movements
+  - Supporting views: Categories, Payments, Collections, Notifications
+
 Starter Tailwind component checklist (implementation order):
 1. Foundation
    - Configure Tailwind theme tokens (colors, spacing, radius, shadows, typography).
@@ -394,3 +408,9 @@ Use a simple policy layer (Pundit) or controller checks.
   - email delivery PDF -> enqueues job + creates DeliveryEmailLog
 
 Deliver the full codebase with clean structure, clear README, and production-ready defaults.
+
+========================================================
+13) GIT WORKFLOW REQUIREMENT
+========================================================
+- Always create a git commit whenever any file changes are made.
+- Do not leave modified or staged files uncommitted at the end of a task.

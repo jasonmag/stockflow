@@ -1,1 +1,31 @@
-<h1><%= @product.name %></h1><%= link_to "Edit", edit_product_path(@product) %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @product.name %></h1>
+    <p class="mt-1 text-sm text-slate-600">Product details and inventory setup.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_product_path(@product), class: "btn btn-primary" %>
+    <%= link_to "Back", products_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">SKU</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.sku.presence || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Unit</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.unit %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Reorder Level</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.reorder_level || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Status</dt>
+      <dd class="mt-1"><%= status_badge(@product.active? ? :active : :inactive) %></dd>
+    </div>
+  </dl>
+</section>

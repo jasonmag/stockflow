@@ -1,2 +1,31 @@
-<h1>Collections</h1>
-<% @collections.each do |c| %><p><%= c.collected_on %> - <%= money(c.amount_cents) %></p><% end %>
+<div class="mb-6">
+  <h1 class="page-title">Collections</h1>
+  <p class="mt-1 text-sm text-slate-600">History of collected receivable payments.</p>
+</div>
+
+<% if @collections.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Collected On</th>
+          <th>Amount</th>
+          <th>Method</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @collections.each do |c| %>
+          <tr>
+            <td><%= c.collected_on.to_fs(:long) %></td>
+            <td class="font-semibold text-slate-900"><%= money(c.amount_cents) %></td>
+            <td><%= status_badge(c.method) %></td>
+            <td><%= c.notes.presence || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No collections yet.</p>
+<% end %>

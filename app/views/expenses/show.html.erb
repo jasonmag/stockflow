@@ -1,3 +1,49 @@
-<h1><%= @expense.payee %></h1>
-<p><%= money(@expense.amount_cents, @expense.currency) %></p>
-<%= link_to "Edit", edit_expense_path(@expense) %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @expense.payee %></h1>
+    <p class="mt-1 text-sm text-slate-600">Expense details and attached proof of payment.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_expense_path(@expense), class: "btn btn-primary" %>
+    <%= link_to "Back", expenses_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Occurred On</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @expense.occurred_on.to_fs(:long) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Amount</dt>
+      <dd class="mt-1 text-sm font-semibold text-slate-900"><%= money(@expense.amount_cents, @expense.currency) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Category</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @expense.category.name %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Funding Source</dt>
+      <dd class="mt-1"><%= status_badge(@expense.funding_source) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Payment Method</dt>
+      <dd class="mt-1"><%= status_badge(@expense.payment_method) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Receipt</dt>
+      <dd class="mt-1 text-sm text-slate-900">
+        <% if @expense.receipt.attached? %>
+          <%= link_to "View Receipt", rails_blob_path(@expense.receipt, disposition: "attachment"), class: "btn btn-ghost" %>
+        <% else %>
+          -
+        <% end %>
+      </dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Notes</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @expense.notes.presence || "-" %></dd>
+    </div>
+  </dl>
+</section>

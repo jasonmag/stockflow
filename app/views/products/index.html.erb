@@ -1,2 +1,38 @@
-<h1>Products</h1><%= link_to "New", new_product_path %>
-<% @products.each do |row| %><p><%= link_to row.name, row %></p><% end %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Products</h1>
+    <p class="mt-1 text-sm text-slate-600">Manage catalog items, units, and reorder thresholds.</p>
+  </div>
+  <%= link_to "New Product", new_product_path, class: "btn btn-primary" %>
+</div>
+
+<% if @products.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>SKU</th>
+          <th>Unit</th>
+          <th>Reorder Level</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @products.each do |row| %>
+          <tr>
+            <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td><%= row.sku.presence || "-" %></td>
+            <td><%= row.unit %></td>
+            <td><%= row.reorder_level || "-" %></td>
+            <td><%= status_badge(row.active? ? :active : :inactive) %></td>
+            <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No products yet. Add a product to start tracking inventory.</p>
+<% end %>

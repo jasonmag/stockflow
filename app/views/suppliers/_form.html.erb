@@ -1,8 +1,44 @@
-<%= form_with model: supplier do |f| %>
-<p><%= f.text_field :name, placeholder: "Name" %></p>
-<p><%= f.text_field :contact_name, placeholder: "Contact" %></p>
-<p><%= f.email_field :contact_email, placeholder: "Email" %></p>
-<p><%= f.text_field :contact_phone, placeholder: "Phone" %></p>
-<p><%= f.text_area :address, placeholder: "Address" %></p>
-<%= f.submit %>
+<%= form_with model: supplier, class: "card space-y-4" do |f| %>
+  <% if supplier.errors.any? %>
+    <div class="flash flash-alert">
+      <p class="font-semibold"><%= pluralize(supplier.errors.count, "error") %> prevented this supplier from being saved:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% supplier.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= f.label :name, class: "field-label" %>
+      <%= f.text_field :name, class: "field-input", placeholder: "Supplier name" %>
+    </div>
+
+    <div>
+      <%= f.label :contact_name, class: "field-label" %>
+      <%= f.text_field :contact_name, class: "field-input", placeholder: "Primary contact" %>
+    </div>
+
+    <div>
+      <%= f.label :contact_email, class: "field-label" %>
+      <%= f.email_field :contact_email, class: "field-input", placeholder: "name@example.com" %>
+    </div>
+
+    <div>
+      <%= f.label :contact_phone, class: "field-label" %>
+      <%= f.text_field :contact_phone, class: "field-input", placeholder: "Phone number" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :address, class: "field-label" %>
+      <%= f.text_area :address, class: "field-input", rows: 3, placeholder: "Address" %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <%= f.submit class: "btn btn-primary" %>
+    <%= link_to "Cancel", suppliers_path, class: "btn btn-secondary" %>
+  </div>
 <% end %>

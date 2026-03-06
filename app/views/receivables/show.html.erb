@@ -1,3 +1,43 @@
-<h1><%= @receivable.reference.presence || @receivable.customer.name %></h1>
-<p>Status: <%= @receivable.status %></p>
-<%= link_to "Edit", edit_receivable_path(@receivable) %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @receivable.reference.presence || @receivable.customer.name %></h1>
+    <p class="mt-1 text-sm text-slate-600">Receivable details and collection status.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_receivable_path(@receivable), class: "btn btn-primary" %>
+    <%= link_to "Back", receivables_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Customer</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @receivable.customer.name %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Status</dt>
+      <dd class="mt-1"><%= status_badge(@receivable.status) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Delivered On</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @receivable.delivered_on&.to_fs(:long) || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Due On</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @receivable.due_on.to_fs(:long) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Amount</dt>
+      <dd class="mt-1 text-sm font-semibold text-slate-900"><%= money(@receivable.amount_cents, @receivable.currency) %></dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Notes</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @receivable.notes.presence || "-" %></dd>
+    </div>
+  </dl>
+</section>
+
+<% unless @receivable.collected? %>
+  <%= button_to "Mark Collected", mark_collected_receivable_path(@receivable), method: :patch, class: "btn btn-secondary" %>
+<% end %>

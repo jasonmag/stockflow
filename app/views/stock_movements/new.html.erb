@@ -1,10 +1,64 @@
-<h1>New Stock Movement</h1>
-<%= form_with model: @stock_movement do |f| %>
-  <p><%= f.select :movement_type, StockMovement.movement_types.keys %></p>
-  <p><%= f.collection_select :product_id, current_business.products, :id, :name %></p>
-  <p><%= f.number_field :quantity, step: 0.01 %></p>
-  <p><%= f.collection_select :from_location_id, current_business.locations, :id, :name, include_blank: true %></p>
-  <p><%= f.collection_select :to_location_id, current_business.locations, :id, :name, include_blank: true %></p>
-  <p><%= f.date_field :occurred_on %></p>
-  <%= f.submit %>
+<div class="mb-4">
+  <h1 class="page-title">New Stock Movement</h1>
+  <p class="mt-1 text-sm text-slate-600">Record stock in, out, transfers, or adjustments.</p>
+</div>
+
+<%= form_with model: @stock_movement, class: "card space-y-4" do |f| %>
+  <% if @stock_movement.errors.any? %>
+    <div class="flash flash-alert">
+      <p class="font-semibold"><%= pluralize(@stock_movement.errors.count, "error") %> prevented this stock movement from being saved:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% @stock_movement.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= f.label :movement_type, class: "field-label" %>
+      <%= f.select :movement_type, StockMovement.movement_types.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :product_id, class: "field-label" %>
+      <%= f.collection_select :product_id, current_business.products.order(:name), :id, :name, { prompt: "Select product" }, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :quantity, class: "field-label" %>
+      <%= f.number_field :quantity, step: 0.01, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :unit_cost_cents, class: "field-label" %>
+      <%= f.number_field :unit_cost_cents, min: 0, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :from_location_id, class: "field-label" %>
+      <%= f.collection_select :from_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :to_location_id, class: "field-label" %>
+      <%= f.collection_select :to_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :occurred_on, class: "field-label" %>
+      <%= f.date_field :occurred_on, class: "field-input" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :notes, class: "field-label" %>
+      <%= f.text_area :notes, class: "field-input", rows: 3 %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <%= f.submit class: "btn btn-primary" %>
+    <%= link_to "Cancel", stock_movements_path, class: "btn btn-secondary" %>
+  </div>
 <% end %>

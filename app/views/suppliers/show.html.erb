@@ -1,1 +1,31 @@
-<h1><%= @supplier.name %></h1><%= link_to "Edit", edit_supplier_path(@supplier) %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @supplier.name %></h1>
+    <p class="mt-1 text-sm text-slate-600">Supplier profile and contact details.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_supplier_path(@supplier), class: "btn btn-primary" %>
+    <%= link_to "Back", suppliers_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Contact Person</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @supplier.contact_name.presence || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Email</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @supplier.contact_email.presence || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Phone</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @supplier.contact_phone.presence || "-" %></dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Address</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @supplier.address.presence || "-" %></dd>
+    </div>
+  </dl>
+</section>

@@ -1,2 +1,36 @@
-<h1>Customers</h1><%= link_to "New", new_customer_path %>
-<% @customers.each do |row| %><p><%= link_to row.name, row %></p><% end %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Customers</h1>
+    <p class="mt-1 text-sm text-slate-600">Manage customer contacts for receivables and deliveries.</p>
+  </div>
+  <%= link_to "New Customer", new_customer_path, class: "btn btn-primary" %>
+</div>
+
+<% if @customers.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Contact</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @customers.each do |row| %>
+          <tr>
+            <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td><%= row.contact_name.presence || "-" %></td>
+            <td><%= row.contact_email.presence || "-" %></td>
+            <td><%= row.contact_phone.presence || "-" %></td>
+            <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No customers yet. Add one to track receivables and deliveries.</p>
+<% end %>

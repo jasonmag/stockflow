@@ -1,3 +1,36 @@
-<h1>Purchases</h1>
-<%= link_to "New", new_purchase_path %>
-<% @purchases.each do |purchase| %><p><%= link_to "Purchase ##{purchase.id}", purchase %> - <%= purchase.status %></p><% end %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Purchases</h1>
+    <p class="mt-1 text-sm text-slate-600">Track supplier purchases and stock receiving state.</p>
+  </div>
+  <%= link_to "New Purchase", new_purchase_path, class: "btn btn-primary" %>
+</div>
+
+<% if @purchases.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Purchase</th>
+          <th>Supplier</th>
+          <th>Purchased On</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @purchases.each do |purchase| %>
+          <tr>
+            <td class="font-medium text-slate-900"><%= link_to "Purchase ##{purchase.id}", purchase, class: "hover:underline" %></td>
+            <td><%= purchase.supplier.name %></td>
+            <td><%= purchase.purchased_on.to_fs(:long) %></td>
+            <td><%= status_badge(purchase.status) %></td>
+            <td class="text-right"><%= link_to "View", purchase, class: "btn btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No purchases yet. Create one to receive inventory from suppliers.</p>
+<% end %>

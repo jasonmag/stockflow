@@ -1,11 +1,128 @@
-<h1><%= @delivery.delivery_number %></h1>
-<p>Status: <%= @delivery.status %></p>
-<%= button_to "Generate PDF", generate_pdf_delivery_path(@delivery), method: :post %>
-<%= link_to "Download PDF", download_pdf_delivery_path(@delivery) %>
-<%= form_with url: email_pdf_delivery_path(@delivery), method: :post do |f| %>
-  <p><%= f.label :recipients %><%= f.text_field :recipients %></p>
-  <p><%= f.label :subject %><%= f.text_field :subject %></p>
-  <p><%= f.label :message %><%= f.text_area :message %></p>
-  <%= f.submit "Email PDF" %>
-<% end %>
-<%= button_to "Mark Delivered", mark_delivered_delivery_path(@delivery), method: :patch unless @delivery.delivered? %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @delivery.delivery_number %></h1>
+    <p class="mt-1 text-sm text-slate-600">Delivery details, PDF generation, and email history.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_delivery_path(@delivery), class: "btn btn-primary" %>
+    <%= link_to "Back", deliveries_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Customer</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @delivery.customer.name %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Status</dt>
+      <dd class="mt-1"><%= status_badge(@delivery.status) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Delivered On</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @delivery.delivered_on.to_fs(:long) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">From Location</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @delivery.from_location&.name || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">PDF Status</dt>
+      <dd class="mt-1"><%= status_badge(@delivery.report_pdf.attached? ? :attached : :missing) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Show Prices</dt>
+      <dd class="mt-1"><%= status_badge(@delivery.show_prices? ? :enabled : :disabled) %></dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Notes</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @delivery.notes.presence || "-" %></dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card mb-4">
+  <div class="mb-3 flex flex-wrap gap-2">
+    <%= button_to "Generate PDF", generate_pdf_delivery_path(@delivery), method: :post, class: "btn btn-secondary" %>
+    <% if @delivery.report_pdf.attached? %>
+      <%= link_to "Download PDF", download_pdf_delivery_path(@delivery), class: "btn btn-ghost" %>
+    <% end %>
+    <% unless @delivery.delivered? %>
+      <%= button_to "Mark Delivered", mark_delivered_delivery_path(@delivery), method: :patch, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Delivery Items</h2>
+  <% if @delivery.delivery_items.any? %>
+    <div class="table-wrap mb-4">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Price</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @delivery.delivery_items.each do |item| %>
+            <tr>
+              <td class="font-medium text-slate-900"><%= item.product.name %></td>
+              <td><%= item.quantity %></td>
+              <td><%= item.unit_price_cents.present? ? money(item.unit_price_cents) : "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No delivery items attached.</p>
+  <% end %>
+
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Email Delivery Report</h2>
+  <%= form_with url: email_pdf_delivery_path(@delivery), method: :post, class: "space-y-3" do |f| %>
+    <div>
+      <%= f.label :recipients, class: "field-label" %>
+      <%= f.text_field :recipients, class: "field-input", placeholder: "email1@example.com, email2@example.com" %>
+    </div>
+    <div>
+      <%= f.label :subject, class: "field-label" %>
+      <%= f.text_field :subject, class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :message, class: "field-label" %>
+      <%= f.text_area :message, class: "field-input", rows: 3 %>
+    </div>
+    <%= f.submit "Email PDF", class: "btn btn-secondary" %>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Email History</h2>
+  <% if @email_logs.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Sent At</th>
+            <th>Recipients</th>
+            <th>Status</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @email_logs.each do |log| %>
+            <tr>
+              <td><%= log.sent_at&.to_fs(:long) || "-" %></td>
+              <td><%= log.recipients %></td>
+              <td><%= status_badge(log.status) %></td>
+              <td><%= log.error_message.presence || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No email logs yet.</p>
+  <% end %>
+</section>

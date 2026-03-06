@@ -1,6 +1,60 @@
-<h1>Receivables</h1>
-<%= link_to "New", new_receivable_path %>
-<% @receivables.each do |row| %>
-  <p><%= link_to(row.reference.presence || row.customer.name, row) %> - <%= row.status %>
-  <% unless row.collected? %><%= button_to "Mark Collected", mark_collected_receivable_path(row), method: :patch %><% end %></p>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Receivables</h1>
+    <p class="mt-1 text-sm text-slate-600">Track due collections and mark settled accounts.</p>
+  </div>
+  <%= link_to "New Receivable", new_receivable_path, class: "btn btn-primary" %>
+</div>
+
+<div class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+  <article class="card">
+    <p class="kpi-label">Due Soon</p>
+    <p class="kpi-value"><%= @due_soon.count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Overdue</p>
+    <p class="kpi-value"><%= @overdue.count %></p>
+  </article>
+  <article class="card">
+    <p class="kpi-label">Total Records</p>
+    <p class="kpi-value"><%= @receivables.count %></p>
+  </article>
+</div>
+
+<% if @receivables.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Customer</th>
+          <th>Due Date</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @receivables.each do |row| %>
+          <tr class="<%= 'bg-amber-50' if row.overdue? %>">
+            <td class="font-medium text-slate-900"><%= link_to(row.reference.presence || "Receivable ##{row.id}", row, class: "hover:underline") %></td>
+            <td><%= row.customer.name %></td>
+            <td><%= row.due_on.to_fs(:long) %></td>
+            <td class="font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></td>
+            <td><%= status_badge(row.status) %></td>
+            <td class="text-right">
+              <div class="flex flex-wrap justify-end gap-2">
+                <%= link_to "View", row, class: "btn btn-ghost" %>
+                <% unless row.collected? %>
+                  <%= button_to "Mark Collected", mark_collected_receivable_path(row), method: :patch, class: "btn btn-secondary" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No receivables yet. Add one to track incoming payments.</p>
 <% end %>

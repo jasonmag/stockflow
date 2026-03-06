@@ -1,8 +1,59 @@
-<%= form_with model: payable do |f| %>
-  <p><%= f.label :payable_type %><%= f.select :payable_type, Payable.payable_types.keys %></p>
-  <p><%= f.label :payee %><%= f.text_field :payee %></p>
-  <p><%= f.label :amount_cents %><%= f.number_field :amount_cents %></p>
-  <p><%= f.label :currency %><%= f.text_field :currency %></p>
-  <p><%= f.label :due_on %><%= f.date_field :due_on %></p>
-  <%= f.submit %>
+<%= form_with model: payable, class: "card space-y-4" do |f| %>
+  <% if payable.errors.any? %>
+    <div class="flash flash-alert">
+      <p class="font-semibold"><%= pluralize(payable.errors.count, "error") %> prevented this payable from being saved:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% payable.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= f.label :payable_type, class: "field-label" %>
+      <%= f.select :payable_type, Payable.payable_types.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :status, class: "field-label" %>
+      <%= f.select :status, Payable.statuses.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :payee, class: "field-label" %>
+      <%= f.text_field :payee, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :amount_cents, class: "field-label" %>
+      <%= f.number_field :amount_cents, class: "field-input", min: 1 %>
+    </div>
+
+    <div>
+      <%= f.label :currency, class: "field-label" %>
+      <%= f.text_field :currency, class: "field-input", placeholder: "PHP" %>
+    </div>
+
+    <div>
+      <%= f.label :due_on, class: "field-label" %>
+      <%= f.date_field :due_on, class: "field-input" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :recurring_rule, class: "field-label" %>
+      <%= f.text_field :recurring_rule, class: "field-input", placeholder: "Optional recurring rule" %>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :notes, class: "field-label" %>
+      <%= f.text_area :notes, class: "field-input", rows: 3 %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <%= f.submit class: "btn btn-primary" %>
+    <%= link_to "Cancel", payables_path, class: "btn btn-secondary" %>
+  </div>
 <% end %>

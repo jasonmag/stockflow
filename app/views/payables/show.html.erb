@@ -1,3 +1,69 @@
-<h1><%= @payable.payee %></h1>
-<p>Status: <%= @payable.status %></p>
-<%= link_to "Edit", edit_payable_path(@payable) %>
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @payable.payee %></h1>
+    <p class="mt-1 text-sm text-slate-600">Payable details and payment history.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Edit", edit_payable_path(@payable), class: "btn btn-primary" %>
+    <%= link_to "Back", payables_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Type</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @payable.payable_type.humanize %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Status</dt>
+      <dd class="mt-1"><%= status_badge(@payable.status) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Amount</dt>
+      <dd class="mt-1 text-sm font-semibold text-slate-900"><%= money(@payable.amount_cents, @payable.currency) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Due On</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @payable.due_on.to_fs(:long) %></dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Notes</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @payable.notes.presence || "-" %></dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Payments</h2>
+  <% if @payments.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Paid On</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @payments.each do |payment| %>
+            <tr>
+              <td><%= payment.paid_on.to_fs(:long) %></td>
+              <td class="font-semibold text-slate-900"><%= money(payment.amount_cents) %></td>
+              <td><%= status_badge(payment.method) %></td>
+              <td><%= payment.notes.presence || "-" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No payments logged yet.</p>
+  <% end %>
+</section>
+
+<% unless @payable.paid? %>
+  <%= button_to "Mark Paid", mark_paid_payable_path(@payable), method: :patch, class: "btn btn-secondary" %>
+<% end %>
