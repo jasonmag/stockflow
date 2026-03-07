@@ -93,6 +93,49 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert Membership.exists?(owner_membership.id)
   end
 
+  test "business owner can add members to current business" do
+    sign_in_as(@owner)
+    patch switch_business_path, params: { business_id: @business_one.id }
+
+    assert_difference("Membership.count", 1) do
+      post add_member_business_path, params: {
+        membership: {
+          email_address: "new-member@example.com",
+          role: "staff",
+          password: "password123"
+        }
+      }
+    end
+
+    membership = Membership.order(:id).last
+    assert_equal @business_one.id, membership.business_id
+    assert_equal "staff", membership.role
+  end
+
+  test "staff cannot access owner member management page" do
+    sign_in_as(@staff)
+
+    get members_business_path
+
+    assert_redirected_to root_path
+    assert_equal "Only owners can do that.", flash[:alert]
+  end
+
+  test "system admin can create business stores" do
+    sign_in_as(@system_admin)
+
+    assert_difference("Business.count", 1) do
+      post admin_businesses_path, params: {
+        business: {
+          name: "Business Three",
+          reminder_lead_days: 5
+        }
+      }
+    end
+
+    assert_redirected_to admin_business_path(Business.order(:id).last)
+  end
+
   test "purchase rejects supplier from another business" do
     sign_in_as(@owner)
 

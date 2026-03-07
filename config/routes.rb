@@ -2,7 +2,7 @@ Rails.application.routes.draw do
   namespace :admin do
     root "dashboard#index"
     resources :users, only: %i[index show edit update]
-    resources :businesses, only: %i[index show]
+    resources :businesses, only: %i[index show new create]
     resources :memberships, only: %i[create update destroy]
     resource :impersonation, only: %i[create destroy]
   end
@@ -14,6 +14,8 @@ Rails.application.routes.draw do
   resources :passwords, param: :token
   resource :business, only: [] do
     patch :switch
+    get :members
+    post :add_member
   end
 
   root "home#index"

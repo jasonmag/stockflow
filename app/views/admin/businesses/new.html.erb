@@ -1,0 +1,39 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">New Business Store</h1>
+    <p class="mt-1 text-sm text-slate-600">Create a new business/store tenant.</p>
+  </div>
+  <%= link_to "Back to Businesses", admin_businesses_path, class: "btn btn-secondary" %>
+</div>
+
+<section class="card">
+  <% if @business.errors.any? %>
+    <p class="flash flash-alert"><%= @business.errors.full_messages.to_sentence %></p>
+  <% end %>
+
+  <%= form_with model: [ :admin, @business ], class: "grid gap-4 md:grid-cols-2" do |f| %>
+    <div class="md:col-span-2">
+      <%= f.label :name, class: "field-label" %>
+      <%= f.text_field :name, class: "field-input", required: true %>
+    </div>
+    <div>
+      <%= f.label :contact_email, class: "field-label" %>
+      <%= f.email_field :contact_email, class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :contact_phone, class: "field-label" %>
+      <%= f.text_field :contact_phone, class: "field-input" %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.label :address, class: "field-label" %>
+      <%= f.text_area :address, class: "field-input", rows: 3 %>
+    </div>
+    <div>
+      <%= f.label :reminder_lead_days, class: "field-label" %>
+      <%= f.number_field :reminder_lead_days, class: "field-input", min: 0, value: @business.reminder_lead_days || 7 %>
+    </div>
+    <div class="md:col-span-2">
+      <%= f.submit "Create Business", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</section>

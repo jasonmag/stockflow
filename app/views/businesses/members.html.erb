@@ -1,0 +1,54 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Business Members</h1>
+    <p class="mt-1 text-sm text-slate-600">Manage members for <%= @business.name %>.</p>
+  </div>
+  <%= link_to "Back to Dashboard", dashboard_path, class: "btn btn-secondary" %>
+</div>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Current Members</h2>
+  <% if @memberships.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @memberships.each do |membership| %>
+            <tr>
+              <td class="font-medium text-slate-900"><%= membership.user.email_address %></td>
+              <td><%= status_badge(membership.role) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="empty-state">No members yet.</p>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Add Member</h2>
+  <%= form_with url: add_member_business_path, method: :post, class: "grid gap-3 md:grid-cols-4" do |f| %>
+    <div class="md:col-span-2">
+      <%= f.label :email_address, class: "field-label" %>
+      <%= f.email_field :email_address, name: "membership[email_address]", required: true, class: "field-input", placeholder: "member@example.com" %>
+    </div>
+    <div>
+      <%= f.label :role, class: "field-label" %>
+      <%= f.select :role, Membership.roles.keys.map { |key| [key.humanize, key] }, {}, name: "membership[role]", class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :password, "Password (new users only)", class: "field-label" %>
+      <%= f.password_field :password, name: "membership[password]", class: "field-input", placeholder: "Optional for existing user" %>
+    </div>
+    <div class="md:col-span-4">
+      <%= f.submit "Add Member", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</section>

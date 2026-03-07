@@ -40,6 +40,13 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
 - Store admin account enforcement:
   - Every business/store must always have at least one `owner` membership (store admin account).
   - The last owner membership for a business must not be removable or demotable.
+- Business admin member management:
+  - Business admin (`owner`) users can add members to their own current business/store.
+  - Owner can add both `staff` and `owner` roles for their business.
+  - Member add flow can attach an existing user by email, or create a new user account and membership in one step.
+- Super admin platform management:
+  - System admin can create new business/store tenants from the admin namespace.
+  - System admin can manage memberships across tenants, including assigning store admin (`owner`) roles.
 - Session exit behavior:
   - All logout/sign-out actions must redirect to the public Home page.
 - All domain records must include business_id and be scoped by current_business in controllers and queries.
@@ -396,7 +403,7 @@ System admin (platform-level) implemented:
 - Admin namespace:
   - `/admin` dashboard
   - `/admin/users` (view users, toggle system admin, manage memberships)
-  - `/admin/businesses` (view tenants and members)
+  - `/admin/businesses` (view tenants and members, create business/store tenants)
 - System admins can manage users/business memberships across all tenants.
 - System admins access regular business operations only through impersonation of a store admin (`owner`) account.
 
