@@ -1,9 +1,10 @@
 class ApplicationController < ActionController::Base
   include Authentication
   before_action :set_current_business
+  before_action :ensure_system_admin_uses_impersonation!
   before_action :ensure_business_selected
   before_action :ensure_staff_can_manage_operations!
-  helper_method :current_business, :owner?, :system_admin?
+  helper_method :current_business, :owner?, :system_admin?, :impersonating?
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
@@ -31,19 +32,23 @@ class ApplicationController < ActionController::Base
       return unless Current.user
       return if admin_namespace?
       return if current_business.present?
-      return redirect_to admin_root_path if system_admin?
 
       redirect_to login_path, alert: "No business membership assigned."
     end
 
     def owner?
-      return true if system_admin?
-
       current_business && Current.user&.owner_of?(current_business)
     end
 
     def system_admin?
-      Current.user&.system_admin?
+      Current.authenticated_user&.system_admin?
+    end
+
+    def ensure_system_admin_uses_impersonation!
+      return unless system_admin?
+      return if admin_namespace? || impersonating?
+
+      redirect_to admin_root_path, alert: "Use impersonation to access store operations."
     end
 
     def require_owner!

@@ -21,8 +21,11 @@ module Admin
     def destroy
       membership = Membership.find(params[:id])
       user_id = membership.user_id
-      membership.destroy
-      redirect_to admin_user_path(user_id), notice: "Membership removed."
+      if membership.destroy
+        redirect_to admin_user_path(user_id), notice: "Membership removed."
+      else
+        redirect_to admin_user_path(user_id), alert: membership.errors.full_messages.to_sentence
+      end
     end
 
     private

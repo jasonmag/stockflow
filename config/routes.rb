@@ -4,17 +4,19 @@ Rails.application.routes.draw do
     resources :users, only: %i[index show edit update]
     resources :businesses, only: %i[index show]
     resources :memberships, only: %i[create update destroy]
+    resource :impersonation, only: %i[create destroy]
   end
 
   resource :session, only: %i[create destroy]
   get "login", to: "sessions#new", as: :login
   get "admin/login", to: "sessions#admin_new", as: :admin_login
+  get "about", to: "home#about", as: :about
   resources :passwords, param: :token
   resource :business, only: [] do
     patch :switch
   end
 
-  root "dashboard#index"
+  root "home#index"
 
   resources :categories
   resources :customers

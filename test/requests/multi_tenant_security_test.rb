@@ -49,6 +49,50 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "system admin cannot access regular dashboard without impersonation" do
+    post session_path, params: {
+      email_address: @system_admin.email_address,
+      password: "password123",
+      login_scope: "admin"
+    }
+    follow_redirect!
+
+    get dashboard_path
+
+    assert_redirected_to admin_root_path
+    assert_equal "Use impersonation to access store operations.", flash[:alert]
+  end
+
+  test "system admin can impersonate a store admin owner to access regular dashboard" do
+    post session_path, params: {
+      email_address: @system_admin.email_address,
+      password: "password123",
+      login_scope: "admin"
+    }
+    follow_redirect!
+
+    post admin_impersonation_path, params: { user_id: @owner.id, business_id: @business_one.id }
+    assert_redirected_to dashboard_path
+
+    get dashboard_path
+    assert_response :success
+
+    delete admin_impersonation_path
+    assert_redirected_to admin_root_path
+  end
+
+  test "cannot remove last owner membership from a business" do
+    sign_in_as(@system_admin)
+
+    owner_membership = Membership.find_by!(user: @owner, business: @business_one)
+
+    delete admin_membership_path(owner_membership)
+
+    assert_redirected_to admin_user_path(@owner)
+    assert_equal "Cannot remove the last store admin account for this business.", flash[:alert]
+    assert Membership.exists?(owner_membership.id)
+  end
+
   test "purchase rejects supplier from another business" do
     sign_in_as(@owner)
 

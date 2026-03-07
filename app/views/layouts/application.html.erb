@@ -57,7 +57,13 @@
                 <option value="classic">Classic</option>
               </select>
               <% if Current.user %>
-                <% if Current.user.businesses.any? %>
+                <% if impersonating? %>
+                  <div class="w-full rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900 md:w-auto">
+                    Impersonating <span class="font-semibold"><%= Current.user.email_address %></span>
+                    <%= button_to "Stop", admin_impersonation_path, method: :delete, class: "ml-2 inline-flex rounded-md border border-amber-400 px-2 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100" %>
+                  </div>
+                <% end %>
+                <% if (!system_admin? || impersonating?) && Current.user.businesses.any? %>
                   <%= form_with url: switch_business_path, method: :patch, class: "flex w-full items-center gap-2 md:w-auto" do |f| %>
                     <%= f.select :business_id,
                       options_from_collection_for_select(Current.user.businesses, :id, :name, current_business&.id),
@@ -67,22 +73,31 @@
                   <% end %>
                 <% end %>
                 <%= button_to "Sign out", session_path, method: :delete, class: "btn btn-ghost", form: { class: "w-full md:w-auto" } %>
+              <% else %>
+                <%= link_to "Home", root_path, class: "btn btn-ghost" %>
+                <%= link_to "About", about_path, class: "btn btn-ghost" %>
+                <%= link_to "User login", login_path, class: "btn btn-primary" %>
+                <%= link_to "Admin login", admin_login_path, class: "btn btn-secondary" %>
               <% end %>
             </div>
           </div>
 
           <% if Current.user %>
             <div class="mt-3 flex flex-wrap items-center gap-1 border-t border-slate-200 pt-3">
-              <%= nav_link_to "Dashboard", dashboard_path %>
-              <%= nav_link_to "Expenses", expenses_path %>
-              <%= nav_link_to "Payables", payables_path %>
-              <%= nav_link_to "Receivables", receivables_path %>
-              <%= nav_link_to "Purchases", purchases_path %>
-              <%= nav_link_to "Deliveries", deliveries_path %>
-              <%= nav_link_to "Inventory", stock_movements_path %>
-              <%= nav_link_to "User Guide", user_guide_path %>
-              <% if system_admin? %>
+              <% if system_admin? && !impersonating? %>
                 <%= nav_link_to "Admin", admin_root_path %>
+              <% else %>
+                <%= nav_link_to "Dashboard", dashboard_path %>
+                <%= nav_link_to "Expenses", expenses_path %>
+                <%= nav_link_to "Payables", payables_path %>
+                <%= nav_link_to "Receivables", receivables_path %>
+                <%= nav_link_to "Purchases", purchases_path %>
+                <%= nav_link_to "Deliveries", deliveries_path %>
+                <%= nav_link_to "Inventory", stock_movements_path %>
+                <%= nav_link_to "User Guide", user_guide_path %>
+                <% if system_admin? %>
+                  <%= nav_link_to "Admin", admin_root_path %>
+                <% end %>
               <% end %>
             </div>
           <% end %>

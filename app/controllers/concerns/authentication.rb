@@ -3,7 +3,7 @@ module Authentication
 
   included do
     before_action :require_authentication
-    helper_method :authenticated?
+    helper_method :authenticated?, :impersonating?
   end
 
   class_methods do
@@ -23,6 +23,8 @@ module Authentication
 
     def resume_session
       Current.session ||= find_session_by_cookie
+      Current.impersonated_user = impersonated_user_for(Current.session)
+      Current.session
     end
 
     def find_session_by_cookie
@@ -41,12 +43,31 @@ module Authentication
     def start_new_session_for(user)
       user.sessions.create!(user_agent: request.user_agent, ip_address: request.remote_ip).tap do |session|
         Current.session = session
+        Current.impersonated_user = nil
         cookies.signed.permanent[:session_id] = { value: session.id, httponly: true, same_site: :lax }
       end
     end
 
     def terminate_session
-      Current.session.destroy
+      Current.session&.destroy
+      Current.session = nil
+      Current.business = nil
+      Current.impersonated_user = nil
+      session.delete(:return_to_after_authenticating)
+      session.delete(:impersonated_user_id)
       cookies.delete(:session_id)
+    end
+
+    def impersonating?
+      Current.impersonating?
+    end
+
+    def impersonated_user_for(active_session)
+      return nil unless active_session&.user&.system_admin?
+
+      user_id = session[:impersonated_user_id]
+      return nil if user_id.blank?
+
+      User.find_by(id: user_id)
     end
 end

@@ -1,0 +1,29 @@
+<section class="card p-8">
+  <p class="text-sm font-semibold uppercase tracking-wide text-slate-500">Stockflow</p>
+  <h1 class="mt-2 text-3xl font-bold text-slate-900 md:text-4xl">Operations hub for inventory and cashflow teams</h1>
+  <p class="mt-3 max-w-3xl text-slate-600">
+    Stockflow helps small supplier businesses track inventory movements, manage receivables/payables,
+    and produce delivery reports from one system.
+  </p>
+
+  <div class="mt-6 flex flex-wrap gap-3">
+    <%= link_to "User login", login_path, class: "btn btn-primary" %>
+    <%= link_to "Admin login", admin_login_path, class: "btn btn-secondary" %>
+    <%= link_to "About Stockflow", about_path, class: "btn btn-ghost" %>
+  </div>
+</section>
+
+<section class="mt-6 grid gap-4 md:grid-cols-3">
+  <article class="card p-5">
+    <h2 class="text-lg font-semibold text-slate-900">Inventory Control</h2>
+    <p class="mt-2 text-sm text-slate-600">Track stock in, stock out, transfers, and adjustments per location.</p>
+  </article>
+  <article class="card p-5">
+    <h2 class="text-lg font-semibold text-slate-900">Cashflow Visibility</h2>
+    <p class="mt-2 text-sm text-slate-600">Monitor expenses, payables, receivables, and collections in one dashboard.</p>
+  </article>
+  <article class="card p-5">
+    <h2 class="text-lg font-semibold text-slate-900">Delivery Reports</h2>
+    <p class="mt-2 text-sm text-slate-600">Generate printable PDFs and email delivery reports directly from the app.</p>
+  </article>
+</section>

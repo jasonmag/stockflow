@@ -7,7 +7,7 @@
     <p class="py-2 px-3 bg-green-50 mb-5 text-green-500 font-medium rounded-lg inline-block" id="notice"><%= notice %></p>
   <% end %>
 
-  <h1 class="font-bold text-4xl">Base Admin Login</h1>
+  <h1 class="font-bold text-4xl">Admin Login</h1>
   <p class="mt-2 text-sm text-gray-600">Use a system admin account to access the admin namespace.</p>
 
   <%= form_with url: session_url, class: "contents" do |form| %>
@@ -29,6 +29,10 @@
 
     <div class="mt-4 text-sm text-gray-600">
       <%= link_to "Back to user login", login_path, class: "underline hover:no-underline" %>
+    </div>
+
+    <div class="mt-2 text-sm text-gray-600">
+      <%= link_to "Back to Home", root_path, class: "underline hover:no-underline" %>
     </div>
   <% end %>
 </div>

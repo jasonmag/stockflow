@@ -25,6 +25,23 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
 - Current business:
   - Store current_business_id in session.
   - Business switcher UI in navbar.
+- Public access pages:
+  - `root` should be a non-authenticated Home page with app overview and clear entry points.
+  - Add an `About` page for non-authenticated visitors.
+  - Home/About should include links for ordinary user login and admin login.
+- Login success routing:
+  - Ordinary user login must redirect to the standard app dashboard (`/dashboard`).
+  - Admin login must redirect to the admin dashboard (`/admin`).
+  - Admin login path should only allow system admin users; non-system-admin users should be redirected back to admin login with an error.
+- System admin operating mode:
+  - When logged in as system admin (admin login), regular user/store operation pages must not be directly accessible.
+  - System admin should only access platform features in the admin namespace by default.
+  - To access regular/store functionality, system admin must impersonate a store admin account.
+- Store admin account enforcement:
+  - Every business/store must always have at least one `owner` membership (store admin account).
+  - The last owner membership for a business must not be removable or demotable.
+- Session exit behavior:
+  - All logout/sign-out actions must redirect to the public Home page.
 - All domain records must include business_id and be scoped by current_business in controllers and queries.
 - Hardening requirement (implemented):
   - Add cross-tenant association validation so related records must match the same business.
@@ -381,6 +398,7 @@ System admin (platform-level) implemented:
   - `/admin/users` (view users, toggle system admin, manage memberships)
   - `/admin/businesses` (view tenants and members)
 - System admins can manage users/business memberships across all tenants.
+- System admins access regular business operations only through impersonation of a store admin (`owner`) account.
 
 ========================================================
 11) DEPLOYMENT REQUIREMENTS (KAMAL + DOCKER)
