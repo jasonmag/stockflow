@@ -121,6 +121,10 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
     - Inventory type input must allow selecting existing options and adding new custom options.
     - Unit input must allow selecting existing options and adding new custom options.
     - Both inputs should be searchable in the UI and support longer option values.
+    - Product form must include clear helper descriptions for both Unit and Inventory Type so users understand what each field means.
+  - Barcode behavior:
+    - Barcode field should support camera scanning on available devices/browsers and auto-fill the input when a barcode is detected.
+    - Because this is browser-first (desktop/mobile web), scanner implementation must include cross-browser fallback and not rely on a single API with limited browser support.
 - Location:
   business_id, name,
   location_type enum {home, storage, warehouse, vending, customer, other}
@@ -146,6 +150,7 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
 - UI:
   - Products CRUD
   - Product forms should expose inventory_type and the extended catalog attributes (brand, barcode, description, default/base cost)
+  - Product form should provide a camera scan action for barcode capture where device support is available.
   - Product form should explain reorder level clearly so users understand it is a stock threshold for restocking alerts.
   - Locations CRUD
   - Stock Movements: separate “Stock In / Stock Out / Transfer / Adjustment” flows

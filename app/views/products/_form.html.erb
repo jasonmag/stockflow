@@ -1,4 +1,4 @@
-<%= form_with model: product, class: "card space-y-4" do |f| %>
+<%= form_with model: product, class: "card space-y-4", data: { controller: "barcode-scanner" } do |f| %>
   <% if product.errors.any? %>
     <div class="flash flash-alert">
       <p class="font-semibold"><%= pluralize(product.errors.count, "error") %> prevented this product from being saved:</p>
@@ -28,6 +28,7 @@
     <div>
       <%= f.label :unit, class: "field-label" %>
       <%= f.text_field :unit, class: "field-input", placeholder: "Search or add unit", list: "unit-options" %>
+      <p class="mt-1 text-xs text-slate-500">Unit describes how this inventory is counted (examples: pc, box, case, kg, liter).</p>
       <datalist id="unit-options">
         <% @unit_options.each do |option| %>
           <option value="<%= option %>"></option>
@@ -38,6 +39,7 @@
     <div>
       <%= f.label :inventory_type, class: "field-label" %>
       <%= f.text_field :inventory_type, class: "field-input", placeholder: "Search or add inventory type", list: "inventory-type-options" %>
+      <p class="mt-1 text-xs text-slate-500">Inventory type groups products by usage (examples: raw_material, consumable, spare_part).</p>
       <datalist id="inventory-type-options">
         <% @inventory_type_options.each do |option| %>
           <option value="<%= option %>"></option>
@@ -52,7 +54,13 @@
 
     <div>
       <%= f.label :barcode, class: "field-label" %>
-      <%= f.text_field :barcode, class: "field-input", placeholder: "Optional barcode" %>
+      <%= f.text_field :barcode, class: "field-input", placeholder: "Optional barcode", data: { barcode_scanner_target: "input" } %>
+      <div class="mt-2 flex flex-wrap gap-2">
+        <button type="button" class="btn btn-secondary" data-action="barcode-scanner#start" data-barcode-scanner-target="startButton">Scan via Camera</button>
+        <button type="button" class="btn btn-ghost hidden" data-action="barcode-scanner#stop" data-barcode-scanner-target="stopButton">Stop Scan</button>
+      </div>
+      <video data-barcode-scanner-target="preview" class="mt-2 hidden w-full rounded-lg border border-slate-200" autoplay playsinline muted></video>
+      <p class="mt-1 text-xs text-slate-500" data-barcode-scanner-target="status">Use camera scan on mobile/desktop. The app will use the best available scanner for your browser.</p>
     </div>
 
     <div>
