@@ -5,11 +5,10 @@ export default class extends Controller {
   static targets = ["input", "preview", "startButton", "stopButton", "status"]
 
   connect() {
-    this.stream = null
-    this.detector = null
     this.reader = new BrowserMultiFormatReader()
     this.readerControls = null
     this.scanning = false
+    this.refocusInterval = null
   }
 
   disconnect() {
@@ -28,13 +27,9 @@ export default class extends Controller {
       this.stopButtonTarget.classList.remove("hidden")
       this.scanning = true
       this.updateStatus("Starting camera scan...")
-
-      if ("BarcodeDetector" in window) {
-        await this.startNativeScanner()
-      } else {
-        await this.startZxingScanner()
-      }
-    } catch (_error) {
+      await this.startZxingScanner()
+    } catch (error) {
+      console.error("Barcode scanner start failed:", error)
       this.updateStatus("Unable to start camera. Check camera permissions.")
       this.stop()
     }
@@ -42,13 +37,13 @@ export default class extends Controller {
 
   stop() {
     this.scanning = false
+    if (this.refocusInterval) {
+      clearInterval(this.refocusInterval)
+      this.refocusInterval = null
+    }
     if (this.readerControls) {
       this.readerControls.stop()
       this.readerControls = null
-    }
-    if (this.stream) {
-      this.stream.getTracks().forEach((track) => track.stop())
-      this.stream = null
     }
     this.previewTarget.srcObject = null
     this.previewTarget.classList.add("hidden")
@@ -56,27 +51,15 @@ export default class extends Controller {
     this.stopButtonTarget.classList.add("hidden")
   }
 
-  async startNativeScanner() {
-    this.detector = new window.BarcodeDetector({
-      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf", "qr_code"]
-    })
-    this.stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false
-    })
-    this.previewTarget.srcObject = this.stream
-    this.updateStatus("Scanning with native detector...")
-    this.scanLoop()
-  }
-
   async startZxingScanner() {
-    this.readerControls = await this.reader.decodeFromConstraints(
-      { video: { facingMode: { ideal: "environment" } } },
+    const deviceId = await this.findPreferredCameraId()
+    this.readerControls = await this.reader.decodeFromVideoDevice(
+      deviceId,
       this.previewTarget,
       (result, _error) => {
         if (!this.scanning || !result) return
 
-        const value = result.getText()
+        const value = result.getText()?.trim()
         if (value) {
           this.inputTarget.value = value
           this.updateStatus(`Barcode captured: ${value}`)
@@ -84,31 +67,86 @@ export default class extends Controller {
         }
       }
     )
-    this.updateStatus("Scanning with cross-browser detector...")
+    this.applyTrackOptimizations()
+    this.startRefocusLoop()
+    this.updateStatus("Scanning... align barcode inside the camera frame.")
   }
 
-  async scanLoop() {
-    if (!this.scanning || !this.detector || !this.previewTarget.videoWidth) {
-      if (this.scanning) requestAnimationFrame(() => this.scanLoop())
-      return
-    }
+  startRefocusLoop() {
+    if (this.refocusInterval) clearInterval(this.refocusInterval)
+    this.refocusInterval = setInterval(() => {
+      this.triggerRefocus()
+    }, 2500)
+  }
+
+  async triggerRefocus() {
+    if (!this.scanning) return
+
+    const stream = this.previewTarget.srcObject
+    if (!stream) return
+    const [track] = stream.getVideoTracks()
+    if (!track || !track.getCapabilities || !track.applyConstraints) return
+
+    const capabilities = track.getCapabilities()
+    if (!capabilities.focusMode) return
 
     try {
-      const codes = await this.detector.detect(this.previewTarget)
-      if (codes.length > 0) {
-        const rawValue = codes[0].rawValue
-        if (rawValue) {
-          this.inputTarget.value = rawValue
-          this.updateStatus(`Barcode captured: ${rawValue}`)
-          this.stop()
-          return
-        }
+      if (capabilities.focusMode.includes("single-shot")) {
+        await track.applyConstraints({ advanced: [{ focusMode: "single-shot" }] })
+      }
+      if (capabilities.focusMode.includes("continuous")) {
+        await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] })
       }
     } catch (_error) {
-      this.updateStatus("Scanning failed. Try again.")
+      // Ignore unsupported focus constraints.
+    }
+  }
+
+  async findPreferredCameraId() {
+    try {
+      const warmup = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      warmup.getTracks().forEach((track) => track.stop())
+    } catch (_error) {
+      // Ignore and continue with default device selection.
     }
 
-    if (this.scanning) requestAnimationFrame(() => this.scanLoop())
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    const videoInputs = devices.filter((d) => d.kind === "videoinput")
+    if (videoInputs.length === 0) return null
+
+    const rear =
+      videoInputs.find((d) => /back|rear|environment/i.test(d.label)) ||
+      videoInputs[videoInputs.length - 1]
+
+    return rear.deviceId || null
+  }
+
+  async applyTrackOptimizations() {
+    const stream = this.previewTarget.srcObject
+    if (!stream) return
+    const [track] = stream.getVideoTracks()
+    if (!track) return
+
+    const capabilities = track.getCapabilities ? track.getCapabilities() : {}
+    const advanced = []
+
+    if (capabilities.focusMode && capabilities.focusMode.includes("continuous")) {
+      advanced.push({ focusMode: "continuous" })
+    }
+    if (capabilities.zoom && typeof capabilities.zoom.max === "number") {
+      const midZoom = Math.min(Math.max(1, capabilities.zoom.min || 1), capabilities.zoom.max)
+      advanced.push({ zoom: midZoom })
+    }
+    if (capabilities.torch) {
+      advanced.push({ torch: false })
+    }
+
+    if (advanced.length === 0) return
+    try {
+      await track.applyConstraints({ advanced })
+    } catch (_error) {
+      // Best-effort only; keep scanning even if constraints are unsupported.
+    }
   }
 
   updateStatus(message) {

@@ -59,8 +59,8 @@
         <button type="button" class="btn btn-secondary" data-action="barcode-scanner#start" data-barcode-scanner-target="startButton">Scan via Camera</button>
         <button type="button" class="btn btn-ghost hidden" data-action="barcode-scanner#stop" data-barcode-scanner-target="stopButton">Stop Scan</button>
       </div>
-      <video data-barcode-scanner-target="preview" class="mt-2 hidden w-full rounded-lg border border-slate-200" autoplay playsinline muted></video>
-      <p class="mt-1 text-xs text-slate-500" data-barcode-scanner-target="status">Use camera scan on mobile/desktop. The app will use the best available scanner for your browser.</p>
+      <video data-barcode-scanner-target="preview" data-action="click->barcode-scanner#triggerRefocus" class="mt-2 hidden w-full rounded-lg border border-slate-200" autoplay playsinline muted></video>
+      <p class="mt-1 text-xs text-slate-500" data-barcode-scanner-target="status">Use camera scan on mobile/desktop. Tap preview to refocus if image is blurry.</p>
     </div>
 
     <div>
