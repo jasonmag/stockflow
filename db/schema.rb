@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_06_184917) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_07_131000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -308,6 +308,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_06_184917) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "system_admin", default: false, null: false
+    t.boolean "approved", default: true, null: false
+    t.datetime "approved_at"
+    t.integer "approved_by_id"
+    t.index ["approved"], name: "index_users_on_approved"
+    t.index ["approved_by_id"], name: "index_users_on_approved_by_id"
     t.index ["email_address"], name: "index_users_on_email_address", unique: true
     t.index ["system_admin"], name: "index_users_on_system_admin"
   end
@@ -350,4 +355,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_06_184917) do
   add_foreign_key "stock_movements", "locations", column: "to_location_id"
   add_foreign_key "stock_movements", "products"
   add_foreign_key "suppliers", "businesses"
+  add_foreign_key "users", "users", column: "approved_by_id"
 end

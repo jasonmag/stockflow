@@ -15,7 +15,7 @@ module ApplicationHelper
 
   def status_badge(status)
     tone = case status.to_s
-    when "paid", "collected", "delivered", "sent", "read", "received", "business", "active", "attached", "enabled"
+    when "paid", "collected", "delivered", "sent", "read", "received", "business", "active", "attached", "enabled", "approved"
       "badge-success"
     when "overdue", "late", "failed", "void"
       "badge-danger"

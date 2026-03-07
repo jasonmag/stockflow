@@ -1,0 +1,32 @@
+<div class="mx-auto w-full md:w-2/3">
+  <h1 class="font-bold text-4xl">Register</h1>
+  <p class="mt-2 text-sm text-slate-600">
+    Create a regular account request. Super admin must approve and assign your business before you can use the app.
+  </p>
+
+  <% if @user.errors.any? %>
+    <p class="flash flash-alert mt-4"><%= @user.errors.full_messages.to_sentence %></p>
+  <% end %>
+
+  <%= form_with model: @user, url: registration_path, class: "mt-6 space-y-4" do |form| %>
+    <div>
+      <%= form.label :email_address, class: "field-label" %>
+      <%= form.email_field :email_address, required: true, autocomplete: "username", class: "field-input" %>
+    </div>
+
+    <div>
+      <%= form.label :password, class: "field-label" %>
+      <%= form.password_field :password, required: true, autocomplete: "new-password", class: "field-input" %>
+    </div>
+
+    <div>
+      <%= form.label :password_confirmation, class: "field-label" %>
+      <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", class: "field-input" %>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <%= form.submit "Submit registration", class: "btn btn-primary" %>
+      <%= link_to "Back to login", login_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</div>

@@ -23,6 +23,11 @@ class SessionsController < ApplicationController
         return
       end
 
+      if params[:login_scope] != "admin" && !user.approved?
+        redirect_to login_path, alert: "Your account is pending super admin approval."
+        return
+      end
+
       start_new_session_for user
       session[:current_business_id] ||= user.businesses.first&.id
       redirect_to(params[:login_scope] == "admin" ? admin_root_path : dashboard_path)

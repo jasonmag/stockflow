@@ -5,6 +5,9 @@
   </div>
   <div class="flex flex-wrap gap-2">
     <%= link_to "Edit User", edit_admin_user_path(@user), class: "btn btn-primary" %>
+    <% if @user.pending_approval? %>
+      <%= button_to "Approve User", approve_admin_user_path(@user), method: :patch, class: "btn btn-secondary" %>
+    <% end %>
     <%= link_to "Back to Users", admin_users_path, class: "btn btn-secondary" %>
   </div>
 </div>
@@ -18,6 +21,14 @@
     <div>
       <dt class="kpi-label">System Admin</dt>
       <dd class="mt-1"><%= status_badge(@user.system_admin? ? :enabled : :disabled) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Approval</dt>
+      <dd class="mt-1"><%= status_badge(@user.approved? ? :approved : :pending) %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Approved At</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @user.approved_at&.to_s(:long) || "-" %></dd>
     </div>
   </dl>
 </section>

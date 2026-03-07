@@ -1,13 +1,18 @@
 Rails.application.routes.draw do
   namespace :admin do
     root "dashboard#index"
-    resources :users, only: %i[index show edit update]
+    resources :users, only: %i[index show edit update] do
+      member do
+        patch :approve
+      end
+    end
     resources :businesses, only: %i[index show new create]
     resources :memberships, only: %i[create update destroy]
     resource :impersonation, only: %i[create destroy]
   end
 
   resource :session, only: %i[create destroy]
+  resource :registration, only: %i[new create]
   get "login", to: "sessions#new", as: :login
   get "admin/login", to: "sessions#admin_new", as: :admin_login
   get "about", to: "home#about", as: :about

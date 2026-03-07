@@ -33,6 +33,11 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
   - Ordinary user login must redirect to the standard app dashboard (`/dashboard`).
   - Admin login must redirect to the admin dashboard (`/admin`).
   - Admin login path should only allow system admin users; non-system-admin users should be redirected back to admin login with an error.
+- Regular user registration + approval:
+  - Add a public regular-user registration form (email + password) with no business selector.
+  - New regular registrations must be marked pending and cannot sign in until approved by a system admin.
+  - Only system admin can approve registrations and assign business memberships.
+  - Business assignment for regular users must happen from admin membership management, not from self-registration.
 - System admin operating mode:
   - When logged in as system admin (admin login), regular user/store operation pages must not be directly accessible.
   - System admin should only access platform features in the admin namespace by default.
@@ -402,7 +407,7 @@ System admin (platform-level) implemented:
 - `users.system_admin` boolean flag.
 - Admin namespace:
   - `/admin` dashboard
-  - `/admin/users` (view users, toggle system admin, manage memberships)
+  - `/admin/users` (view users, approve pending regular registrations, toggle system admin, manage memberships)
   - `/admin/businesses` (view tenants and members, create business/store tenants)
 - System admins can manage users/business memberships across all tenants.
 - System admins access regular business operations only through impersonation of a store admin (`owner`) account.

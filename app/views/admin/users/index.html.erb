@@ -13,6 +13,7 @@
         <thead>
           <tr>
             <th>Email</th>
+            <th>Approval</th>
             <th>System Admin</th>
             <th>Memberships</th>
             <th></th>
@@ -22,6 +23,7 @@
           <% @users.each do |user| %>
             <tr>
               <td class="font-medium text-slate-900"><%= user.email_address %></td>
+              <td><%= status_badge(user.approved? ? :approved : :pending) %></td>
               <td><%= status_badge(user.system_admin? ? :enabled : :disabled) %></td>
               <td><%= user.memberships.size %></td>
               <td class="text-right"><%= link_to "View", admin_user_path(user), class: "btn btn-ghost" %></td>
