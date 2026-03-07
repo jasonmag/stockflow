@@ -12,12 +12,28 @@
 <section class="card">
   <dl class="grid gap-4 sm:grid-cols-2">
     <div>
+      <dt class="kpi-label">Inventory Type</dt>
+      <dd class="mt-1"><%= status_badge(@product.inventory_type) %></dd>
+    </div>
+    <div>
       <dt class="kpi-label">SKU</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @product.sku.presence || "-" %></dd>
     </div>
     <div>
+      <dt class="kpi-label">Brand</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.brand.presence || "-" %></dd>
+    </div>
+    <div>
       <dt class="kpi-label">Unit</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @product.unit %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Barcode</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.barcode.presence || "-" %></dd>
+    </div>
+    <div>
+      <dt class="kpi-label">Default Cost</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.base_cost_cents.present? ? money(@product.base_cost_cents) : "-" %></dd>
     </div>
     <div>
       <dt class="kpi-label">Reorder Level</dt>
@@ -26,6 +42,10 @@
     <div>
       <dt class="kpi-label">Status</dt>
       <dd class="mt-1"><%= status_badge(@product.active? ? :active : :inactive) %></dd>
+    </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Description</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @product.description.presence || "-" %></dd>
     </div>
   </dl>
 </section>

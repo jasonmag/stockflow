@@ -17,18 +17,59 @@
     </div>
 
     <div>
-      <%= f.label :sku, class: "field-label" %>
-      <%= f.text_field :sku, class: "field-input", placeholder: "SKU" %>
+      <label class="field-label">SKU</label>
+      <% if product.persisted? %>
+        <input class="field-input bg-slate-100" value="<%= product.sku %>" readonly>
+      <% else %>
+        <input class="field-input bg-slate-100" value="Auto-generated on save (globally unique)" readonly>
+      <% end %>
     </div>
 
     <div>
       <%= f.label :unit, class: "field-label" %>
-      <%= f.text_field :unit, class: "field-input", placeholder: "pc, box, case" %>
+      <%= f.text_field :unit, class: "field-input", placeholder: "Search or add unit", list: "unit-options" %>
+      <datalist id="unit-options">
+        <% @unit_options.each do |option| %>
+          <option value="<%= option %>"></option>
+        <% end %>
+      </datalist>
+    </div>
+
+    <div>
+      <%= f.label :inventory_type, class: "field-label" %>
+      <%= f.text_field :inventory_type, class: "field-input", placeholder: "Search or add inventory type", list: "inventory-type-options" %>
+      <datalist id="inventory-type-options">
+        <% @inventory_type_options.each do |option| %>
+          <option value="<%= option %>"></option>
+        <% end %>
+      </datalist>
+    </div>
+
+    <div>
+      <%= f.label :brand, class: "field-label" %>
+      <%= f.text_field :brand, class: "field-input", placeholder: "Optional brand" %>
+    </div>
+
+    <div>
+      <%= f.label :barcode, class: "field-label" %>
+      <%= f.text_field :barcode, class: "field-input", placeholder: "Optional barcode" %>
+    </div>
+
+    <div>
+      <%= f.label :base_cost_decimal, "Default Cost", class: "field-label" %>
+      <%= f.number_field :base_cost_decimal, value: product.base_cost_decimal, class: "field-input", min: 0, step: "0.0001", placeholder: "00000.0000" %>
+      <p class="mt-1 text-xs text-slate-500">Input accepts decimal (e.g. 12345.6789) and is saved as cents in the background.</p>
     </div>
 
     <div>
       <%= f.label :reorder_level, class: "field-label" %>
       <%= f.number_field :reorder_level, class: "field-input", min: 0 %>
+      <p class="mt-1 text-xs text-slate-500">Set the stock quantity threshold that should trigger restocking attention.</p>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :description, class: "field-label" %>
+      <%= f.text_area :description, class: "field-input", rows: 3, placeholder: "Optional notes or product details" %>
     </div>
   </div>
 

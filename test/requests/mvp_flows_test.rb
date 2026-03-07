@@ -37,6 +37,33 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to expense_path(Expense.last)
   end
 
+  test "create product with inventory attributes" do
+    assert_difference("Product.count", 1) do
+      post products_path, params: {
+        product: {
+          name: "Vending Cup",
+          sku: "VC-777",
+          unit: "pc",
+          inventory_type: "consumable",
+          brand: "Demo Brand",
+          barcode: "1234567890123",
+          description: "Paper cup for vending use",
+          base_cost_decimal: "2.5000",
+          reorder_level: 30,
+          active: true
+        }
+      }
+    end
+
+    product = Product.last
+    assert_equal "consumable", product.inventory_type
+    assert_equal "Demo Brand", product.brand
+    assert product.sku.present?
+    assert_operator product.sku.length, :>=, 30
+    assert_equal 250, product.base_cost_cents
+    assert_redirected_to product_path(product)
+  end
+
   test "mark payable paid" do
     payable = Payable.create!(business: @business, payable_type: :supplier, payee: "Vendor", amount_cents: 1000, currency: "PHP", due_on: Date.current, status: :unpaid)
 

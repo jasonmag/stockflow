@@ -32,6 +32,23 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_equal "Not authorized.", flash[:alert]
   end
 
+  test "staff cannot create new inventory products" do
+    sign_in_as(@staff)
+
+    assert_no_difference("Product.count") do
+      post products_path, params: {
+        product: {
+          name: "Staff Product",
+          unit: "pc",
+          inventory_type: "stock_item"
+        }
+      }
+    end
+
+    assert_redirected_to root_path
+    assert_equal "Not authorized.", flash[:alert]
+  end
+
   test "non-system admin cannot access admin namespace" do
     sign_in_as(@owner)
 
@@ -63,7 +80,7 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_equal "Use impersonation to access store operations.", flash[:alert]
   end
 
-  test "system admin can impersonate a store admin owner to access regular dashboard" do
+  test "system admin can impersonate an owner to access regular dashboard" do
     post session_path, params: {
       email_address: @system_admin.email_address,
       password: "password123",
@@ -79,6 +96,21 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
 
     delete admin_impersonation_path
     assert_redirected_to admin_root_path
+  end
+
+  test "system admin can impersonate a staff user to access regular dashboard" do
+    post session_path, params: {
+      email_address: @system_admin.email_address,
+      password: "password123",
+      login_scope: "admin"
+    }
+    follow_redirect!
+
+    post admin_impersonation_path, params: { user_id: @staff.id, business_id: @business_one.id }
+    assert_redirected_to dashboard_path
+
+    get dashboard_path
+    assert_response :success
   end
 
   test "cannot remove last owner membership from a business" do

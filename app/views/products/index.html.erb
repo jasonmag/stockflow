@@ -3,7 +3,9 @@
     <h1 class="page-title">Products</h1>
     <p class="mt-1 text-sm text-slate-600">Manage catalog items, units, and reorder thresholds.</p>
   </div>
-  <%= link_to "New Product", new_product_path, class: "btn btn-primary" %>
+  <% if owner? %>
+    <%= link_to "New Product", new_product_path, class: "btn btn-primary" %>
+  <% end %>
 </div>
 
 <% if @products.any? %>
@@ -12,8 +14,11 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Type</th>
           <th>SKU</th>
+          <th>Brand</th>
           <th>Unit</th>
+          <th>Barcode</th>
           <th>Reorder Level</th>
           <th>Status</th>
           <th class="text-right">Actions</th>
@@ -23,8 +28,11 @@
         <% @products.each do |row| %>
           <tr>
             <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td><%= status_badge(row.inventory_type) %></td>
             <td><%= row.sku.presence || "-" %></td>
+            <td><%= row.brand.presence || "-" %></td>
             <td><%= row.unit %></td>
+            <td><%= row.barcode.presence || "-" %></td>
             <td><%= row.reorder_level || "-" %></td>
             <td><%= status_badge(row.active? ? :active : :inactive) %></td>
             <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>

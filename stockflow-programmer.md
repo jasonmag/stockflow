@@ -41,7 +41,7 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
 - System admin operating mode:
   - When logged in as system admin (admin login), regular user/store operation pages must not be directly accessible.
   - System admin should only access platform features in the admin namespace by default.
-  - To access regular/store functionality, system admin must impersonate a store admin account.
+  - To access regular/store functionality, system admin must impersonate a user that belongs to the target business/store.
 - Store admin account enforcement:
   - Every business/store must always have at least one `owner` membership (store admin account).
   - The last owner membership for a business must not be removable or demotable.
@@ -108,7 +108,19 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
 ========================================================
 - Product:
   business_id, name, sku nullable, unit enum/string (pc/box/case),
+  inventory_type enum {stock_item, raw_material, finished_good, consumable, spare_part},
+  brand nullable, barcode nullable (unique per business), description nullable,
+  base_cost_cents nullable,
   reorder_level integer nullable, active boolean default true
+  - SKU behavior:
+    - SKU must be auto-generated on create, long-form, and unique across the full system (not only per business).
+    - SKU should not require manual user input during create.
+  - Default cost behavior:
+    - UI input accepts decimal format (e.g., `00000.0000`) but persists in cents in the database.
+  - Inventory type + Unit behavior:
+    - Inventory type input must allow selecting existing options and adding new custom options.
+    - Unit input must allow selecting existing options and adding new custom options.
+    - Both inputs should be searchable in the UI and support longer option values.
 - Location:
   business_id, name,
   location_type enum {home, storage, warehouse, vending, customer, other}
@@ -133,12 +145,15 @@ MVP must include generating a Delivery Report PDF (printable) and emailing it to
   - Inventory::StockValidator (checks sufficient stock before stock-out / delivery)
 - UI:
   - Products CRUD
+  - Product forms should expose inventory_type and the extended catalog attributes (brand, barcode, description, default/base cost)
+  - Product form should explain reorder level clearly so users understand it is a stock threshold for restocking alerts.
   - Locations CRUD
   - Stock Movements: separate “Stock In / Stock Out / Transfer / Adjustment” flows
   - Inventory view:
     - by product totals
     - drilldown by location
     - low-stock badge where on-hand <= reorder_level
+  - Product catalog management (including setting inventory type) should be available to all authenticated business users.
 
 ========================================================
 5) PURCHASES + COST TRACKING
@@ -330,6 +345,7 @@ Dashboard should show:
   - Sticky table headers for long lists; horizontal scroll wrappers on small screens.
   - Primary actions visible above the fold; destructive actions visually distinct.
   - Empty states should include helpful copy and a clear next action.
+  - Ribbon/top navigation should include a direct `Products` entry for product CRUD access.
 - Accessibility requirements:
   - Keyboard navigable interactive elements with visible focus states.
   - Minimum touch target size for buttons/controls.
@@ -410,7 +426,7 @@ System admin (platform-level) implemented:
   - `/admin/users` (view users, approve pending regular registrations, toggle system admin, manage memberships)
   - `/admin/businesses` (view tenants and members, create business/store tenants)
 - System admins can manage users/business memberships across all tenants.
-- System admins access regular business operations only through impersonation of a store admin (`owner`) account.
+- System admins access regular business operations only through impersonation of a business member account (owner or staff) in the target store.
 
 ========================================================
 11) DEPLOYMENT REQUIREMENTS (KAMAL + DOCKER)

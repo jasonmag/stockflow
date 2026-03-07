@@ -4,8 +4,8 @@ module Admin
       user = User.find(params[:user_id])
       business = Business.find(params[:business_id])
 
-      unless user.owner_of?(business)
-        redirect_to admin_business_path(business), alert: "Only store admin accounts can be impersonated."
+      unless Membership.exists?(user:, business:)
+        redirect_to admin_business_path(business), alert: "User must belong to this business to be impersonated."
         return
       end
 

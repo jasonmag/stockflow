@@ -26,13 +26,11 @@
               <td><%= status_badge(membership.role) %></td>
               <td><%= status_badge(membership.user.system_admin? ? :enabled : :disabled) %></td>
               <td class="text-right">
-                <% if membership.owner? %>
-                  <%= button_to "Impersonate Store Admin",
-                    admin_impersonation_path,
-                    params: { user_id: membership.user_id, business_id: @business.id },
-                    method: :post,
-                    class: "btn btn-ghost" %>
-                <% end %>
+                <%= button_to "Impersonate User",
+                  admin_impersonation_path,
+                  params: { user_id: membership.user_id, business_id: @business.id },
+                  method: :post,
+                  class: "btn btn-ghost" %>
               </td>
             </tr>
           <% end %>
