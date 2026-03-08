@@ -21,8 +21,8 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files in S3-compatible object storage.
-  config.active_storage.service = :s3_compatible
+  # Store uploaded files on local disk (persisted via Kamal volume mount).
+  config.active_storage.service = :local
 
   # Assume all access to the app is happening through a SSL-terminating reverse proxy.
   config.assume_ssl = true
@@ -61,15 +61,15 @@ Rails.application.configure do
   config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "example.com") }
 
   # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.smtp_settings = {
-    user_name: ENV["SMTP_USERNAME"],
-    password: ENV["SMTP_PASSWORD"],
-    address: ENV.fetch("SMTP_ADDRESS", "smtp.example.com"),
-    port: ENV.fetch("SMTP_PORT", 587).to_i,
-    authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
-    enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true") == "true"
-  }
+  # config.action_mailer.delivery_method = :smtp
+  # config.action_mailer.smtp_settings = {
+  #   user_name: ENV["SMTP_USERNAME"],
+  #   password: ENV["SMTP_PASSWORD"],
+  #   address: ENV.fetch("SMTP_ADDRESS", "smtp.example.com"),
+  #   port: ENV.fetch("SMTP_PORT", 587).to_i,
+  #   authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
+  #   enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true") == "true"
+  # }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
