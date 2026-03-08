@@ -20,8 +20,8 @@ servers:
 proxy:
   ssl: true
   hosts: 
-    - stockflow.jasonmag.com
-  app_port: 3000
+   - stockflow.jasonmag.com
+  app_port: 80
 
 # Credentials for your image host.
 registry:
