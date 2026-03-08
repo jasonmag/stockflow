@@ -93,7 +93,6 @@ Background email jobs are processed by Solid Queue.
 
 - `RAILS_MASTER_KEY`
 - `SECRET_KEY_BASE`
-- `DATABASE_URL`
 - `APP_HOST`
 - `SMTP_USERNAME`
 - `SMTP_PASSWORD`
@@ -110,6 +109,15 @@ Background email jobs are processed by Solid Queue.
 - Development/test: local disk
 - Production: `s3_compatible` service in `config/storage.yml`
 
+## Production Database
+
+- Production deploys use SQLite files under `storage/`:
+  - `storage/production.sqlite3`
+  - `storage/production_cache.sqlite3`
+  - `storage/production_queue.sqlite3`
+  - `storage/production_cable.sqlite3`
+- Ensure the Kamal storage volume is persistent and backed up.
+
 ## Kamal Deployment
 
 1. Update `config/deploy.yml` with real servers, registry, and host.
@@ -125,6 +133,26 @@ bin/kamal deploy
 
 ```bash
 bin/kamal app exec "bin/rails db:prepare"
+```
+
+## Kamal Dev (Local Host)
+
+Use the isolated dev config in `config/deploy.dev.yml` via `bin/kamal-dev`.
+
+1. Update local secrets in `.kamal/secrets.dev` (at minimum `SECRET_KEY_BASE`).
+2. Make sure Docker is running and localhost SSH access works for Kamal.
+3. Run setup/deploy:
+
+```bash
+bin/kamal-dev setup
+bin/kamal-dev deploy
+```
+
+4. Open the app at `http://localhost:3000`.
+5. Run migrations when needed:
+
+```bash
+bin/kamal-dev app exec "bin/rails db:prepare"
 ```
 
 Healthcheck endpoint: `GET /up`

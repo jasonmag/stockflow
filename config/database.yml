@@ -25,18 +25,18 @@ test:
 # is mounted as a persistent Docker volume in config/deploy.yml.
 production:
   primary:
-    adapter: postgresql
-    url: <%= ENV["DATABASE_URL"] || "postgres://localhost/stockflow_production" %>
+    adapter: sqlite3
+    database: storage/production.sqlite3
     pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   cache:
-    adapter: postgresql
-    url: <%= ENV["DATABASE_URL"] || "postgres://localhost/stockflow_production" %>
+    adapter: sqlite3
+    database: storage/production_cache.sqlite3
     migrations_paths: db/cache_migrate
   queue:
-    adapter: postgresql
-    url: <%= ENV["DATABASE_URL"] || "postgres://localhost/stockflow_production" %>
+    adapter: sqlite3
+    database: storage/production_queue.sqlite3
     migrations_paths: db/queue_migrate
   cable:
-    adapter: postgresql
-    url: <%= ENV["DATABASE_URL"] || "postgres://localhost/stockflow_production" %>
+    adapter: sqlite3
+    database: storage/production_cable.sqlite3
     migrations_paths: db/cable_migrate

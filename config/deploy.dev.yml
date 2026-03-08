@@ -1,0 +1,51 @@
+service: stockflow-dev
+image: stockflow-dev
+
+servers:
+  web:
+    - 127.0.0.1
+
+registry:
+  server: localhost:5555
+
+secrets_path: .kamal/secrets.dev
+
+proxy:
+  ssl: false
+  app_port: 80
+  healthcheck:
+    path: /up
+    interval: 3
+    timeout: 5
+  run:
+    http_port: 3000
+
+env:
+  secret:
+    - RAILS_MASTER_KEY
+    - SECRET_KEY_BASE
+    - DATABASE_URL
+  clear:
+    RAILS_ENV: production
+    SOLID_QUEUE_IN_PUMA: true
+    RAILS_LOG_LEVEL: debug
+    APP_HOST: localhost:3000
+
+volumes:
+  - "stockflow_dev_storage:/rails/storage"
+
+builder:
+  arch: amd64
+
+accessories:
+  db:
+    image: postgres:16
+    host: 127.0.0.1
+    env:
+      clear:
+        POSTGRES_DB: stockflow_production
+      secret:
+        - POSTGRES_USER
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
