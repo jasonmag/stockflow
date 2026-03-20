@@ -298,4 +298,48 @@
     @apply w-full rounded-lg border px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2;
     --tw-ring-color: var(--accent-color);
   }
+
+  .product-lookup-trigger {
+    @apply relative flex items-stretch;
+  }
+
+  .product-lookup-input {
+    @apply pr-12;
+  }
+
+  .product-lookup-toggle {
+    border-color: var(--border-color);
+    background: transparent;
+    @apply absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-lg border-l;
+  }
+
+  .product-lookup-menu {
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    @apply absolute z-20 mt-1 w-full overflow-hidden rounded-lg border shadow-lg;
+  }
+
+  .product-lookup-items {
+    @apply max-h-64 overflow-y-auto py-1;
+  }
+
+  .product-lookup-item {
+    color: var(--text-primary);
+    @apply flex w-full items-center px-3 py-2 text-left text-sm;
+  }
+
+  .product-lookup-item:hover,
+  .product-lookup-item.is-selected {
+    background: var(--surface-hover);
+  }
+
+  .product-lookup-empty {
+    color: var(--text-muted);
+    @apply px-3 py-2 text-sm;
+  }
+
+  .product-lookup-caret {
+    @apply inline-block h-2.5 w-2.5 shrink-0 border-b-2 border-r-2 border-slate-400;
+    transform: rotate(45deg) translateY(-1px);
+  }
 }

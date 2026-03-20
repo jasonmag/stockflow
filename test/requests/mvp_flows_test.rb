@@ -74,6 +74,16 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "select[name='purchase[funding_source]'] option", text: "Cash Business", count: 0
   end
 
+  test "purchase form includes searchable product dropdown for purchase items" do
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "[data-controller='product-lookup'] input[type='hidden'][name='purchase[purchase_items_attributes][0][product_id]']"
+    assert_select "[data-controller='product-lookup'] input[type='text'][placeholder='Select product']"
+    assert_select "[data-controller='product-lookup'] button[aria-label='Toggle product options']"
+    assert_select "[data-controller='product-lookup'] .product-lookup-item", text: @product.name
+  end
+
   test "create purchase rejects funding sources disabled in business settings" do
     @business.update!(purchase_funding_source_keys: [ "GCash" ])
 
