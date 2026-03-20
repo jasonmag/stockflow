@@ -53,6 +53,6 @@ class PurchasesController < ApplicationController
 
     def purchase_params
       params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status,
-                                       purchase_items_attributes: %i[id product_id quantity unit_cost_cents _destroy])
+                                       purchase_items_attributes: %i[id product_id quantity unit_cost_decimal unit_cost_cents _destroy])
     end
 end

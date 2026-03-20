@@ -1,0 +1,45 @@
+<div class="grid grid-cols-3 gap-3">
+  <div class="relative" data-controller="product-lookup" data-product-lookup-placeholder-value="Select product">
+    <%= form.hidden_field :product_id, data: { product_lookup_target: "hidden" } %>
+    <div class="product-lookup-trigger">
+      <input
+        type="text"
+        class="field-input product-lookup-input"
+        placeholder="Select product"
+        autocomplete="off"
+        data-action="focus->product-lookup#open click->product-lookup#open input->product-lookup#filter"
+        data-product-lookup-target="input">
+      <button
+        type="button"
+        class="product-lookup-toggle"
+        aria-label="Toggle product options"
+        aria-expanded="false"
+        data-action="click->product-lookup#toggle"
+        data-product-lookup-target="toggle">
+        <span class="product-lookup-caret" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="product-lookup-menu hidden" data-product-lookup-target="menu">
+      <div class="product-lookup-items">
+        <div class="product-lookup-empty hidden" data-product-lookup-target="empty">No matches found</div>
+        <% products.each do |product| %>
+          <button
+            type="button"
+            class="product-lookup-item"
+            data-action="click->product-lookup#select"
+            data-product-lookup-target="item"
+            data-label="<%= product.name %>"
+            data-value="<%= product.id %>">
+            <span class="truncate"><%= product.name %></span>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div>
+    <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" } %>
+  </div>
+  <div>
+    <%= form.number_field :unit_cost_decimal, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Unit cost" } %>
+  </div>
+</div>

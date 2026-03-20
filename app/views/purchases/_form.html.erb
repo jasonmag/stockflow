@@ -46,57 +46,28 @@
     <h2 class="text-sm font-semibold text-slate-900">Purchase Items</h2>
     <p class="mt-1 text-xs text-slate-600">Add at least one item and quantity.</p>
 
-    <div class="mt-3 space-y-3">
-      <%= f.fields_for :purchase_items do |item| %>
-        <div class="grid gap-3 rounded-lg border border-slate-200 p-3 md:grid-cols-3">
-          <div class="relative" data-controller="product-lookup" data-product-lookup-placeholder-value="Select product">
-            <%= item.label :product_id, class: "field-label" %>
-            <%= item.hidden_field :product_id, data: { product_lookup_target: "hidden" } %>
-            <div class="product-lookup-trigger">
-              <input
-                type="text"
-                class="field-input product-lookup-input"
-                placeholder="Select product"
-                autocomplete="off"
-                data-action="focus->product-lookup#open click->product-lookup#open input->product-lookup#filter"
-                data-product-lookup-target="input">
-              <button
-                type="button"
-                class="product-lookup-toggle"
-                aria-label="Toggle product options"
-                aria-expanded="false"
-                data-action="click->product-lookup#toggle"
-                data-product-lookup-target="toggle">
-                <span class="product-lookup-caret" aria-hidden="true"></span>
-              </button>
-            </div>
-            <div class="product-lookup-menu hidden" data-product-lookup-target="menu">
-              <div class="product-lookup-items">
-                <div class="product-lookup-empty hidden" data-product-lookup-target="empty">No matches found</div>
-              <% current_business.products.order(:name).each do |product| %>
-                <button
-                  type="button"
-                  class="product-lookup-item"
-                  data-action="click->product-lookup#select"
-                  data-product-lookup-target="item"
-                  data-label="<%= product.name %>"
-                  data-value="<%= product.id %>">
-                  <span class="truncate"><%= product.name %></span>
-                </button>
-              <% end %>
-              </div>
-            </div>
-          </div>
-          <div>
-            <%= item.label :quantity, class: "field-label" %>
-            <%= item.number_field :quantity, step: 0.01, min: 0.01, class: "field-input" %>
-          </div>
-          <div>
-            <%= item.label :unit_cost_cents, class: "field-label" %>
-            <%= item.number_field :unit_cost_cents, min: 0, class: "field-input" %>
-          </div>
+    <div class="mt-3 space-y-3" data-controller="nested-purchase-items">
+      <div class="rounded-lg border border-slate-200">
+        <div class="grid grid-cols-3 gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+          <div>Product</div>
+          <div>Quantity</div>
+          <div>Unit cost</div>
         </div>
-      <% end %>
+
+        <div data-nested-purchase-items-target="list" class="divide-y divide-slate-200 p-3 space-y-3 md:space-y-0">
+        <%= f.fields_for :purchase_items do |item| %>
+          <%= render "purchase_item_fields", form: item, products: current_business.products.order(:name) %>
+        <% end %>
+        </div>
+      </div>
+
+      <template data-nested-purchase-items-target="template">
+        <%= f.fields_for :purchase_items, PurchaseItem.new, child_index: "NEW_RECORD" do |item| %>
+          <%= render "purchase_item_fields", form: item, products: current_business.products.order(:name) %>
+        <% end %>
+      </template>
+
+      <button type="button" class="btn btn-secondary" data-action="click->nested-purchase-items#add">Add another product</button>
     </div>
   </section>
 

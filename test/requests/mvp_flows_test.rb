@@ -78,6 +78,12 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get new_purchase_path
 
     assert_response :success
+    assert_select "[data-controller='nested-purchase-items'] button", text: "Add another product"
+    assert_select "[data-controller='nested-purchase-items'] template"
+    assert_select "section", text: /Product/
+    assert_select "div", text: "Product", count: 1
+    assert_select "div", text: "Quantity", count: 1
+    assert_select "div", text: "Unit cost", count: 1
     assert_select "[data-controller='product-lookup'] input[type='hidden'][name='purchase[purchase_items_attributes][0][product_id]']"
     assert_select "[data-controller='product-lookup'] input[type='text'][placeholder='Select product']"
     assert_select "[data-controller='product-lookup'] button[aria-label='Toggle product options']"
@@ -99,7 +105,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
             "0" => {
               product_id: @product.id,
               quantity: 2,
-              unit_cost_cents: 100
+              unit_cost_decimal: "1.00"
             }
           }
         }
@@ -108,6 +114,30 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert_includes response.body, "Funding source is not enabled in store settings"
+  end
+
+  test "create purchase converts decimal unit cost to cents" do
+    assert_difference("Purchase.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash Business",
+          status: "draft",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    assert_equal 1250, Purchase.last.purchase_items.last.unit_cost_cents
+    assert_redirected_to purchase_path(Purchase.last)
   end
 
   test "create product with inventory attributes" do
