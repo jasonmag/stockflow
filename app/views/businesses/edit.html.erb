@@ -45,14 +45,10 @@
 
   <section class="rounded-lg border border-slate-200 p-4">
     <h2 class="text-sm font-semibold text-slate-900">Purchase Funding Sources</h2>
-    <p class="mt-1 text-xs text-slate-600">These options appear on the purchase form at <code>/purchases/new</code>.</p>
-    <div class="mt-3 space-y-2">
-      <% Business::DEFAULT_PURCHASE_FUNDING_SOURCES.each do |key| %>
-        <label class="flex items-center gap-3 text-sm text-slate-800">
-          <%= check_box_tag "business[purchase_funding_source_keys][]", key, @business.purchase_funding_source_enabled?(key), class: "h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-400" %>
-          <span><%= @business.purchase_funding_source_label(key) %></span>
-        </label>
-      <% end %>
+    <p class="mt-1 text-xs text-slate-600">Enter one option per line. These values appear on the purchase form at <code>/purchases/new</code>.</p>
+    <div class="mt-3">
+      <%= f.label :purchase_funding_sources, "Funding source options", class: "field-label" %>
+      <%= text_area_tag "business[purchase_funding_sources]", @business.purchase_funding_source_keys.join("\n"), class: "field-input font-mono", rows: 6, placeholder: "Cash Personal\nGCash\nCorporate Card" %>
     </div>
   </section>
 

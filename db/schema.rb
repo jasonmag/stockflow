@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_20_103000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -47,7 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_20_103000) do
     t.integer "reminder_lead_days", default: 7, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "purchase_funding_sources", default: "cash_personal\ncash_business\ncard_personal\ncard_business", null: false
+    t.text "purchase_funding_sources", default: "Cash Personal\nCash Business\nCard Personal\nCard Business", null: false
   end
 
   create_table "categories", force: :cascade do |t|
@@ -243,11 +243,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_20_103000) do
     t.integer "supplier_id", null: false
     t.date "purchased_on"
     t.integer "receiving_location_id", null: false
-    t.integer "funding_source", default: 0, null: false
     t.text "notes"
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "funding_source", default: "Cash Personal", null: false
     t.index ["business_id"], name: "index_purchases_on_business_id"
     t.index ["receiving_location_id"], name: "index_purchases_on_receiving_location_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"

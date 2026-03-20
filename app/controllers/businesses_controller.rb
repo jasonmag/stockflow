@@ -57,7 +57,7 @@ class BusinessesController < ApplicationController
 
   private
     def business_params
-      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, purchase_funding_source_keys: [])
+      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, :purchase_funding_sources)
     end
 
     def membership_params
