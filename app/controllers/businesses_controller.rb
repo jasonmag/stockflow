@@ -1,5 +1,5 @@
 class BusinessesController < ApplicationController
-  before_action :require_owner!, only: %i[members add_member]
+  before_action :require_owner!, only: %i[edit update members add_member]
 
   def switch
     business = Current.user.businesses.find(params[:business_id])
@@ -10,6 +10,20 @@ class BusinessesController < ApplicationController
   def members
     @business = current_business
     @memberships = @business.memberships.includes(:user).order(:role, :created_at)
+  end
+
+  def edit
+    @business = current_business
+  end
+
+  def update
+    @business = current_business
+
+    if @business.update(business_params)
+      redirect_to edit_business_path, notice: "Business settings updated."
+    else
+      render :edit, status: :unprocessable_entity
+    end
   end
 
   def add_member
@@ -42,6 +56,10 @@ class BusinessesController < ApplicationController
   end
 
   private
+    def business_params
+      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, purchase_funding_source_keys: [])
+    end
+
     def membership_params
       params.require(:membership).permit(:email_address, :role, :password)
     end

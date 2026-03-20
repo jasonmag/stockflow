@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_07_143000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_20_103000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -47,6 +47,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_07_143000) do
     t.integer "reminder_lead_days", default: 7, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "purchase_funding_sources", default: "cash_personal\ncash_business\ncard_personal\ncard_business", null: false
   end
 
   create_table "categories", force: :cascade do |t|

@@ -153,6 +153,15 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_equal "Only owners can do that.", flash[:alert]
   end
 
+  test "staff cannot access owner business settings page" do
+    sign_in_as(@staff)
+
+    get edit_business_path
+
+    assert_redirected_to root_path
+    assert_equal "Only owners can do that.", flash[:alert]
+  end
+
   test "system admin can create business stores" do
     sign_in_as(@system_admin)
 
@@ -177,7 +186,7 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
           supplier_id: @supplier_two.id,
           purchased_on: Date.current,
           receiving_location_id: @location_one.id,
-          funding_source: :business,
+          funding_source: :cash_business,
           purchase_items_attributes: {
             "0" => {
               product_id: @product_one.id,

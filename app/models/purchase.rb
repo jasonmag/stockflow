@@ -7,11 +7,17 @@ class Purchase < ApplicationRecord
   has_many :purchase_items, dependent: :destroy
   accepts_nested_attributes_for :purchase_items, allow_destroy: true
 
-  enum :funding_source, { personal: 0, business: 1 }
+  enum :funding_source, {
+    cash_personal: 0,
+    cash_business: 1,
+    card_personal: 2,
+    card_business: 3
+  }
   enum :status, { draft: 0, received: 1 }
 
   validates :purchased_on, :receiving_location, presence: true
   validates_same_business_of :supplier, :receiving_location
+  validate :funding_source_enabled_for_business
 
   def receive!
     transaction do
@@ -31,4 +37,12 @@ class Purchase < ApplicationRecord
       update!(status: :received)
     end
   end
+
+  private
+    def funding_source_enabled_for_business
+      return if funding_source.blank? || business.blank?
+      return if business.purchase_funding_source_enabled?(funding_source)
+
+      errors.add(:funding_source, "is not enabled in store settings")
+    end
 end

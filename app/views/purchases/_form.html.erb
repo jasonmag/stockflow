@@ -28,7 +28,7 @@
 
     <div>
       <%= f.label :funding_source, class: "field-label" %>
-      <%= f.select :funding_source, Purchase.funding_sources.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+      <%= f.select :funding_source, current_business.purchase_funding_source_options, {}, class: "field-input" %>
     </div>
 
     <div>

@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   get "admin/login", to: "sessions#admin_new", as: :admin_login
   get "about", to: "home#about", as: :about
   resources :passwords, param: :token
-  resource :business, only: [] do
+  resource :business, only: %i[edit update] do
     patch :switch
     get :members
     post :add_member

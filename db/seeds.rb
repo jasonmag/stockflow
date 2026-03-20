@@ -83,6 +83,7 @@ north_business = Business.find_or_create_by!(name: "Stockflow North Trading") do
   business.contact_phone = "+63 917 100 0000"
   business.address = "Quezon City"
   business.reminder_lead_days = 7
+  business.purchase_funding_source_keys = %w[cash_personal cash_business card_personal card_business]
 end
 
 south_business = Business.find_or_create_by!(name: "Stockflow South Trading") do |business|
@@ -90,6 +91,7 @@ south_business = Business.find_or_create_by!(name: "Stockflow South Trading") do
   business.contact_phone = "+63 917 200 0000"
   business.address = "Makati"
   business.reminder_lead_days = 7
+  business.purchase_funding_source_keys = %w[cash_personal cash_business card_personal card_business]
 end
 
 seed_business_data(business: north_business, owner_user: north_owner, staff_user: store_staff)

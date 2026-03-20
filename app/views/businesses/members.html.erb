@@ -3,7 +3,10 @@
     <h1 class="page-title">Business Members</h1>
     <p class="mt-1 text-sm text-slate-600">Manage members for <%= @business.name %>.</p>
   </div>
-  <%= link_to "Back to Dashboard", dashboard_path, class: "btn btn-secondary" %>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Business Settings", edit_business_path, class: "btn btn-secondary" %>
+    <%= link_to "Back to Dashboard", dashboard_path, class: "btn btn-secondary" %>
+  </div>
 </div>
 
 <section class="card mb-4">

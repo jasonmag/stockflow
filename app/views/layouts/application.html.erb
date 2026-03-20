@@ -98,6 +98,7 @@
                 <%= nav_link_to "Inventory", stock_movements_path %>
                 <%= nav_link_to "User Guide", user_guide_path %>
                 <% if owner? %>
+                  <%= nav_link_to "Business Settings", edit_business_path %>
                   <%= nav_link_to "Business Members", members_business_path %>
                 <% end %>
                 <% if system_admin? %>

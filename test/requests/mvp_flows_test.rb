@@ -37,6 +37,56 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to expense_path(Expense.last)
   end
 
+  test "owner can update business funding source settings" do
+    patch business_path, params: {
+      business: {
+        reminder_lead_days: 5,
+        purchase_funding_source_keys: [ "cash_business", "card_business" ]
+      }
+    }
+
+    assert_redirected_to edit_business_path
+    assert_equal [ "cash_business", "card_business" ], @business.reload.purchase_funding_source_keys
+  end
+
+  test "purchase form uses business funding source settings" do
+    @business.update!(purchase_funding_source_keys: [ "cash_business", "card_business" ])
+
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "select[name='purchase[funding_source]'] option", text: "Cash Business"
+    assert_select "select[name='purchase[funding_source]'] option", text: "Card Business"
+    assert_select "select[name='purchase[funding_source]'] option", text: "Cash Personal", count: 0
+    assert_select "select[name='purchase[funding_source]'] option", text: "Card Personal", count: 0
+  end
+
+  test "create purchase rejects funding sources disabled in business settings" do
+    @business.update!(purchase_funding_source_keys: [ "cash_business" ])
+
+    assert_no_difference("Purchase.count") do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "card_business",
+          status: "draft",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_cents: 100
+            }
+          }
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "Funding source is not enabled in store settings"
+  end
+
   test "create product with inventory attributes" do
     assert_difference("Product.count", 1) do
       post products_path, params: {
@@ -75,7 +125,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   end
 
   test "receive purchase creates stock-in movements" do
-    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: :business, status: :draft)
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: :cash_business, status: :draft)
     purchase.purchase_items.create!(product: @product, quantity: 5, unit_cost_cents: 100)
 
     assert_difference("StockMovement.count", 1) do

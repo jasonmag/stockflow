@@ -1,13 +1,9 @@
 namespace :admin do
-  desc "Ensure a super admin exists using ADMIN_EMAIL and ADMIN_PASSWORD"
+  desc "Ensure a super admin exists"
   task ensure: :environment do
     email = ENV.fetch("ADMIN_EMAIL", "").strip.downcase
     password = ENV.fetch("ADMIN_PASSWORD", "")
-
-    if email.empty? || password.empty?
-      warn "ADMIN_EMAIL and ADMIN_PASSWORD must be set."
-      next
-    end
+    next if email.empty? || password.empty?
 
     user = User.find_or_initialize_by(email: email)
     if user.new_record?
