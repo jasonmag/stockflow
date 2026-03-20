@@ -1,7 +1,11 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["list", "template"]
+  static targets = ["list", "template", "overall"]
+
+  connect() {
+    this.updateOverall()
+  }
 
   add(event) {
     event.preventDefault()
@@ -9,5 +13,21 @@ export default class extends Controller {
     const uniqueId = Date.now().toString()
     const content = this.templateTarget.innerHTML.replaceAll("NEW_RECORD", uniqueId)
     this.listTarget.insertAdjacentHTML("beforeend", content)
+    requestAnimationFrame(() => this.updateOverall())
+  }
+
+  updateOverall() {
+    const total = this.listTarget
+      .querySelectorAll("[data-controller~='purchase-item-total']")
+      .reduce((sum, element) => sum + Number.parseFloat(element.dataset.subtotalValue || "0"), 0)
+
+    this.overallTarget.textContent = this.formatCurrency(total)
+  }
+
+  formatCurrency(value) {
+    return new Intl.NumberFormat("en-PH", {
+      style: "currency",
+      currency: "PHP"
+    }).format(value || 0)
   }
 }

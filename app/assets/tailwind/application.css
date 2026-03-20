@@ -342,4 +342,23 @@
     @apply inline-block h-2.5 w-2.5 shrink-0 border-b-2 border-r-2 border-slate-400;
     transform: rotate(45deg) translateY(-1px);
   }
+
+  .purchase-item-subtotal {
+    border-color: var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    @apply flex min-h-[42px] items-center rounded-lg border px-3 py-2 text-sm font-medium;
+  }
+
+  .purchase-items-overall-total {
+    border-color: var(--border-color);
+    background: var(--surface-muted);
+    color: var(--text-primary);
+    @apply inline-flex items-center gap-3 rounded-lg border px-4 py-2 text-sm font-semibold;
+  }
+
+  .purchase-items-overall-total-label {
+    color: var(--text-secondary);
+    @apply uppercase tracking-wide text-xs font-semibold;
+  }
 }

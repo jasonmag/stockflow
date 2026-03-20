@@ -84,10 +84,13 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "div", text: "Product", count: 1
     assert_select "div", text: "Quantity", count: 1
     assert_select "div", text: "Unit cost", count: 1
+    assert_select "div", text: "Sub-total", count: 1
     assert_select "[data-controller='product-lookup'] input[type='hidden'][name='purchase[purchase_items_attributes][0][product_id]']"
     assert_select "[data-controller='product-lookup'] input[type='text'][placeholder='Select product']"
     assert_select "[data-controller='product-lookup'] button[aria-label='Toggle product options']"
     assert_select "[data-controller='product-lookup'] .product-lookup-item", text: @product.name
+    assert_select "[data-controller='purchase-item-total'] [data-purchase-item-total-target='subtotal']", text: "PHP 0.00"
+    assert_select "[data-nested-purchase-items-target='overall']", text: "PHP 0.00"
   end
 
   test "create purchase rejects funding sources disabled in business settings" do

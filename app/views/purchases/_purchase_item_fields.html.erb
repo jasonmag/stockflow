@@ -1,4 +1,4 @@
-<div class="grid grid-cols-3 gap-3">
+<div class="grid grid-cols-4 gap-3" data-controller="purchase-item-total">
   <div class="relative" data-controller="product-lookup" data-product-lookup-placeholder-value="Select product">
     <%= form.hidden_field :product_id, data: { product_lookup_target: "hidden" } %>
     <div class="product-lookup-trigger">
@@ -37,9 +37,12 @@
     </div>
   </div>
   <div>
-    <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" } %>
+    <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" }, data: { action: "input->purchase-item-total#update", purchase_item_total_target: "quantity" } %>
   </div>
   <div>
-    <%= form.number_field :unit_cost_decimal, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Unit cost" } %>
+    <%= form.number_field :unit_cost_decimal, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Unit cost" }, data: { action: "input->purchase-item-total#update", purchase_item_total_target: "unitCost" } %>
+  </div>
+  <div>
+    <div class="purchase-item-subtotal" data-purchase-item-total-target="subtotal">PHP 0.00</div>
   </div>
 </div>
