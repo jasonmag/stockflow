@@ -9,7 +9,7 @@ class ReceivablesController < ApplicationController
   end
 
   def show; end
-  def new; @receivable = current_business.receivables.new(due_on: Date.current); end
+  def new; @receivable = current_business.receivables.new(due_on: Date.current, currency: current_business.currency); end
   def edit; end
 
   def create

@@ -11,8 +11,9 @@ class DashboardController < ApplicationController
     end
 
     month_range = Date.current.beginning_of_month..Date.current
-    @expenses_total = current_business.expenses.where(occurred_on: month_range).sum(:amount_cents)
-    @personal_total = current_business.expenses.personal.where(occurred_on: month_range).sum(:amount_cents)
+    expenses_mtd = current_business.expenses.where(occurred_on: month_range)
+    @expenses_total = expenses_mtd.sum(:amount_cents)
+    @cash_expenses_total = expenses_mtd.where(funding_source: current_business.purchase_funding_source_names_for(:cash)).sum(:amount_cents)
     @collections_total = current_business.collections.where(collected_on: month_range).sum(:amount_cents)
     @payments_total = current_business.payments.where(paid_on: month_range).sum(:amount_cents)
     @net_cashflow = @collections_total - @expenses_total - @payments_total

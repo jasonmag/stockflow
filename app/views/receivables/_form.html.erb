@@ -38,7 +38,7 @@
 
     <div>
       <%= f.label :currency, class: "field-label" %>
-      <%= f.text_field :currency, class: "field-input", placeholder: "PHP" %>
+      <%= f.text_field :currency, value: current_business.currency, class: "field-input bg-slate-100", readonly: true %>
     </div>
 
     <div>

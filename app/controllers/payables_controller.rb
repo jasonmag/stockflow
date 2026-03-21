@@ -13,7 +13,7 @@ class PayablesController < ApplicationController
   end
 
   def new
-    @payable = current_business.payables.new(due_on: Date.current)
+    @payable = current_business.payables.new(due_on: Date.current, currency: current_business.currency)
   end
 
   def edit; end

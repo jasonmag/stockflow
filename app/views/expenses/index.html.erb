@@ -8,12 +8,12 @@
 
 <div class="mb-6 grid gap-3 md:grid-cols-3">
   <article class="card">
-    <p class="kpi-label">Personal MTD</p>
-    <p class="kpi-value"><%= money(@personal_out_of_pocket_mtd) %></p>
+    <p class="kpi-label">Cash MTD</p>
+    <p class="kpi-value"><%= money(@cash_expenses_mtd) %></p>
   </article>
   <article class="card">
-    <p class="kpi-label">Business-paid MTD</p>
-    <p class="kpi-value"><%= money(@business_paid_mtd) %></p>
+    <p class="kpi-label">Credit MTD</p>
+    <p class="kpi-value"><%= money(@credit_expenses_mtd) %></p>
   </article>
   <article class="card">
     <p class="kpi-label">Total Expenses MTD</p>
@@ -41,7 +41,7 @@
     <div>
       <%= f.label :funding_source, "Funding source", class: "field-label" %>
       <%= f.select :funding_source,
-        options_for_select([["All sources", ""], ["Personal", "personal"], ["Business", "business"]], params[:funding_source]),
+        options_for_select([["All sources", ""]] + current_business.purchase_funding_source_options, params[:funding_source]),
         {},
         class: "field-input" %>
     </div>
@@ -75,7 +75,7 @@
             <td><%= expense.occurred_on %></td>
             <td class="font-medium text-slate-900"><%= expense.payee %></td>
             <td><%= expense.category&.name || "-" %></td>
-            <td><%= status_badge(expense.funding_source) %></td>
+            <td><%= expense.funding_source %></td>
             <td class="font-semibold text-slate-900"><%= money(expense.amount_cents, expense.currency) %></td>
             <td class="text-right"><%= link_to "View", expense_path(expense), class: "btn btn-ghost" %></td>
           </tr>

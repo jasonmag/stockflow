@@ -31,7 +31,7 @@
           <th>Due date</th>
           <th>Status</th>
           <th>Amount</th>
-          <th></th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -43,11 +43,15 @@
             <td><%= status_badge(row.status) %></td>
             <td class="font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></td>
             <td>
-              <% unless row.paid? %>
-                <%= button_to "Mark Paid", mark_paid_payable_path(row), method: :patch, class: "btn btn-secondary" %>
-              <% else %>
-                <span class="text-xs text-slate-500">Completed</span>
-              <% end %>
+              <div class="flex flex-wrap gap-2">
+                <%= link_to "Show", payable_path(row), class: "btn btn-secondary" %>
+                <%= link_to "Edit", edit_payable_path(row), class: "btn btn-secondary" %>
+                <% unless row.paid? %>
+                  <%= button_to "Mark Paid", mark_paid_payable_path(row), method: :patch, class: "btn btn-secondary" %>
+                <% else %>
+                  <span class="self-center text-xs text-slate-500">Completed</span>
+                <% end %>
+              </div>
             </td>
           </tr>
         <% end %>
