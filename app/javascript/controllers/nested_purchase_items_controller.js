@@ -13,13 +13,15 @@ export default class extends Controller {
     const uniqueId = Date.now().toString()
     const content = this.templateTarget.innerHTML.replaceAll("NEW_RECORD", uniqueId)
     this.listTarget.insertAdjacentHTML("beforeend", content)
-    requestAnimationFrame(() => this.updateOverall())
+    this.updateOverall()
   }
 
   updateOverall() {
-    const total = this.listTarget
-      .querySelectorAll("[data-controller~='purchase-item-total']")
-      .reduce((sum, element) => sum + Number.parseFloat(element.dataset.subtotalValue || "0"), 0)
+    const subtotalElements = this.listTarget.querySelectorAll("[data-controller~='purchase-item-total']")
+    const total = Array.from(subtotalElements).reduce((sum, element) => {
+      const subtotal = Number.parseFloat(element.dataset.subtotalValue || "0")
+      return sum + (Number.isFinite(subtotal) ? subtotal : 0)
+    }, 0)
 
     this.overallTarget.textContent = this.formatCurrency(total)
   }
