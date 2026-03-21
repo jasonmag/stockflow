@@ -1,4 +1,7 @@
 class ProductsController < ApplicationController
+  require "uri"
+  require "rack/utils"
+
   before_action :set_product, only: %i[show edit update destroy]
   before_action :load_product_field_options, only: %i[new edit create update]
   before_action :require_owner!, only: %i[new create destroy]
@@ -8,13 +11,17 @@ class ProductsController < ApplicationController
   end
 
   def show; end
-  def new; @product = current_business.products.new(active: true); end
+  def new
+    @product = current_business.products.new(active: true)
+    @cancel_path = safe_return_to || products_path
+  end
   def edit; end
 
   def create
     @product = current_business.products.new(product_params)
+    @cancel_path = safe_return_to || products_path
     if @product.save
-      redirect_to @product, notice: "Product created."
+      redirect_to product_redirect_target, notice: "Product created."
     else
       render :new, status: :unprocessable_entity
     end
@@ -54,5 +61,18 @@ class ProductsController < ApplicationController
         current_business.products.where.not(unit: [ nil, "" ]).distinct.order(:unit).pluck(:unit) +
         %w[pc box case pack bottle kg g liter ml]
       ).uniq
+    end
+
+    def product_redirect_target
+      return @product unless safe_return_to.present?
+
+      uri = URI.parse(safe_return_to)
+      query = Rack::Utils.parse_nested_query(uri.query)
+      uri.query = query.to_query.presence
+      uri.to_s
+    end
+
+    def safe_return_to
+      @safe_return_to ||= url_from(params[:return_to])
     end
 end

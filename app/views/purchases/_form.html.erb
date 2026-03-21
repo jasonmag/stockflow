@@ -1,4 +1,4 @@
-<%= form_with model: purchase, class: "card space-y-4" do |f| %>
+<%= form_with model: purchase, class: "card space-y-4", data: { controller: "purchase-reference" } do |f| %>
   <% if purchase.errors.any? %>
     <div class="flash flash-alert">
       <p class="font-semibold"><%= pluralize(purchase.errors.count, "error") %> prevented this purchase from being saved:</p>
@@ -12,23 +12,40 @@
 
   <div class="grid gap-4 md:grid-cols-2">
     <div>
+      <%= f.label :reference, "Name", class: "field-label" %>
+      <%= f.text_field :reference, class: "field-input", readonly: true, data: { purchase_reference_target: "reference" } %>
+    </div>
+
+    <div>
       <%= f.label :supplier_id, class: "field-label" %>
       <%= f.collection_select :supplier_id, current_business.suppliers.order(:name), :id, :name, { prompt: "Select supplier" }, class: "field-input" %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Supplier not listed?</span>
+        <%= link_to "Add new supplier", new_supplier_path(return_to: new_purchase_path), class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
     </div>
 
     <div>
       <%= f.label :purchased_on, class: "field-label" %>
-      <%= f.date_field :purchased_on, class: "field-input" %>
+      <%= f.date_field :purchased_on, class: "field-input", data: { action: "input->purchase-reference#sync change->purchase-reference#sync", purchase_reference_target: "date" } %>
     </div>
 
     <div>
       <%= f.label :receiving_location_id, class: "field-label" %>
       <%= f.collection_select :receiving_location_id, current_business.locations.order(:name), :id, :name, { prompt: "Select location" }, class: "field-input" %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Location not listed?</span>
+        <%= link_to "Add new location", new_location_path(return_to: new_purchase_path), class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
     </div>
 
     <div>
       <%= f.label :funding_source, class: "field-label" %>
       <%= f.select :funding_source, current_business.purchase_funding_source_options, {}, class: "field-input" %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Funding source not listed?</span>
+        <%= link_to "Add new funding source", new_purchase_funding_source_path(return_to: new_purchase_path), class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
     </div>
 
     <div>
@@ -48,11 +65,12 @@
 
     <div class="mt-3 space-y-3" data-controller="nested-purchase-items" data-action="purchase-items:recalculate->nested-purchase-items#updateOverall">
       <div class="rounded-lg border border-slate-200">
-        <div class="grid grid-cols-4 gap-3 border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+        <div class="hidden border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(110px,0.8fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_auto] md:gap-3">
           <div>Product</div>
           <div>Quantity</div>
           <div>Unit cost</div>
           <div>Sub-total</div>
+          <div>Action</div>
         </div>
 
         <div data-nested-purchase-items-target="list" class="divide-y divide-slate-200 p-3 space-y-3 md:space-y-0">
@@ -75,7 +93,10 @@
         <% end %>
       </template>
 
-      <button type="button" class="btn btn-secondary" data-action="click->nested-purchase-items#add">Add another product</button>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn btn-secondary" data-action="click->nested-purchase-items#add">Add another product</button>
+        <%= link_to "Add new inventory variant", new_product_path(return_to: new_purchase_path), class: "btn btn-secondary" %>
+      </div>
     </div>
   </section>
 

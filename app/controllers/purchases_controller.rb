@@ -1,5 +1,6 @@
 class PurchasesController < ApplicationController
   before_action :set_purchase, only: %i[show edit update destroy receive]
+  before_action :ensure_editable!, only: %i[edit update]
   before_action :require_owner!, only: %i[destroy]
 
   def index
@@ -9,29 +10,43 @@ class PurchasesController < ApplicationController
   def show; end
 
   def new
-    @purchase = current_business.purchases.new(purchased_on: Date.current)
+    @purchase = current_business.purchases.new(
+      purchased_on: Date.current,
+      supplier_id: params[:supplier_id],
+      receiving_location_id: params[:receiving_location_id],
+      funding_source: params[:funding_source]
+    )
+    @purchase.reference = "PO-#{@purchase.purchased_on}" if @purchase.purchased_on.present?
     @purchase.purchase_items.build
   end
 
   def edit
+    @purchase.reference = "PO-#{@purchase.purchased_on}" if @purchase.purchased_on.present? && @purchase.reference.blank?
     @purchase.purchase_items.build if @purchase.purchase_items.empty?
   end
 
   def create
     @purchase = current_business.purchases.new(purchase_params)
-    if @purchase.save
-      redirect_to @purchase, notice: "Purchase created."
-    else
-      render :new, status: :unprocessable_entity
+
+    Purchase.transaction do
+      @purchase.save!
+      sync_inventory_if_received!(@purchase)
     end
+
+    redirect_to @purchase, notice: "Purchase created."
+  rescue ActiveRecord::RecordInvalid
+    render :new, status: :unprocessable_entity
   end
 
   def update
-    if @purchase.update(purchase_params)
-      redirect_to @purchase, notice: "Purchase updated."
-    else
-      render :edit, status: :unprocessable_entity
+    Purchase.transaction do
+      @purchase.update!(purchase_params)
+      sync_inventory_if_received!(@purchase)
     end
+
+    redirect_to @purchase, notice: "Purchase updated."
+  rescue ActiveRecord::RecordInvalid
+    render :edit, status: :unprocessable_entity
   end
 
   def destroy
@@ -51,8 +66,18 @@ class PurchasesController < ApplicationController
       @purchase = current_business.purchases.find(params[:id])
     end
 
+    def ensure_editable!
+      return unless @purchase.received?
+
+      redirect_to @purchase, alert: "Received purchases can no longer be edited."
+    end
+
     def purchase_params
       params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status,
                                        purchase_items_attributes: %i[id product_id quantity unit_cost_decimal unit_cost_cents _destroy])
+    end
+
+    def sync_inventory_if_received!(purchase)
+      purchase.receive! if purchase.received? && !purchase.inventory_received?
     end
 end

@@ -1,16 +1,22 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
   <div>
-    <h1 class="page-title">Purchase #<%= @purchase.id %></h1>
+    <h1 class="page-title"><%= @purchase.reference.presence || "Purchase ##{@purchase.id}" %></h1>
     <p class="mt-1 text-sm text-slate-600">Purchase record and itemized costs.</p>
   </div>
   <div class="flex flex-wrap gap-2">
-    <%= link_to "Edit", edit_purchase_path(@purchase), class: "btn btn-primary" %>
+    <% unless @purchase.received? %>
+      <%= link_to "Edit", edit_purchase_path(@purchase), class: "btn btn-primary" %>
+    <% end %>
     <%= link_to "Back", purchases_path, class: "btn btn-secondary" %>
   </div>
 </div>
 
 <section class="card mb-4">
   <dl class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <dt class="kpi-label">Name</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @purchase.reference.presence || "-" %></dd>
+    </div>
     <div>
       <dt class="kpi-label">Supplier</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @purchase.supplier.name %></dd>
@@ -41,6 +47,7 @@
 <section class="card mb-4">
   <h2 class="mb-3 text-base font-semibold text-slate-900">Items</h2>
   <% if @purchase.purchase_items.any? %>
+    <% total_cents = @purchase.purchase_items.sum { |item| item.unit_cost_cents * item.quantity.to_d } %>
     <div class="table-wrap">
       <table class="table-base">
         <thead>
@@ -48,6 +55,7 @@
             <th>Product</th>
             <th>Quantity</th>
             <th>Unit Cost</th>
+            <th>Sub-total</th>
           </tr>
         </thead>
         <tbody>
@@ -56,10 +64,17 @@
               <td class="font-medium text-slate-900"><%= item.product.name %></td>
               <td><%= item.quantity %></td>
               <td><%= money(item.unit_cost_cents) %></td>
+              <td><%= money(item.unit_cost_cents * item.quantity.to_d) %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
+    </div>
+    <div class="mt-4 flex justify-end">
+      <div class="purchase-items-overall-total">
+        <span class="purchase-items-overall-total-label">Total</span>
+        <span><%= money(total_cents) %></span>
+      </div>
     </div>
   <% else %>
     <p class="text-sm text-slate-600">No purchase items attached.</p>

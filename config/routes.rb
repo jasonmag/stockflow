@@ -27,6 +27,7 @@ Rails.application.routes.draw do
 
   resources :categories
   resources :customers
+  resources :purchase_funding_sources, except: %i[show destroy]
   resources :suppliers
   resources :products
   resources :locations

@@ -1,4 +1,6 @@
 <%= form_with model: supplier, class: "card space-y-4" do |f| %>
+  <%= hidden_field_tag :return_to, params[:return_to] if params[:return_to].present? %>
+
   <% if supplier.errors.any? %>
     <div class="flash flash-alert">
       <p class="font-semibold"><%= pluralize(supplier.errors.count, "error") %> prevented this supplier from being saved:</p>
@@ -39,6 +41,6 @@
 
   <div class="flex flex-wrap gap-2">
     <%= f.submit class: "btn btn-primary" %>
-    <%= link_to "Cancel", suppliers_path, class: "btn btn-secondary" %>
+    <%= link_to "Cancel", (@cancel_path || suppliers_path), class: "btn btn-secondary" %>
   </div>
 <% end %>

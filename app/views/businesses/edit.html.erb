@@ -41,15 +41,103 @@
       <%= f.label :reminder_lead_days, class: "field-label" %>
       <%= f.number_field :reminder_lead_days, class: "field-input", min: 0 %>
     </div>
+
+    <div>
+      <%= f.label :currency, class: "field-label" %>
+      <%= f.select :currency, options_for_select(@business.currency_options, @business.currency), {}, class: "field-input" %>
+    </div>
   </div>
 
   <section class="rounded-lg border border-slate-200 p-4">
-    <h2 class="text-sm font-semibold text-slate-900">Purchase Funding Sources</h2>
-    <p class="mt-1 text-xs text-slate-600">Enter one option per line. These values appear on the purchase form at <code>/purchases/new</code>.</p>
-    <div class="mt-3">
-      <%= f.label :purchase_funding_sources, "Funding source options", class: "field-label" %>
-      <%= text_area_tag "business[purchase_funding_sources]", @business.purchase_funding_source_keys.join("\n"), class: "field-input font-mono", rows: 6, placeholder: "Cash Personal\nGCash\nCorporate Card" %>
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">Purchase Funding Sources</h2>
+        <p class="mt-1 text-xs text-slate-600">Manage funding source names and whether each one is cash or credit.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "View Funding Sources", purchase_funding_sources_path, class: "btn btn-secondary" %>
+        <%= link_to "Add New Funding Source", new_purchase_funding_source_path, class: "btn btn-primary" %>
+      </div>
     </div>
+
+    <% if @purchase_funding_sources.any? %>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <% @purchase_funding_sources.each do |source| %>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"><%= "#{source.name} (#{source.source_type.titleize})" %></span>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-slate-600">No funding sources yet. Add one to make it available in purchases.</p>
+    <% end %>
+  </section>
+
+  <section class="rounded-lg border border-slate-200 p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">Products</h2>
+        <p class="mt-1 text-xs text-slate-600">Manage product and inventory variant options used in purchasing and stock movement.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "View Products", products_path, class: "btn btn-secondary" %>
+        <%= link_to "Add New Product Variant", new_product_path(return_to: edit_business_path), class: "btn btn-primary" %>
+      </div>
+    </div>
+
+    <% if @products.any? %>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <% @products.each do |product| %>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"><%= product.name %></span>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-slate-600">No products yet. Add one to make it available in purchases and inventory.</p>
+    <% end %>
+  </section>
+
+  <section class="rounded-lg border border-slate-200 p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">Suppliers</h2>
+        <p class="mt-1 text-xs text-slate-600">Manage supplier options used on the purchase form.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "View Suppliers", suppliers_path, class: "btn btn-secondary" %>
+        <%= link_to "Add New Supplier", new_supplier_path(return_to: edit_business_path), class: "btn btn-primary" %>
+      </div>
+    </div>
+
+    <% if @suppliers.any? %>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <% @suppliers.each do |supplier| %>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"><%= supplier.name %></span>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-slate-600">No suppliers yet. Add one to make it available in purchases.</p>
+    <% end %>
+  </section>
+
+  <section class="rounded-lg border border-slate-200 p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">Locations</h2>
+        <p class="mt-1 text-xs text-slate-600">Manage receiving and storage locations used in inventory workflows.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "View Locations", locations_path, class: "btn btn-secondary" %>
+        <%= link_to "Add New Location", new_location_path(return_to: edit_business_path), class: "btn btn-primary" %>
+      </div>
+    </div>
+
+    <% if @locations.any? %>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <% @locations.each do |location| %>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"><%= location.name %></span>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-slate-600">No locations yet. Add one to make it available in purchases and inventory.</p>
+    <% end %>
   </section>
 
   <div class="flex flex-wrap gap-2">

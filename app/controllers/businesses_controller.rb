@@ -14,6 +14,7 @@ class BusinessesController < ApplicationController
 
   def edit
     @business = current_business
+    load_settings_options
   end
 
   def update
@@ -22,6 +23,7 @@ class BusinessesController < ApplicationController
     if @business.update(business_params)
       redirect_to edit_business_path, notice: "Business settings updated."
     else
+      load_settings_options
       render :edit, status: :unprocessable_entity
     end
   end
@@ -56,8 +58,15 @@ class BusinessesController < ApplicationController
   end
 
   private
+    def load_settings_options
+      @purchase_funding_sources = current_business.purchase_funding_sources.order(:name)
+      @products = current_business.products.order(:name)
+      @suppliers = current_business.suppliers.order(:name)
+      @locations = current_business.locations.order(:name)
+    end
+
     def business_params
-      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, :purchase_funding_sources)
+      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, :currency)
     end
 
     def membership_params

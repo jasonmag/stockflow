@@ -1,5 +1,6 @@
 module ApplicationHelper
-  def money(cents, currency = "PHP")
+  def money(cents, currency = nil)
+    currency ||= current_business&.currency || "PHP"
     "#{currency} #{format('%.2f', cents.to_f / 100.0)}"
   end
 

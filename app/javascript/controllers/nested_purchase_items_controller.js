@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = ["list", "template", "overall"]
+  static targets = ["list", "template", "overall", "item", "destroyField"]
 
   connect() {
     this.updateOverall()
@@ -16,8 +16,26 @@ export default class extends Controller {
     this.updateOverall()
   }
 
+  remove(event) {
+    event.preventDefault()
+
+    const item = event.target.closest("[data-nested-purchase-items-target='item']")
+    if (!item) return
+
+    const destroyField = item.querySelector("[data-nested-purchase-items-target='destroyField']")
+
+    if (destroyField && item.querySelector("input[name*='[id]']")) {
+      destroyField.value = "1"
+      item.classList.add("hidden")
+    } else {
+      item.remove()
+    }
+
+    this.updateOverall()
+  }
+
   updateOverall() {
-    const subtotalElements = this.listTarget.querySelectorAll("[data-controller~='purchase-item-total']")
+    const subtotalElements = this.listTarget.querySelectorAll("[data-controller~='purchase-item-total']:not(.hidden)")
     const total = Array.from(subtotalElements).reduce((sum, element) => {
       const subtotal = Number.parseFloat(element.dataset.subtotalValue || "0")
       return sum + (Number.isFinite(subtotal) ? subtotal : 0)

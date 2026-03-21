@@ -1,0 +1,35 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Purchase Funding Sources</h1>
+    <p class="mt-1 text-sm text-slate-600">Manage the funding source name and whether it is cash or credit.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Back to Business Settings", edit_business_path, class: "btn btn-secondary" %>
+    <%= link_to "New Funding Source", new_purchase_funding_source_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<% if @purchase_funding_sources.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Option</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @purchase_funding_sources.each do |row| %>
+          <tr>
+            <td class="font-medium text-slate-900"><%= row.name %></td>
+            <td><%= row.source_type.titleize %></td>
+            <td class="text-right"><%= link_to "Edit", edit_purchase_funding_source_path(row), class: "btn btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No funding sources yet. Add one to make it available in purchases.</p>
+<% end %>
