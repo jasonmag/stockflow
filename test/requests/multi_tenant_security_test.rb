@@ -186,7 +186,7 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
           supplier_id: @supplier_two.id,
           purchased_on: Date.current,
           receiving_location_id: @location_one.id,
-          funding_source: "Cash Business",
+          funding_source: "Cash",
           purchase_items_attributes: {
             "0" => {
               product_id: @product_one.id,

@@ -26,7 +26,108 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
           category_id: @category.id,
           amount_cents: 12000,
           currency: "PHP",
-          funding_source: "business",
+          funding_source: "Cash",
+          payment_method: "credit",
+          notes: "Delivery fuel",
+          receipt: fixture_file_upload("receipt.txt", "text/plain")
+        }
+      }
+    end
+
+    assert_equal "cash", Expense.last.payment_method
+    assert_redirected_to expense_path(Expense.last)
+  end
+
+  test "new money forms default to the business currency" do
+    @business.update!(currency: "USD")
+
+    get new_expense_path
+    assert_response :success
+    assert_select "input[name='expense[currency]'][value='USD'][readonly]"
+
+    get new_payable_path
+    assert_response :success
+    assert_select "input[name='payable[currency]'][value='USD'][readonly]"
+
+    get new_receivable_path
+    assert_response :success
+    assert_select "input[name='receivable[currency]'][value='USD'][readonly]"
+  end
+
+  test "money forms always save using the business currency" do
+    @business.update!(currency: "USD")
+
+    post expenses_path, params: {
+      expense: {
+        occurred_on: Date.current,
+        payee: "Fuel Station",
+        category_id: @category.id,
+        amount_cents: 12000,
+        currency: "PHP",
+        funding_source: "Cash",
+        payment_method: "cash",
+        notes: "Delivery fuel",
+        receipt: fixture_file_upload("receipt.txt", "text/plain")
+      }
+    }
+    assert_equal "USD", Expense.last.currency
+
+    post payables_path, params: {
+      payable: {
+        payable_type: "supplier",
+        payee: "Vendor",
+        amount_cents: 5000,
+        currency: "PHP",
+        due_on: Date.current,
+        status: "unpaid"
+      }
+    }
+    assert_equal "USD", Payable.last.currency
+
+    post receivables_path, params: {
+      receivable: {
+        customer_id: @customer.id,
+        reference: "INV-1",
+        delivered_on: Date.current,
+        due_on: Date.current + 7.days,
+        amount_cents: 7000,
+        currency: "PHP",
+        status: "pending"
+      }
+    }
+    assert_equal "USD", Receivable.last.currency
+  end
+
+  test "expense form shows payables category and payable selector" do
+    payable = @business.payables.create!(
+      payable_type: :supplier,
+      payee: "Vendor One",
+      amount_cents: 2500,
+      currency: "PHP",
+      due_on: Date.current,
+      status: :unpaid
+    )
+
+    get new_expense_path
+
+    assert_response :success
+    assert_select "select[name='expense[category_id]'] option", text: "Payables"
+    assert_select "select[name='expense[payable_ids][]'][multiple]"
+    assert_includes response.body, payable.payee
+  end
+
+  test "credit expense creates payable entry" do
+    @business.purchase_funding_sources.create!(name: "Corporate Card", source_type: :credit)
+
+    assert_difference("Payable.count", 1) do
+      post expenses_path, params: {
+        expense: {
+          occurred_on: Date.current,
+          payee: "Fuel Station",
+          category_id: @category.id,
+          amount_cents: 12000,
+          currency: "PHP",
+          funding_source: "Corporate Card",
           payment_method: "cash",
           notes: "Delivery fuel",
           receipt: fixture_file_upload("receipt.txt", "text/plain")
@@ -34,44 +135,178 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_redirected_to expense_path(Expense.last)
+    payable = Payable.last
+    assert_equal Expense.last, payable.expense
+    assert_equal "credit_card", payable.payable_type
+    assert_equal "Fuel Station", payable.payee
+    assert_equal 12000, payable.amount_cents
+    assert_equal Date.current, payable.due_on
+  end
+
+  test "payables expense creates payments for selected payables" do
+    payables_category = @business.categories.find_or_create_by!(name: "Payables")
+    payable_one = @business.payables.create!(
+      payable_type: :supplier,
+      payee: "Vendor One",
+      amount_cents: 1200,
+      currency: "PHP",
+      due_on: Date.current,
+      status: :unpaid
+    )
+    payable_two = @business.payables.create!(
+      payable_type: :utilities,
+      payee: "Power Co",
+      amount_cents: 800,
+      currency: "PHP",
+      due_on: Date.current,
+      status: :unpaid
+    )
+
+    assert_difference("Payment.count", 2) do
+      post expenses_path, params: {
+        expense: {
+          occurred_on: Date.current,
+          payee: "Will Be Replaced",
+          category_id: payables_category.id,
+          amount_cents: 1,
+          currency: "PHP",
+          funding_source: "Cash",
+          payment_method: "cash",
+          payable_ids: [payable_one.id, payable_two.id],
+          notes: "Settled vendor balances",
+          receipt: fixture_file_upload("receipt.txt", "text/plain")
+        }
+      }
+    end
+
+    expense = Expense.last
+    assert_equal 2000, expense.amount_cents
+    assert_equal "Vendor One, Power Co", expense.payee
+    assert_equal [payable_one.id, payable_two.id].sort, expense.covered_payables.pluck(:id).sort
+    assert_equal [expense.id], payable_one.reload.payments.pluck(:expense_id).uniq
+    assert_equal [expense.id], payable_two.reload.payments.pluck(:expense_id).uniq
+    assert_equal "paid", payable_one.reload.status
+    assert_equal "paid", payable_two.reload.status
+  end
+
+  test "payables index shows show and edit actions on each row" do
+    payable = @business.payables.create!(
+      payable_type: :supplier,
+      payee: "Sample Supplier",
+      amount_cents: 15000,
+      currency: "PHP",
+      due_on: Date.current,
+      status: :unpaid
+    )
+
+    get payables_path
+
+    assert_response :success
+    assert_select "a[href='#{payable_path(payable)}']", text: "Show"
+    assert_select "a[href='#{edit_payable_path(payable)}']", text: "Edit"
   end
 
   test "owner can update business funding source settings" do
     patch business_path, params: {
       business: {
         reminder_lead_days: 5,
-        purchase_funding_sources: "GCash\nCorporate Card"
+        currency: "USD"
       }
     }
 
     assert_redirected_to edit_business_path
-    assert_equal [ "GCash", "Corporate Card" ], @business.reload.purchase_funding_source_keys
+    assert_equal 5, @business.reload.reminder_lead_days
+    assert_equal "USD", @business.currency
   end
 
-  test "settings page shows saved funding source options after update" do
-    patch business_path, params: {
-      business: {
-        purchase_funding_sources: "GCash\nCorporate Card"
-      }
-    }
-
-    follow_redirect!
+  test "business settings shows currency selector" do
+    get edit_business_path
 
     assert_response :success
-    assert_includes response.body, "GCash\nCorporate Card"
+    assert_select "select[name='business[currency]'] option[selected='selected']", text: "PHP"
+    assert_select "select[name='business[currency]'] option", text: "USD"
+  end
+
+  test "business owner can create purchase funding source settings" do
+    assert_difference("PurchaseFundingSource.count", 1) do
+      post purchase_funding_sources_path, params: {
+        purchase_funding_source: {
+          name: "GCash",
+          source_type: "cash"
+        }
+      }
+    end
+
+    assert_redirected_to purchase_funding_sources_path
+    source = PurchaseFundingSource.order(:id).last
+    assert_equal "GCash", source.name
+    assert_equal "cash", source.source_type
+  end
+
+  test "business settings shows supplier and location management links" do
+    get edit_business_path
+
+    assert_response :success
+    assert_select "h2", text: "Purchase Funding Sources"
+    assert_select "a[href='#{purchase_funding_sources_path}']", text: "View Funding Sources"
+    assert_select "a[href='#{new_purchase_funding_source_path}']", text: "Add New Funding Source"
+    assert_includes response.body, "Cash (Cash)"
+    assert_includes response.body, "Credit (Credit)"
+    assert_select "h2", text: "Products"
+    assert_select "a[href='#{new_product_path(return_to: edit_business_path)}']", text: "Add New Product Variant"
+    assert_select "a[href='#{products_path}']", text: "View Products"
+    assert_includes response.body, @product.name
+    assert_select "h2", text: "Suppliers"
+    assert_select "a[href='#{new_supplier_path(return_to: edit_business_path)}']", text: "Add New Supplier"
+    assert_select "a[href='#{suppliers_path}']", text: "View Suppliers"
+    assert_select "h2", text: "Locations"
+    assert_select "a[href='#{new_location_path(return_to: edit_business_path)}']", text: "Add New Location"
+    assert_select "a[href='#{locations_path}']", text: "View Locations"
+    assert_includes response.body, @supplier.name
+    assert_includes response.body, @location.name
   end
 
   test "purchase form uses business funding source settings" do
-    @business.update!(purchase_funding_source_keys: [ "GCash", "Corporate Card" ])
+    @business.purchase_funding_sources.destroy_all
+    @business.purchase_funding_sources.create!(name: "GCash", source_type: :cash)
+    @business.purchase_funding_sources.create!(name: "Corporate Card", source_type: :credit)
 
     get new_purchase_path
 
     assert_response :success
     assert_select "select[name='purchase[funding_source]'] option", text: "GCash"
     assert_select "select[name='purchase[funding_source]'] option", text: "Corporate Card"
-    assert_select "select[name='purchase[funding_source]'] option", text: "Cash Personal", count: 0
-    assert_select "select[name='purchase[funding_source]'] option", text: "Cash Business", count: 0
+    assert_select "select[name='purchase[funding_source]'] option", text: "Cash", count: 0
+    assert_select "select[name='purchase[funding_source]'] option", text: "Credit", count: 0
+  end
+
+  test "purchase form links to add a new funding source and returns to purchase flow" do
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "a[href='#{new_purchase_funding_source_path(return_to: new_purchase_path)}']", text: "Add new funding source"
+  end
+
+  test "purchase form links to add a new supplier and returns to purchase flow" do
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "a[href='#{new_supplier_path(return_to: new_purchase_path)}']", text: "Add new supplier"
+  end
+
+  test "purchase form links to add a new location and returns to purchase flow" do
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "a[href='#{new_location_path(return_to: new_purchase_path)}']", text: "Add new location"
+  end
+
+  test "purchase form auto-fills purchase order name from purchased on date" do
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "input[name='purchase[reference]'][value='PO-#{Date.current}'][readonly]"
+    assert_select "input[name='purchase[purchased_on]'][value='#{Date.current}']"
   end
 
   test "purchase form includes searchable product dropdown for purchase items" do
@@ -79,6 +314,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "[data-controller='nested-purchase-items'] button", text: "Add another product"
+    assert_select "a[href='#{new_product_path(return_to: new_purchase_path)}']", text: "Add new inventory variant"
     assert_select "[data-controller='nested-purchase-items'] template"
     assert_select "section", text: /Product/
     assert_select "div", text: "Product", count: 1
@@ -90,6 +326,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='product-lookup'] button[aria-label='Toggle product options']"
     assert_select "[data-controller='product-lookup'] .product-lookup-item", text: @product.name
     assert_select "[data-controller='purchase-item-total'] [data-purchase-item-total-target='subtotal']", text: "PHP 0.00"
+    assert_select "[data-nested-purchase-items-target='item'] button", text: "Remove"
     assert_select "[data-nested-purchase-items-target='overall']", text: "PHP 0.00"
   end
 
@@ -126,7 +363,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
           supplier_id: @supplier.id,
           purchased_on: Date.current,
           receiving_location_id: @location.id,
-          funding_source: "Cash Business",
+          funding_source: "Cash",
           status: "draft",
           purchase_items_attributes: {
             "0" => {
@@ -140,7 +377,359 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal 1250, Purchase.last.purchase_items.last.unit_cost_cents
+    assert_equal "PO-#{Date.current}", Purchase.last.reference
     assert_redirected_to purchase_path(Purchase.last)
+  end
+
+  test "create purchase with received status adds items to inventory" do
+    assert_difference("StockMovement.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "received",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    movement = StockMovement.last
+    assert_equal "in", movement.movement_type
+    assert_equal @location.id, movement.to_location_id
+    assert_equal Purchase.last, movement.reference
+  end
+
+  test "received purchase creates expense entry" do
+    assert_difference("Expense.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "received",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    expense = Expense.last
+    assert_equal Purchase.last, expense.purchase
+    assert_equal "Purchases", expense.category.name
+    assert_equal 2500, expense.amount_cents
+    assert_equal "Cash", expense.funding_source
+    assert_equal "cash", expense.payment_method
+  end
+
+  test "received purchase with credit funding source creates payable entry" do
+    @business.purchase_funding_sources.create!(name: "Corporate Card", source_type: :credit)
+
+    assert_difference("Payable.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Corporate Card",
+          status: "received",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    assert_equal Expense.last, Payable.last.expense
+    assert_equal "credit_card", Payable.last.payable_type
+  end
+
+  test "update purchase refreshes purchase order name when purchased on changes" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    new_date = Date.current + 3.days
+
+    patch purchase_path(purchase), params: {
+      purchase: {
+        supplier_id: @supplier.id,
+        purchased_on: new_date,
+        receiving_location_id: @location.id,
+        funding_source: "Cash",
+        status: "draft",
+        purchase_items_attributes: {}
+      }
+    }
+
+    assert_redirected_to purchase_path(purchase)
+    assert_equal "PO-#{new_date}", purchase.reload.reference
+  end
+
+  test "update purchase to received adds items to inventory" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    purchase.purchase_items.create!(product: @product, quantity: 5, unit_cost_cents: 100)
+
+    assert_difference("StockMovement.count", 1) do
+      patch purchase_path(purchase), params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: purchase.purchased_on,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "received",
+          purchase_items_attributes: {
+            "0" => {
+              id: purchase.purchase_items.first.id,
+              product_id: @product.id,
+              quantity: 5,
+              unit_cost_decimal: "1.00"
+            }
+          }
+        }
+      }
+    end
+
+    movement = StockMovement.last
+    assert_equal purchase.reload, movement.reference
+    assert_equal "received", purchase.status
+  end
+
+  test "update purchase to received creates expense entry" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    purchase.purchase_items.create!(product: @product, quantity: 3, unit_cost_cents: 200)
+
+    assert_difference("Expense.count", 1) do
+      patch purchase_path(purchase), params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: purchase.purchased_on,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "received",
+          purchase_items_attributes: {
+            "0" => {
+              id: purchase.purchase_items.first.id,
+              product_id: @product.id,
+              quantity: 3,
+              unit_cost_decimal: "2.00"
+            }
+          }
+        }
+      }
+    end
+
+    assert_equal purchase.reload, Expense.last.purchase
+    assert_equal 600, Expense.last.amount_cents
+  end
+
+  test "received purchase cannot be edited" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :received)
+
+    get edit_purchase_path(purchase)
+
+    assert_redirected_to purchase_path(purchase)
+    assert_equal "Received purchases can no longer be edited.", flash[:alert]
+  end
+
+  test "received purchase cannot be updated" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :received)
+
+    patch purchase_path(purchase), params: {
+      purchase: {
+        supplier_id: @supplier.id,
+        purchased_on: Date.current + 1.day,
+        receiving_location_id: @location.id,
+        funding_source: "Cash",
+        status: "received",
+        purchase_items_attributes: {}
+      }
+    }
+
+    assert_redirected_to purchase_path(purchase)
+    assert_equal "Received purchases can no longer be edited.", flash[:alert]
+    assert_equal Date.current, purchase.reload.purchased_on
+  end
+
+  test "create supplier from purchase flow redirects back with supplier selected" do
+    assert_difference("Supplier.count", 1) do
+      post suppliers_path(return_to: new_purchase_path), params: {
+        supplier: {
+          name: "Fresh Vendor"
+        }
+      }
+    end
+
+    assert_redirected_to new_purchase_path(supplier_id: Supplier.last.id)
+  end
+
+  test "create location from purchase flow redirects back with location selected" do
+    assert_difference("Location.count", 1) do
+      post locations_path(return_to: new_purchase_path), params: {
+        location: {
+          name: "Back Room",
+          location_type: "storage"
+        }
+      }
+    end
+
+    assert_redirected_to new_purchase_path(receiving_location_id: Location.last.id)
+  end
+
+  test "create funding source from purchase flow redirects back with funding source selected" do
+    assert_difference("PurchaseFundingSource.count", 1) do
+      post purchase_funding_sources_path(return_to: new_purchase_path), params: {
+        purchase_funding_source: {
+          name: "Bank Transfer",
+          source_type: "credit"
+        }
+      }
+    end
+
+    assert_redirected_to new_purchase_path(funding_source: "Bank Transfer")
+  end
+
+  test "create product from purchase flow redirects back to purchase form" do
+    assert_difference("Product.count", 1) do
+      post products_path(return_to: new_purchase_path), params: {
+        product: {
+          name: "New Variant",
+          unit: "pc",
+          inventory_type: "consumable",
+          active: true
+        }
+      }
+    end
+
+    assert_redirected_to new_purchase_path
+  end
+
+  test "delivery form matches purchase flow affordances" do
+    get new_delivery_path
+
+    assert_response :success
+    assert_select "input[name='delivery_number_preview'][value='Auto-generated on save'][readonly]"
+    assert_select "a[href='#{new_customer_path(return_to: new_delivery_path)}']", text: "Add new customer"
+    assert_select "a[href='#{new_location_path(return_to: new_delivery_path)}']", text: "Add new location"
+    assert_select "a[href='#{new_product_path(return_to: new_delivery_path)}']", text: "Add new inventory variant"
+    assert_select "[data-controller='nested-delivery-items'] button", text: "Add another product"
+    assert_select "[data-controller='nested-delivery-items'] template"
+    assert_select "div", text: "Product", count: 1
+    assert_select "div", text: "Quantity", count: 1
+    assert_select "div", text: "Unit price", count: 1
+    assert_select "div", text: "Sub-total", count: 1
+    assert_select "[data-controller='delivery-item-total'] [data-delivery-item-total-target='subtotal']", text: "PHP 0.00"
+    assert_select "[data-nested-delivery-items-target='item'] button", text: "Remove"
+    assert_select "[data-nested-delivery-items-target='overall']", text: "PHP 0.00"
+  end
+
+  test "create customer from delivery flow redirects back with customer selected" do
+    assert_difference("Customer.count", 1) do
+      post customers_path(return_to: new_delivery_path), params: {
+        customer: {
+          name: "Corner Shop"
+        }
+      }
+    end
+
+    assert_redirected_to new_delivery_path(customer_id: Customer.last.id)
+  end
+
+  test "create location from delivery flow redirects back with location selected" do
+    assert_difference("Location.count", 1) do
+      post locations_path(return_to: new_delivery_path), params: {
+        location: {
+          name: "Delivery Hub",
+          location_type: "storage"
+        }
+      }
+    end
+
+    assert_redirected_to new_delivery_path(from_location_id: Location.last.id)
+  end
+
+  test "create delivery with delivered status creates stock-out movements" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+
+    assert_difference("StockMovement.count", 1) do
+      post deliveries_path, params: {
+        delivery: {
+          customer_id: @customer.id,
+          delivered_on: Date.current,
+          from_location_id: @location.id,
+          status: "delivered",
+          delivery_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 4,
+              unit_price_decimal: "2.50"
+            }
+          }
+        }
+      }
+    end
+
+    delivery = Delivery.last
+    assert_equal "delivered", delivery.status
+    assert delivery.inventory_delivered?
+    assert_equal delivery, StockMovement.last.reference
+  end
+
+  test "delivered delivery cannot be edited" do
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :delivered)
+
+    get edit_delivery_path(delivery)
+
+    assert_redirected_to delivery_path(delivery)
+    assert_equal "Delivered records can no longer be edited.", flash[:alert]
+  end
+
+  test "delivered delivery cannot be updated" do
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :delivered)
+
+    patch delivery_path(delivery), params: {
+      delivery: {
+        customer_id: @customer.id,
+        delivered_on: Date.current + 1.day,
+        from_location_id: @location.id,
+        status: "delivered",
+        delivery_items_attributes: {}
+      }
+    }
+
+    assert_redirected_to delivery_path(delivery)
+    assert_equal "Delivered records can no longer be edited.", flash[:alert]
+    assert_equal Date.current, delivery.reload.delivered_on
+  end
+
+  test "stock movements index shows current counts by location in a separate table" do
+    second_location = Location.create!(business: @business, name: "Storefront", location_type: :storage)
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 5, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current - 1.day)
+    StockMovement.create!(business: @business, movement_type: :transfer, product: @product, quantity: 2, from_location: @location, to_location: second_location, occurred_on: Date.current)
+
+    get stock_movements_path
+
+    assert_response :success
+    assert_select "h2", text: "Current Counts By Location"
+    assert_select "h3", text: "Warehouse"
+    assert_select "h3", text: "Storefront"
+    assert_select "th", text: "Current Count"
+    assert_select "td", text: "3"
+    assert_select "td", text: "2"
   end
 
   test "create product with inventory attributes" do
@@ -181,7 +770,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   end
 
   test "receive purchase creates stock-in movements" do
-    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash Business", status: :draft)
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
     purchase.purchase_items.create!(product: @product, quantity: 5, unit_cost_cents: 100)
 
     assert_difference("StockMovement.count", 1) do
@@ -191,6 +780,19 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     movement = StockMovement.last
     assert_equal "in", movement.movement_type
     assert_equal @location.id, movement.to_location_id
+  end
+
+  test "receive purchase creates expense once" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    purchase.purchase_items.create!(product: @product, quantity: 5, unit_cost_cents: 100)
+
+    assert_difference("Expense.count", 1) do
+      patch receive_purchase_path(purchase)
+    end
+
+    assert_no_difference("Expense.count") do
+      patch receive_purchase_path(purchase)
+    end
   end
 
   test "create delivery and mark delivered creates stock-out movements" do

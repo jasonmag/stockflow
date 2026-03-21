@@ -18,6 +18,8 @@ def seed_business_data(business:, owner_user:, staff_user:)
   ensure_membership(user: owner_user, business:, role: :owner)
   ensure_membership(user: staff_user, business:, role: :staff)
 
+  business_sku_prefix = business.name.split.second.to_s.upcase.presence || business.id.to_s
+
   Category.find_or_create_by!(business:, name: "Transport")
   Category.find_or_create_by!(business:, name: "Utilities")
   Supplier.find_or_create_by!(business:, name: "#{business.name} Supplier")
@@ -36,7 +38,7 @@ def seed_business_data(business:, owner_user:, staff_user:)
     ["Bottled Water", "BW-100", "case", 8]
   ].each do |name, sku, unit, reorder_level|
     product = Product.find_or_create_by!(business:, name:) do |record|
-      record.sku = sku
+      record.sku = "#{business_sku_prefix}-#{sku}"
       record.unit = unit
       record.reorder_level = reorder_level
       record.active = true

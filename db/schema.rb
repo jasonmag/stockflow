@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_21_123000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -47,7 +47,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
     t.integer "reminder_lead_days", default: 7, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.text "purchase_funding_sources", default: "Cash Personal\nCash Business\nCard Personal\nCard Business", null: false
+    t.text "purchase_funding_sources", default: "Cash\nCredit", null: false
+    t.string "currency", default: "PHP", null: false
   end
 
   create_table "categories", force: :cascade do |t|
@@ -134,13 +135,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
     t.integer "category_id", null: false
     t.integer "amount_cents", null: false
     t.string "currency", default: "PHP", null: false
-    t.integer "funding_source", default: 0, null: false
-    t.integer "payment_method", default: 0, null: false
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "purchase_id"
+    t.string "funding_source", default: "Cash", null: false
+    t.string "payment_method", default: "cash", null: false
     t.index ["business_id"], name: "index_expenses_on_business_id"
     t.index ["category_id"], name: "index_expenses_on_category_id"
+    t.index ["purchase_id"], name: "index_expenses_on_purchase_id", unique: true
   end
 
   create_table "locations", force: :cascade do |t|
@@ -190,7 +193,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
     t.string "recurring_rule"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "expense_id"
     t.index ["business_id"], name: "index_payables_on_business_id"
+    t.index ["expense_id"], name: "index_payables_on_expense_id", unique: true
   end
 
   create_table "payments", force: :cascade do |t|
@@ -227,6 +232,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
     t.index ["sku"], name: "index_products_on_sku", unique: true
   end
 
+  create_table "purchase_funding_sources", force: :cascade do |t|
+    t.integer "business_id", null: false
+    t.string "name", null: false
+    t.string "source_type", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["business_id", "name"], name: "index_purchase_funding_sources_on_business_id_and_name", unique: true
+    t.index ["business_id"], name: "index_purchase_funding_sources_on_business_id"
+  end
+
   create_table "purchase_items", force: :cascade do |t|
     t.integer "purchase_id", null: false
     t.integer "product_id", null: false
@@ -247,7 +262,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
     t.integer "status", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "funding_source", default: "Cash Personal", null: false
+    t.string "funding_source", default: "Cash", null: false
+    t.string "reference"
     t.index ["business_id"], name: "index_purchases_on_business_id"
     t.index ["receiving_location_id"], name: "index_purchases_on_receiving_location_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"
@@ -340,16 +356,19 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_090000) do
   add_foreign_key "delivery_items", "products"
   add_foreign_key "expenses", "businesses"
   add_foreign_key "expenses", "categories"
+  add_foreign_key "expenses", "purchases"
   add_foreign_key "locations", "businesses"
   add_foreign_key "memberships", "businesses"
   add_foreign_key "memberships", "users"
   add_foreign_key "notifications", "businesses"
   add_foreign_key "notifications", "users"
   add_foreign_key "payables", "businesses"
+  add_foreign_key "payables", "expenses"
   add_foreign_key "payments", "businesses"
   add_foreign_key "payments", "expenses"
   add_foreign_key "payments", "payables"
   add_foreign_key "products", "businesses"
+  add_foreign_key "purchase_funding_sources", "businesses"
   add_foreign_key "purchase_items", "products"
   add_foreign_key "purchase_items", "purchases"
   add_foreign_key "purchases", "businesses"
