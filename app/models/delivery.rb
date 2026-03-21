@@ -49,6 +49,14 @@ class Delivery < ApplicationRecord
     !delivered?
   end
 
+  def inventory_delivered?
+    stock_movements.outward.exists?
+  end
+
+  def delivery_number_preview
+    delivery_number.presence || "Auto-generated on save"
+  end
+
   private
     def assign_delivery_number
       return if delivery_number.present?

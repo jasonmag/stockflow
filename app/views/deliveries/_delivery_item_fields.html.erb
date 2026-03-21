@@ -1,0 +1,52 @@
+<div class="grid gap-3 items-start md:grid-cols-[minmax(0,2.2fr)_minmax(110px,0.8fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_auto] md:items-center" data-controller="delivery-item-total" data-delivery-item-total-currency-value="<%= currency %>" data-nested-delivery-items-target="item">
+  <%= form.hidden_field :_destroy, value: "0", data: { nested_delivery_items_target: "destroyField" } %>
+  <div class="relative" data-controller="product-lookup" data-product-lookup-placeholder-value="Select product">
+    <%= form.hidden_field :product_id, data: { product_lookup_target: "hidden" } %>
+    <div class="product-lookup-trigger">
+      <input
+        type="text"
+        class="field-input product-lookup-input"
+        placeholder="Select product"
+        autocomplete="off"
+        data-action="focus->product-lookup#open click->product-lookup#open input->product-lookup#filter"
+        data-product-lookup-target="input">
+      <button
+        type="button"
+        class="product-lookup-toggle"
+        aria-label="Toggle product options"
+        aria-expanded="false"
+        data-action="click->product-lookup#toggle"
+        data-product-lookup-target="toggle">
+        <span class="product-lookup-caret" aria-hidden="true"></span>
+      </button>
+    </div>
+    <div class="product-lookup-menu hidden" data-product-lookup-target="menu">
+      <div class="product-lookup-items">
+        <div class="product-lookup-empty hidden" data-product-lookup-target="empty">No matches found</div>
+        <% products.each do |product| %>
+          <button
+            type="button"
+            class="product-lookup-item"
+            data-action="click->product-lookup#select"
+            data-product-lookup-target="item"
+            data-label="<%= product.name %>"
+            data-value="<%= product.id %>">
+            <span class="truncate"><%= product.name %></span>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+  <div>
+    <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" }, data: { action: "input->delivery-item-total#update", delivery_item_total_target: "quantity" } %>
+  </div>
+  <div>
+    <%= form.number_field :unit_price_decimal, step: 0.01, min: 0, class: "field-input", placeholder: "0.00", aria: { label: "Unit price" }, data: { action: "input->delivery-item-total#update", delivery_item_total_target: "unitPrice" } %>
+  </div>
+  <div>
+    <div class="purchase-item-subtotal" data-delivery-item-total-target="subtotal"><%= money(0, currency) %></div>
+  </div>
+  <div class="flex items-center justify-end md:justify-start">
+    <button type="button" class="btn btn-ghost" data-action="click->nested-delivery-items#remove">Remove</button>
+  </div>
+</div>

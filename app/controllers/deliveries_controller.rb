@@ -1,5 +1,6 @@
 class DeliveriesController < ApplicationController
   before_action :set_delivery, only: %i[show edit update destroy generate_pdf download_pdf email_pdf mark_delivered]
+  before_action :ensure_editable!, only: %i[edit update]
   before_action :require_owner!, only: %i[destroy]
 
   def index
@@ -16,7 +17,11 @@ class DeliveriesController < ApplicationController
   end
 
   def new
-    @delivery = current_business.deliveries.new(delivered_on: Date.current)
+    @delivery = current_business.deliveries.new(
+      delivered_on: Date.current,
+      customer_id: params[:customer_id],
+      from_location_id: params[:from_location_id]
+    )
     @delivery.delivery_items.build
   end
 
@@ -26,19 +31,26 @@ class DeliveriesController < ApplicationController
 
   def create
     @delivery = current_business.deliveries.new(delivery_params)
-    if @delivery.save
-      redirect_to @delivery, notice: "Delivery created."
-    else
-      render :new, status: :unprocessable_entity
+
+    Delivery.transaction do
+      @delivery.save!
+      sync_inventory_if_delivered!(@delivery)
     end
+
+    redirect_to @delivery, notice: "Delivery created."
+  rescue ActiveRecord::RecordInvalid
+    render :new, status: :unprocessable_entity
   end
 
   def update
-    if @delivery.update(delivery_params)
-      redirect_to @delivery, notice: "Delivery updated."
-    else
-      render :edit, status: :unprocessable_entity
+    Delivery.transaction do
+      @delivery.update!(delivery_params)
+      sync_inventory_if_delivered!(@delivery)
     end
+
+    redirect_to @delivery, notice: "Delivery updated."
+  rescue ActiveRecord::RecordInvalid
+    render :edit, status: :unprocessable_entity
   end
 
   def destroy
@@ -98,10 +110,20 @@ class DeliveriesController < ApplicationController
 
     def delivery_params
       params.require(:delivery).permit(:customer_id, :delivered_on, :from_location_id, :notes, :show_prices, :status,
-                                       delivery_items_attributes: %i[id product_id quantity unit_price_cents _destroy])
+                                       delivery_items_attributes: %i[id product_id quantity unit_price_decimal unit_price_cents _destroy])
     end
 
     def parse_recipients(raw)
       raw.to_s.split(/[;,]/).map(&:strip).reject(&:blank?)
+    end
+
+    def ensure_editable!
+      return unless @delivery.delivered?
+
+      redirect_to @delivery, alert: "Delivered records can no longer be edited."
+    end
+
+    def sync_inventory_if_delivered!(delivery)
+      delivery.mark_delivered! if delivery.delivered? && !delivery.inventory_delivered?
     end
 end

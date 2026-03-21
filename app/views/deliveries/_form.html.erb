@@ -12,13 +12,17 @@
 
   <div class="grid gap-4 md:grid-cols-2">
     <div>
-      <%= f.label :customer_id, class: "field-label" %>
-      <%= f.collection_select :customer_id, current_business.customers.order(:name), :id, :name, { prompt: "Select customer" }, class: "field-input" %>
+      <label class="field-label">Name</label>
+      <%= text_field_tag :delivery_number_preview, delivery.delivery_number_preview, class: "field-input bg-slate-100", readonly: true %>
     </div>
 
     <div>
-      <%= f.label :status, class: "field-label" %>
-      <%= f.select :status, Delivery.statuses.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+      <%= f.label :customer_id, class: "field-label" %>
+      <%= f.collection_select :customer_id, current_business.customers.order(:name), :id, :name, { prompt: "Select customer" }, class: "field-input" %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Customer not listed?</span>
+        <%= link_to "Add new customer", new_customer_path(return_to: new_delivery_path), class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
     </div>
 
     <div>
@@ -28,7 +32,23 @@
 
     <div>
       <%= f.label :from_location_id, class: "field-label" %>
-      <%= f.collection_select :from_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
+      <%= f.collection_select :from_location_id, current_business.locations.order(:name), :id, :name, { prompt: "Select location" }, class: "field-input" %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Location not listed?</span>
+        <%= link_to "Add new location", new_location_path(return_to: new_delivery_path), class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :status, class: "field-label" %>
+      <%= f.select :status, Delivery.statuses.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+    </div>
+
+    <div class="flex items-end">
+      <label class="inline-flex items-center gap-2 text-sm text-slate-700">
+        <%= f.check_box :show_prices, class: "h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500" %>
+        Show prices in delivery report PDF
+      </label>
     </div>
 
     <div class="md:col-span-2">
@@ -37,32 +57,44 @@
     </div>
   </div>
 
-  <label class="inline-flex items-center gap-2 text-sm text-slate-700">
-    <%= f.check_box :show_prices, class: "h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500" %>
-    Show prices in delivery report PDF
-  </label>
-
   <section class="rounded-lg border border-slate-200 p-4">
     <h2 class="text-sm font-semibold text-slate-900">Delivery Items</h2>
-    <p class="mt-1 text-xs text-slate-600">Add products, quantities, and optional pricing.</p>
+    <p class="mt-1 text-xs text-slate-600">Add at least one item and quantity.</p>
 
-    <div class="mt-3 space-y-3">
-      <%= f.fields_for :delivery_items do |item| %>
-        <div class="grid gap-3 rounded-lg border border-slate-200 p-3 md:grid-cols-3">
-          <div>
-            <%= item.label :product_id, class: "field-label" %>
-            <%= item.collection_select :product_id, current_business.products.order(:name), :id, :name, { prompt: "Select product" }, class: "field-input" %>
-          </div>
-          <div>
-            <%= item.label :quantity, class: "field-label" %>
-            <%= item.number_field :quantity, step: 0.01, min: 0.01, class: "field-input" %>
-          </div>
-          <div>
-            <%= item.label :unit_price_cents, class: "field-label" %>
-            <%= item.number_field :unit_price_cents, min: 0, class: "field-input" %>
-          </div>
+    <div class="mt-3 space-y-3" data-controller="nested-delivery-items" data-action="delivery-items:recalculate->nested-delivery-items#updateOverall" data-nested-delivery-items-currency-value="<%= current_business.currency %>">
+      <div class="rounded-lg border border-slate-200">
+        <div class="hidden border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-600 md:grid md:grid-cols-[minmax(0,2.2fr)_minmax(110px,0.8fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_auto] md:gap-3">
+          <div>Product</div>
+          <div>Quantity</div>
+          <div>Unit price</div>
+          <div>Sub-total</div>
+          <div>Action</div>
         </div>
-      <% end %>
+
+        <div data-nested-delivery-items-target="list" class="divide-y divide-slate-200 p-3 space-y-3 md:space-y-0">
+        <%= f.fields_for :delivery_items do |item| %>
+          <%= render "delivery_item_fields", form: item, products: current_business.products.order(:name), currency: current_business.currency %>
+        <% end %>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <div class="purchase-items-overall-total">
+          <span class="purchase-items-overall-total-label">Total</span>
+          <span data-nested-delivery-items-target="overall"><%= money(0, current_business.currency) %></span>
+        </div>
+      </div>
+
+      <template data-nested-delivery-items-target="template">
+        <%= f.fields_for :delivery_items, DeliveryItem.new, child_index: "NEW_RECORD" do |item| %>
+          <%= render "delivery_item_fields", form: item, products: current_business.products.order(:name), currency: current_business.currency %>
+        <% end %>
+      </template>
+
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn btn-secondary" data-action="click->nested-delivery-items#add">Add another product</button>
+        <%= link_to "Add new inventory variant", new_product_path(return_to: new_delivery_path), class: "btn btn-secondary" %>
+      </div>
     </div>
   </section>
 

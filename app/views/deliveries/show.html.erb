@@ -4,7 +4,9 @@
     <p class="mt-1 text-sm text-slate-600">Delivery details, PDF generation, and email history.</p>
   </div>
   <div class="flex flex-wrap gap-2">
-    <%= link_to "Edit", edit_delivery_path(@delivery), class: "btn btn-primary" %>
+    <% unless @delivery.delivered? %>
+      <%= link_to "Edit", edit_delivery_path(@delivery), class: "btn btn-primary" %>
+    <% end %>
     <%= link_to "Back", deliveries_path, class: "btn btn-secondary" %>
   </div>
 </div>
@@ -62,6 +64,7 @@
             <th>Product</th>
             <th>Quantity</th>
             <th>Unit Price</th>
+            <th>Sub-total</th>
           </tr>
         </thead>
         <tbody>
@@ -70,10 +73,18 @@
               <td class="font-medium text-slate-900"><%= item.product.name %></td>
               <td><%= item.quantity %></td>
               <td><%= item.unit_price_cents.present? ? money(item.unit_price_cents) : "-" %></td>
+              <td><%= item.unit_price_cents.present? ? money((item.unit_price_cents * item.quantity.to_d).round) : "-" %></td>
             </tr>
           <% end %>
         </tbody>
       </table>
+    </div>
+    <div class="flex justify-end">
+      <% total_cents = @delivery.delivery_items.sum { |item| item.unit_price_cents.present? ? (item.unit_price_cents * item.quantity.to_d).round : 0 } %>
+      <div class="purchase-items-overall-total">
+        <span class="purchase-items-overall-total-label">Total</span>
+        <span><%= money(total_cents) %></span>
+      </div>
     </div>
   <% else %>
     <p class="text-sm text-slate-600">No delivery items attached.</p>

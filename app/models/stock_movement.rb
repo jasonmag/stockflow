@@ -16,6 +16,7 @@ class StockMovement < ApplicationRecord
   validate :reference_matches_business
 
   scope :inward, -> { where(movement_type: :in) }
+  scope :outward, -> { where(movement_type: :out) }
 
   private
     def movement_locations_valid
