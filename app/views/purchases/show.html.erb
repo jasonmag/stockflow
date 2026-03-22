@@ -6,6 +6,7 @@
   <div class="flex flex-wrap gap-2">
     <% unless @purchase.received? %>
       <%= link_to "Edit", edit_purchase_path(@purchase), class: "btn btn-primary" %>
+      <%= button_to "Delete", purchase_path(@purchase), method: :delete, class: "btn btn-secondary", form: { data: { turbo_confirm: "Delete this draft purchase?" } } %>
     <% end %>
     <%= link_to "Back", purchases_path, class: "btn btn-secondary" %>
   </div>

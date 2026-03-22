@@ -660,6 +660,49 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal Date.current, purchase.reload.purchased_on
   end
 
+  test "purchase actions show delete only for draft purchases" do
+    draft_purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    received_purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :received)
+
+    get purchases_path
+
+    assert_response :success
+    assert_select "form[action='#{purchase_path(draft_purchase)}'] button", text: "Delete"
+    assert_select "form[action='#{purchase_path(received_purchase)}'] button", text: "Delete", count: 0
+
+    get purchase_path(draft_purchase)
+
+    assert_response :success
+    assert_select "form[action='#{purchase_path(draft_purchase)}'] button", text: "Delete"
+
+    get purchase_path(received_purchase)
+
+    assert_response :success
+    assert_select "form[action='#{purchase_path(received_purchase)}'] button", text: "Delete", count: 0
+  end
+
+  test "draft purchase can be deleted" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+
+    assert_difference("Purchase.count", -1) do
+      delete purchase_path(purchase)
+    end
+
+    assert_redirected_to purchases_path
+    assert_equal "Purchase deleted.", flash[:notice]
+  end
+
+  test "received purchase cannot be deleted" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :received)
+
+    assert_no_difference("Purchase.count") do
+      delete purchase_path(purchase)
+    end
+
+    assert_redirected_to purchase_path(purchase)
+    assert_equal "Received purchases can no longer be deleted.", flash[:alert]
+  end
+
   test "create supplier from purchase flow redirects back with supplier selected" do
     assert_difference("Supplier.count", 1) do
       post suppliers_path(return_to: new_purchase_path), params: {

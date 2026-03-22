@@ -25,7 +25,14 @@
             <td><%= purchase.supplier.name %></td>
             <td><%= purchase.purchased_on.to_fs(:long) %></td>
             <td><%= status_badge(purchase.status) %></td>
-            <td class="text-right"><%= link_to "View", purchase, class: "btn btn-ghost" %></td>
+            <td class="text-right">
+              <div class="flex justify-end gap-2">
+                <%= link_to "View", purchase, class: "btn btn-ghost" %>
+                <% unless purchase.received? %>
+                  <%= button_to "Delete", purchase_path(purchase), method: :delete, class: "btn btn-ghost", form: { data: { turbo_confirm: "Delete this draft purchase?" } } %>
+                <% end %>
+              </div>
+            </td>
           </tr>
         <% end %>
       </tbody>

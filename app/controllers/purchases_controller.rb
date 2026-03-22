@@ -2,6 +2,7 @@ class PurchasesController < ApplicationController
   before_action :set_purchase, only: %i[show edit update destroy receive]
   before_action :ensure_editable!, only: %i[edit update]
   before_action :require_owner!, only: %i[destroy]
+  before_action :ensure_destroyable!, only: %i[destroy]
 
   def index
     @purchases = current_business.purchases.includes(:supplier).order(purchased_on: :desc)
@@ -70,6 +71,12 @@ class PurchasesController < ApplicationController
       return unless @purchase.received?
 
       redirect_to @purchase, alert: "Received purchases can no longer be edited."
+    end
+
+    def ensure_destroyable!
+      return unless @purchase.received?
+
+      redirect_to @purchase, alert: "Received purchases can no longer be deleted."
     end
 
     def purchase_params
