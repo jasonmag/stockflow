@@ -73,8 +73,31 @@ class PurchasesController < ApplicationController
     end
 
     def purchase_params
-      params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status,
-                                       purchase_items_attributes: %i[id product_id quantity unit_cost_decimal unit_cost_cents _destroy])
+      permitted = params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status)
+      raw_items = params[:purchase]&.[](:purchase_items_attributes)
+
+      return permitted unless raw_items.present?
+
+      permitted[:purchase_items_attributes] = normalize_purchase_item_attributes(raw_items)
+      permitted
+    end
+
+    def normalize_purchase_item_attributes(raw_items)
+      items =
+        case raw_items
+        when ActionController::Parameters
+          raw_items.to_unsafe_h.values
+        when Hash
+          raw_items.values
+        else
+          Array(raw_items)
+        end
+
+      items.filter_map do |attributes|
+        next if attributes.blank?
+
+        ActionController::Parameters.new(attributes.to_h).permit(:id, :product_id, :quantity, :unit_cost_decimal, :unit_cost_cents, :_destroy)
+      end
     end
 
     def sync_inventory_if_received!(purchase)

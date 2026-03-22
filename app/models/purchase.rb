@@ -7,7 +7,7 @@ class Purchase < ApplicationRecord
   has_many :purchase_items, dependent: :destroy
   has_many :stock_movements, as: :reference, dependent: :nullify
   has_one :expense, dependent: :nullify
-  accepts_nested_attributes_for :purchase_items, allow_destroy: true
+  accepts_nested_attributes_for :purchase_items, allow_destroy: true, reject_if: :all_blank
 
   enum :status, { draft: 0, received: 1 }
 

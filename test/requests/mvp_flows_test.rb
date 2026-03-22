@@ -309,7 +309,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "input[name='purchase[purchased_on]'][value='#{Date.current}']"
   end
 
-  test "purchase form includes searchable product dropdown for purchase items" do
+  test "purchase form includes product selection for purchase items" do
     get new_purchase_path
 
     assert_response :success
@@ -321,10 +321,9 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "div", text: "Quantity", count: 1
     assert_select "div", text: "Unit cost", count: 1
     assert_select "div", text: "Sub-total", count: 1
-    assert_select "[data-controller='product-lookup'] input[type='hidden'][name='purchase[purchase_items_attributes][0][product_id]']"
-    assert_select "[data-controller='product-lookup'] input[type='text'][placeholder='Select product']"
-    assert_select "[data-controller='product-lookup'] button[aria-label='Toggle product options']"
-    assert_select "[data-controller='product-lookup'] .product-lookup-item", text: @product.name
+    assert_select "select[name='purchase[purchase_items_attributes][0][product_id]'] option", text: "Select product"
+    assert_select "select[name='purchase[purchase_items_attributes][0][product_id]'] option", text: @product.name
+    assert_select "input[name='purchase[purchase_items_attributes][0][unit_cost_decimal]'][data-action*='keydown.enter->nested-purchase-items#addFromUnitCost'][data-action*='keydown.tab->nested-purchase-items#addFromUnitCost']"
     assert_select "[data-controller='purchase-item-total'] [data-purchase-item-total-target='subtotal']", text: "PHP 0.00"
     assert_select "[data-nested-purchase-items-target='item'] button", text: "Remove"
     assert_select "[data-nested-purchase-items-target='overall']", text: "PHP 0.00"
@@ -379,6 +378,68 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal 1250, Purchase.last.purchase_items.last.unit_cost_cents
     assert_equal "PO-#{Date.current}", Purchase.last.reference
     assert_redirected_to purchase_path(Purchase.last)
+  end
+
+  test "create purchase ignores trailing blank purchase item rows" do
+    assert_difference("Purchase.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "draft",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            },
+            "1" => {
+              product_id: "",
+              quantity: "",
+              unit_cost_decimal: ""
+            }
+          }
+        }
+      }
+    end
+
+    assert_redirected_to purchase_path(Purchase.last)
+    assert_equal 1, Purchase.last.purchase_items.count
+  end
+
+  test "create purchase saves multiple purchase items" do
+    second_product = @business.products.where.not(id: @product.id).first || Product.create!(business: @business, name: "Extra Product", unit: "pc", active: true)
+
+    assert_difference("Purchase.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "draft",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_cost_decimal: "12.50"
+            },
+            "171256-abc" => {
+              product_id: second_product.id,
+              quantity: 3,
+              unit_cost_decimal: "7.25"
+            }
+          }
+        }
+      }
+    end
+
+    purchase = Purchase.last
+    assert_redirected_to purchase_path(purchase)
+    assert_equal 2, purchase.purchase_items.count
+    assert_equal [@product.id, second_product.id].sort, purchase.purchase_items.pluck(:product_id).sort
   end
 
   test "create purchase with received status adds items to inventory" do
@@ -535,6 +596,40 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_equal purchase.reload, Expense.last.purchase
     assert_equal 600, Expense.last.amount_cents
+  end
+
+  test "update purchase saves multiple purchase items" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current, receiving_location: @location, funding_source: "Cash", status: :draft)
+    existing_item = purchase.purchase_items.create!(product: @product, quantity: 3, unit_cost_cents: 200)
+    second_product = @business.products.where.not(id: @product.id).first || Product.create!(business: @business, name: "Extra Product", unit: "pc", active: true)
+
+    patch purchase_path(purchase), params: {
+      purchase: {
+        supplier_id: @supplier.id,
+        purchased_on: purchase.purchased_on,
+        receiving_location_id: @location.id,
+        funding_source: "Cash",
+        status: "draft",
+        purchase_items_attributes: {
+          "0" => {
+            id: existing_item.id,
+            product_id: @product.id,
+            quantity: 4,
+            unit_cost_decimal: "2.25"
+          },
+          "171256-abc" => {
+            product_id: second_product.id,
+            quantity: 2,
+            unit_cost_decimal: "7.50"
+          }
+        }
+      }
+    }
+
+    assert_redirected_to purchase_path(purchase)
+    purchase.reload
+    assert_equal 2, purchase.purchase_items.count
+    assert_equal [@product.id, second_product.id].sort, purchase.purchase_items.pluck(:product_id).sort
   end
 
   test "received purchase cannot be edited" do
