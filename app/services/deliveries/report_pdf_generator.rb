@@ -25,13 +25,12 @@ module Deliveries
       attr_reader :delivery
 
       def build_pdf
-        Prawn::Document.new(page_size: "A4") do |pdf|
+        Prawn::Document.new(page_size: "A4", margin: 36) do |pdf|
           pdf.text(delivery.business.name, size: 16, style: :bold)
-          pdf.text("Delivery Report", size: 14, style: :bold)
+          pdf.text("Delivery", size: 14, style: :bold)
+          pdf.text("Delivery No: #{delivery.delivery_number_preview}", size: 12, style: :bold)
           pdf.move_down 8
-          pdf.text("Delivery No: #{delivery.delivery_number_preview}")
-          pdf.text("Delivered On: #{delivery.delivered_on || Date.current}")
-          pdf.text("Customer: #{customer_name}")
+          pdf.text("Delivery to #{customer_name}")
           pdf.text("Address: #{customer_address}") if customer_address.present?
           pdf.move_down 10
 
@@ -54,7 +53,7 @@ module Deliveries
       end
 
       def show_prices?
-        delivery.show_prices? && preview_items.any? { |item| item.unit_price_cents.present? }
+        delivery.show_prices?
       end
 
       def format_currency(cents)
@@ -82,13 +81,15 @@ module Deliveries
       end
 
       def render_items_table(pdf)
-        headers = ["#", "Product", "Unit", "Qty"]
-        widths = [30, 240, 70, 70]
+        headers = ["#", "Product", "Quantity"]
+        widths = [30, 0, 90]
 
         if show_prices?
-          headers += ["Unit Price", "Amount"]
-          widths += [65, 65]
+          headers += ["Unit Price", "Sub-total"]
+          widths += [75, 75]
         end
+
+        widths[1] = pdf.bounds.width - widths.excluding(0).sum
 
         draw_table_row(pdf, headers, widths, header: true)
 
@@ -96,7 +97,6 @@ module Deliveries
           row = [
             (index + 1).to_s,
             product_name_for(item),
-            product_unit_for(item).presence || "-",
             format_quantity(item.quantity)
           ]
 
@@ -117,11 +117,6 @@ module Deliveries
 
         top = pdf.cursor
         left = pdf.bounds.left
-
-        fill_color = header ? "E2E8F0" : "FFFFFF"
-        pdf.fill_color(fill_color)
-        pdf.fill_rectangle [left, top], pdf.bounds.width, row_height
-        pdf.fill_color "000000"
 
         x = left
         widths.each_with_index do |width, index|
@@ -150,8 +145,8 @@ module Deliveries
       end
 
       def numeric_column?(index, column_count)
-        numeric_columns = [0, 3]
-        numeric_columns += [4, 5] if column_count == 6
+        numeric_columns = [0, 2]
+        numeric_columns += [3, 4] if column_count == 5
         numeric_columns.include?(index)
       end
 
