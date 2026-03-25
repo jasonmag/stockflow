@@ -466,6 +466,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal "in", movement.movement_type
     assert_equal @location.id, movement.to_location_id
     assert_equal Purchase.last, movement.reference
+    assert Purchase.last.received_at.present?
   end
 
   test "received purchase creates expense entry" do
@@ -825,6 +826,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal "delivered", delivery.status
     assert delivery.inventory_delivered?
     assert_equal delivery, StockMovement.last.reference
+    assert delivery.marked_delivered_at.present?
   end
 
   test "delivered delivery cannot be edited" do
@@ -947,6 +949,100 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     movement = StockMovement.last
     assert_equal "out", movement.movement_type
     assert_equal delivery, movement.reference
+  end
+
+  test "mark delivered reduces current inventory count" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 4)
+
+    patch mark_delivered_delivery_path(delivery)
+
+    get stock_movements_path
+
+    assert_response :success
+    assert_select "h3", text: "Warehouse"
+    assert_select "td", text: "6"
+  end
+
+  test "mark delivered logs action date and uses it in inventory movement" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current - 3.days, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 4)
+
+    patch mark_delivered_delivery_path(delivery)
+
+    delivery.reload
+    movement = StockMovement.order(:id).last
+    assert delivery.marked_delivered_at.present?
+    assert_equal Date.current, delivery.marked_delivered_at.to_date
+    assert_equal Date.current, movement.occurred_on
+  end
+
+  test "stock movements index shows delivery customer as destination" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 4)
+
+    patch mark_delivered_delivery_path(delivery)
+    get stock_movements_path
+
+    assert_response :success
+    assert_select "td", text: @location.name
+    assert_select "td", text: @customer.name
+  end
+
+  test "stock movements index shows purchase supplier as source" do
+    post purchases_path, params: {
+      purchase: {
+        supplier_id: @supplier.id,
+        purchased_on: Date.current,
+        receiving_location_id: @location.id,
+        funding_source: "Cash",
+        status: "received",
+        purchase_items_attributes: {
+          "0" => {
+            product_id: @product.id,
+            quantity: 2,
+            unit_cost_decimal: "12.50"
+          }
+        }
+      }
+    }
+
+    get stock_movements_path
+
+    assert_response :success
+    assert_select "td", text: @supplier.name
+    assert_select "td", text: @location.name
+  end
+
+  test "receive purchase logs action date and uses it in inventory movement" do
+    purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current - 3.days, receiving_location: @location, funding_source: "Cash", status: :draft)
+    purchase.purchase_items.create!(product: @product, quantity: 2, unit_cost_cents: 1250)
+
+    patch receive_purchase_path(purchase)
+
+    purchase.reload
+    movement = StockMovement.order(:id).last
+    assert purchase.received_at.present?
+    assert_equal Date.current, purchase.received_at.to_date
+    assert_equal Date.current, movement.occurred_on
+  end
+
+  test "mark delivered only deducts inventory once" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 4)
+
+    patch mark_delivered_delivery_path(delivery)
+
+    assert_no_difference("StockMovement.count") do
+      patch mark_delivered_delivery_path(delivery)
+    end
+
+    totals = Inventory::OnHandCalculator.new(business: @business).totals_by_product
+    assert_equal 6.0, totals[@product.id]
   end
 
   test "generate delivery pdf attaches report" do

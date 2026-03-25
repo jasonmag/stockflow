@@ -20,6 +20,8 @@ class Purchase < ApplicationRecord
 
   def receive!
     transaction do
+      actioned_at = received_at || Time.current
+
       unless inventory_received?
         purchase_items.find_each do |item|
           StockMovement.create!(
@@ -29,14 +31,14 @@ class Purchase < ApplicationRecord
             quantity: item.quantity,
             unit_cost_cents: item.unit_cost_cents,
             to_location: receiving_location,
-            occurred_on: purchased_on,
+            occurred_on: actioned_at.to_date,
             reference: self,
             notes: "Purchase ##{id} received"
           )
         end
       end
 
-      update!(status: :received) unless received?
+      update!(status: :received, received_at: actioned_at) unless received? && received_at.present?
       sync_expense!
     end
   end

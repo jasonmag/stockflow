@@ -59,8 +59,8 @@
             <td><%= status_badge(row.movement_type) %></td>
             <td class="font-medium text-slate-900"><%= row.product.name %></td>
             <td><%= row.quantity %></td>
-            <td><%= row.from_location&.name || "-" %></td>
-            <td><%= row.to_location&.name || "-" %></td>
+            <td><%= row.from_label %></td>
+            <td><%= row.to_label %></td>
           </tr>
         <% end %>
       </tbody>

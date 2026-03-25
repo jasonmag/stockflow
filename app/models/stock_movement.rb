@@ -18,7 +18,29 @@ class StockMovement < ApplicationRecord
   scope :inward, -> { where(movement_type: :in) }
   scope :outward, -> { where(movement_type: :out) }
 
+  def from_label
+    from_location&.name || reference_from_label || "-"
+  end
+
+  def to_label
+    to_location&.name || reference_to_label || "-"
+  end
+
   private
+    def reference_from_label
+      case reference
+      when Purchase
+        reference.supplier&.name
+      end
+    end
+
+    def reference_to_label
+      case reference
+      when Delivery
+        reference.customer&.name
+      end
+    end
+
     def movement_locations_valid
       case movement_type&.to_sym
       when :in

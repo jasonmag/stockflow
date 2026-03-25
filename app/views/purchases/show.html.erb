@@ -31,6 +31,10 @@
       <dd class="mt-1 text-sm text-slate-900"><%= @purchase.purchased_on.to_fs(:long) %></dd>
     </div>
     <div>
+      <dt class="kpi-label">Received</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @purchase.received_at&.to_fs(:long) || "-" %></dd>
+    </div>
+    <div>
       <dt class="kpi-label">Receiving Location</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @purchase.receiving_location.name %></dd>
     </div>

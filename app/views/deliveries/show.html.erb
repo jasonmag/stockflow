@@ -26,6 +26,10 @@
       <dd class="mt-1 text-sm text-slate-900"><%= @delivery.delivered_on.to_fs(:long) %></dd>
     </div>
     <div>
+      <dt class="kpi-label">Marked Delivered</dt>
+      <dd class="mt-1 text-sm text-slate-900"><%= @delivery.marked_delivered_at&.to_fs(:long) || "-" %></dd>
+    </div>
+    <div>
       <dt class="kpi-label">From Location</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @delivery.from_location&.name || "-" %></dd>
     </div>

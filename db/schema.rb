@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_21_123000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_25_130000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -96,6 +96,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_123000) do
     t.boolean "show_prices", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "marked_delivered_at"
     t.index ["business_id", "delivery_number"], name: "index_deliveries_on_business_id_and_delivery_number", unique: true
     t.index ["business_id"], name: "index_deliveries_on_business_id"
     t.index ["customer_id"], name: "index_deliveries_on_customer_id"
@@ -264,6 +265,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_123000) do
     t.datetime "updated_at", null: false
     t.string "funding_source", default: "Cash", null: false
     t.string "reference"
+    t.datetime "received_at"
     t.index ["business_id"], name: "index_purchases_on_business_id"
     t.index ["receiving_location_id"], name: "index_purchases_on_receiving_location_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"

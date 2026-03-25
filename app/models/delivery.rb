@@ -22,6 +22,9 @@ class Delivery < ApplicationRecord
       errors.add(:from_location, "must be present")
       raise ActiveRecord::RecordInvalid, self
     end
+
+    return self if inventory_delivered?
+
     validator = Inventory::StockValidator.new(delivery: self)
     unless validator.valid?
       errors.add(:base, validator.error_message)
@@ -29,6 +32,8 @@ class Delivery < ApplicationRecord
     end
 
     transaction do
+      actioned_at = marked_delivered_at || Time.current
+
       delivery_items.each do |item|
         StockMovement.create!(
           business:,
@@ -36,12 +41,12 @@ class Delivery < ApplicationRecord
           product: item.product,
           quantity: item.quantity,
           from_location:,
-          occurred_on: delivered_on,
+          occurred_on: actioned_at.to_date,
           reference: self,
           notes: "Delivery #{delivery_number} to #{customer.name}"
         )
       end
-      update!(status: :delivered)
+      update!(status: :delivered, marked_delivered_at: actioned_at)
     end
   end
 
