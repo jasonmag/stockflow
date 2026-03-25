@@ -9,12 +9,20 @@ export default class extends Controller {
   }
 
   add(event) {
-    event.preventDefault()
+    event?.preventDefault()
 
     const uniqueId = Date.now().toString()
     const content = this.templateTarget.innerHTML.replaceAll("NEW_RECORD", uniqueId)
     this.listTarget.insertAdjacentHTML("beforeend", content)
     this.updateOverall()
+  }
+
+  addFromUnitPrice(event) {
+    if (!this.shouldAddRowFromUnitPrice(event)) return
+
+    event.preventDefault()
+    this.add()
+    this.focusNewestProductInput()
   }
 
   remove(event) {
@@ -50,5 +58,26 @@ export default class extends Controller {
       style: "currency",
       currency: this.currencyValue || "PHP"
     }).format(value || 0)
+  }
+
+  shouldAddRowFromUnitPrice(event) {
+    const isEnter = event.key === "Enter"
+    const isForwardTab = event.key === "Tab" && !event.shiftKey
+    if (!isEnter && !isForwardTab) return false
+
+    const currentItem = event.target.closest("[data-nested-delivery-items-target='item']")
+    if (!currentItem) return false
+
+    return currentItem === this.visibleItems.at(-1)
+  }
+
+  focusNewestProductInput() {
+    const newestItem = this.visibleItems.at(-1)
+    const input = newestItem?.querySelector(".product-lookup-input")
+    input?.focus()
+  }
+
+  get visibleItems() {
+    return Array.from(this.listTarget.querySelectorAll("[data-nested-delivery-items-target='item']")).filter((item) => !item.classList.contains("hidden"))
   }
 }

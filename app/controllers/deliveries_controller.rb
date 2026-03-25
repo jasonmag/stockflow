@@ -29,6 +29,17 @@ class DeliveriesController < ApplicationController
     @delivery.delivery_items.build if @delivery.delivery_items.empty?
   end
 
+  def preview_pdf
+    delivery = current_business.deliveries.new(delivery_params)
+
+    send_data(
+      Deliveries::ReportPdfGenerator.new(delivery:).render,
+      filename: "delivery-preview.pdf",
+      type: "application/pdf",
+      disposition: "inline"
+    )
+  end
+
   def create
     @delivery = current_business.deliveries.new(delivery_params)
 

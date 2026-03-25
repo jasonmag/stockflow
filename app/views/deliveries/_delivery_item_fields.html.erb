@@ -41,7 +41,7 @@
     <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" }, data: { action: "input->delivery-item-total#update", delivery_item_total_target: "quantity" } %>
   </div>
   <div>
-    <%= form.number_field :unit_price_decimal, step: 0.01, min: 0, class: "field-input", placeholder: "0.00", aria: { label: "Unit price" }, data: { action: "input->delivery-item-total#update", delivery_item_total_target: "unitPrice" } %>
+    <%= form.number_field :unit_price_decimal, step: 0.01, min: 0, class: "field-input", placeholder: "0.00", aria: { label: "Unit price" }, data: { action: "input->delivery-item-total#update keydown->nested-delivery-items#addFromUnitPrice", delivery_item_total_target: "unitPrice" } %>
   </div>
   <div>
     <div class="purchase-item-subtotal" data-delivery-item-total-target="subtotal"><%= money(0, currency) %></div>

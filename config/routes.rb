@@ -51,6 +51,9 @@ Rails.application.routes.draw do
   end
   resources :collections, only: %i[index]
   resources :deliveries do
+    collection do
+      get :preview_pdf
+    end
     member do
       post :generate_pdf
       get :download_pdf

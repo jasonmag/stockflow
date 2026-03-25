@@ -958,6 +958,32 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert delivery.reload.report_pdf.attached?
   end
 
+  test "preview delivery pdf streams inline without saving a delivery" do
+    assert_no_difference("Delivery.count") do
+      get preview_pdf_deliveries_path, params: {
+        delivery: {
+          customer_id: @customer.id,
+          delivered_on: Date.current,
+          from_location_id: @location.id,
+          status: "draft",
+          show_prices: "1",
+          notes: "Preview only",
+          delivery_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 2,
+              unit_price_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert_includes response.headers["Content-Disposition"], "inline"
+  end
+
   test "email delivery pdf enqueues job and creates email log" do
     ActiveJob::Base.queue_adapter = :test
     delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
