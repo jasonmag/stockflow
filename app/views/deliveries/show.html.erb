@@ -46,6 +46,7 @@
 
 <section class="card mb-4">
   <div class="mb-3 flex flex-wrap gap-2">
+    <%= link_to "Preview PDF", preview_pdf_delivery_path(@delivery), class: "btn btn-secondary", target: "_blank", rel: "noopener" %>
     <%= button_to "Generate PDF", generate_pdf_delivery_path(@delivery), method: :post, class: "btn btn-secondary" %>
     <% if @delivery.report_pdf.attached? %>
       <%= link_to "Download PDF", download_pdf_delivery_path(@delivery), class: "btn btn-ghost" %>

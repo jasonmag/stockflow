@@ -8,13 +8,16 @@ export default class extends Controller {
 
   connect() {
     this.boundOutsideClick = this.handleOutsideClick.bind(this)
+    this.boundAvailabilityRefresh = this.refreshAvailability.bind(this)
     document.addEventListener("click", this.boundOutsideClick)
+    document.addEventListener("delivery-items:product-changed", this.boundAvailabilityRefresh)
     this.syncFromHidden()
     this.filter()
   }
 
   disconnect() {
     document.removeEventListener("click", this.boundOutsideClick)
+    document.removeEventListener("delivery-items:product-changed", this.boundAvailabilityRefresh)
   }
 
   toggle(event) {
@@ -29,6 +32,7 @@ export default class extends Controller {
   }
 
   open() {
+    this.filter()
     this.menuTarget.classList.remove("hidden")
     this.toggleTarget.setAttribute("aria-expanded", "true")
   }
@@ -42,10 +46,8 @@ export default class extends Controller {
     const query = this.inputTarget.value.trim().toLowerCase()
     let matches = 0
 
-    this.open()
-
     this.itemTargets.forEach((item) => {
-      const visible = item.dataset.label.toLowerCase().includes(query)
+      const visible = this.itemMatchesQuery(item, query) && this.itemIsAvailable(item)
       item.classList.toggle("hidden", !visible)
       matches += visible ? 1 : 0
     })
@@ -65,6 +67,7 @@ export default class extends Controller {
       item.classList.toggle("is-selected", item === selectedItem)
     })
 
+    this.dispatchProductChanged()
     this.close()
   }
 
@@ -83,5 +86,32 @@ export default class extends Controller {
     if (!this.element.contains(event.target)) {
       this.close()
     }
+  }
+
+  refreshAvailability() {
+    this.filter()
+  }
+
+  dispatchProductChanged() {
+    document.dispatchEvent(new CustomEvent("delivery-items:product-changed"))
+  }
+
+  itemMatchesQuery(item, query) {
+    return item.dataset.label.toLowerCase().includes(query)
+  }
+
+  itemIsAvailable(item) {
+    const selectedIds = this.selectedProductIds
+    return !selectedIds.includes(item.dataset.value) || item.dataset.value === this.hiddenTarget.value
+  }
+
+  get selectedProductIds() {
+    const container = this.element.closest("[data-controller~='nested-delivery-items']")
+    if (!container) return []
+
+    return Array.from(container.querySelectorAll("[data-controller~='product-lookup'] [data-product-lookup-target='hidden']"))
+      .filter((input) => !input.closest("[data-nested-delivery-items-target='item']")?.classList.contains("hidden"))
+      .map((input) => input.value)
+      .filter(Boolean)
   }
 }

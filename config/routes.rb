@@ -55,6 +55,7 @@ Rails.application.routes.draw do
       get :preview_pdf
     end
     member do
+      get :preview_pdf
       post :generate_pdf
       get :download_pdf
       post :email_pdf

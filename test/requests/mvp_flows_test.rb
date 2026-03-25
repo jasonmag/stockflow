@@ -984,6 +984,17 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_includes response.headers["Content-Disposition"], "inline"
   end
 
+  test "preview saved delivery pdf streams inline" do
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 1, unit_price_cents: 1250)
+
+    get preview_pdf_delivery_path(delivery)
+
+    assert_response :success
+    assert_equal "application/pdf", response.media_type
+    assert_includes response.headers["Content-Disposition"], "inline"
+  end
+
   test "email delivery pdf enqueues job and creates email log" do
     ActiveJob::Base.queue_adapter = :test
     delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)

@@ -15,6 +15,7 @@ export default class extends Controller {
     const content = this.templateTarget.innerHTML.replaceAll("NEW_RECORD", uniqueId)
     this.listTarget.insertAdjacentHTML("beforeend", content)
     this.updateOverall()
+    this.notifyProductOptionsChanged()
   }
 
   addFromUnitPrice(event) {
@@ -41,6 +42,7 @@ export default class extends Controller {
     }
 
     this.updateOverall()
+    this.notifyProductOptionsChanged()
   }
 
   updateOverall() {
@@ -79,5 +81,9 @@ export default class extends Controller {
 
   get visibleItems() {
     return Array.from(this.listTarget.querySelectorAll("[data-nested-delivery-items-target='item']")).filter((item) => !item.classList.contains("hidden"))
+  }
+
+  notifyProductOptionsChanged() {
+    document.dispatchEvent(new CustomEvent("delivery-items:product-changed"))
   }
 }

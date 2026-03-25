@@ -1,5 +1,5 @@
 class DeliveriesController < ApplicationController
-  before_action :set_delivery, only: %i[show edit update destroy generate_pdf download_pdf email_pdf mark_delivered]
+  before_action :set_delivery, only: %i[show edit update destroy preview_pdf generate_pdf download_pdf email_pdf mark_delivered], if: -> { params[:id].present? }
   before_action :ensure_editable!, only: %i[edit update]
   before_action :require_owner!, only: %i[destroy]
 
@@ -30,11 +30,11 @@ class DeliveriesController < ApplicationController
   end
 
   def preview_pdf
-    delivery = current_business.deliveries.new(delivery_params)
+    delivery = @delivery || current_business.deliveries.new(delivery_params)
 
     send_data(
       Deliveries::ReportPdfGenerator.new(delivery:).render,
-      filename: "delivery-preview.pdf",
+      filename: preview_filename_for(delivery),
       type: "application/pdf",
       disposition: "inline"
     )
@@ -126,6 +126,12 @@ class DeliveriesController < ApplicationController
 
     def parse_recipients(raw)
       raw.to_s.split(/[;,]/).map(&:strip).reject(&:blank?)
+    end
+
+    def preview_filename_for(delivery)
+      return "delivery-preview.pdf" if delivery.new_record?
+
+      "delivery-preview-#{delivery.delivery_number}.pdf"
     end
 
     def ensure_editable!
