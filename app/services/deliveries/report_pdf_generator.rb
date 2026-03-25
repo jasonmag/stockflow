@@ -27,11 +27,11 @@ module Deliveries
       def build_pdf
         Prawn::Document.new(page_size: "A4", margin: 36) do |pdf|
           pdf.text(delivery.business.name, size: 16, style: :bold)
-          pdf.text("Delivery", size: 14, style: :bold)
-          pdf.text("Delivery No: #{delivery.delivery_number_preview}", size: 12, style: :bold)
-          pdf.move_down 8
-          pdf.text("Delivery to #{customer_name}")
-          pdf.text("Address: #{customer_address}") if customer_address.present?
+          pdf.text("Delivery Report", size: 14, style: :bold)
+          pdf.text("##{delivery.delivery_number_preview}", size: 12)
+          pdf.move_down 10
+          pdf.text("Delivery to:  #{customer_name}", size: 12, style: :bold)
+          pdf.text("Address: #{customer_address}", size: 14) if customer_address.present?
           pdf.move_down 10
 
           pdf.text("Items", style: :bold)
