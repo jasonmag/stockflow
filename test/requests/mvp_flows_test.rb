@@ -758,6 +758,9 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   end
 
   test "delivery form matches purchase flow affordances" do
+    @product.product_prices.create!(effective_on: Date.current - 1.day, price_cents: 1250)
+    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 1600)
+
     get new_delivery_path
 
     assert_response :success
@@ -774,6 +777,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='delivery-item-total'] [data-delivery-item-total-target='subtotal']", text: "PHP 0.00"
     assert_select "[data-nested-delivery-items-target='item'] button", text: "Remove"
     assert_select "[data-nested-delivery-items-target='overall']", text: "PHP 0.00"
+    assert_select "[data-product-lookup-target='item'][data-value='#{@product.id}'][data-unit-price='12.50']"
   end
 
   test "create customer from delivery flow redirects back with customer selected" do

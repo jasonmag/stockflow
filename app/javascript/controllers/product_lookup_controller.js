@@ -32,7 +32,10 @@ export default class extends Controller {
   }
 
   open() {
-    this.filter()
+    const selectedItem = this.selectedItem
+    const query = selectedItem && this.inputTarget.value === selectedItem.dataset.label ? "" : this.inputTarget.value
+
+    this.filter(query)
     this.menuTarget.classList.remove("hidden")
     this.toggleTarget.setAttribute("aria-expanded", "true")
   }
@@ -42,8 +45,8 @@ export default class extends Controller {
     this.toggleTarget.setAttribute("aria-expanded", "false")
   }
 
-  filter() {
-    const query = this.inputTarget.value.trim().toLowerCase()
+  filter(queryOverride = null) {
+    const query = (queryOverride ?? this.inputTarget.value).trim().toLowerCase()
     let matches = 0
 
     this.itemTargets.forEach((item) => {
@@ -67,13 +70,13 @@ export default class extends Controller {
       item.classList.toggle("is-selected", item === selectedItem)
     })
 
+    this.applyUnitPrice(selectedItem.dataset.unitPrice)
     this.dispatchProductChanged()
     this.close()
   }
 
   syncFromHidden() {
-    const selectedId = this.hiddenTarget.value
-    const selectedItem = this.itemTargets.find((item) => item.dataset.value === selectedId)
+    const selectedItem = this.selectedItem
 
     this.inputTarget.value = selectedItem?.dataset.label || ""
     this.inputTarget.placeholder = this.placeholderValue
@@ -96,6 +99,15 @@ export default class extends Controller {
     document.dispatchEvent(new CustomEvent("delivery-items:product-changed"))
   }
 
+  applyUnitPrice(unitPrice) {
+    const row = this.element.closest("[data-controller~='delivery-item-total']")
+    const unitPriceInput = row?.querySelector("[data-delivery-item-total-target='unitPrice']")
+    if (!unitPriceInput) return
+
+    unitPriceInput.value = unitPrice || ""
+    unitPriceInput.dispatchEvent(new Event("input", { bubbles: true }))
+  }
+
   itemMatchesQuery(item, query) {
     return item.dataset.label.toLowerCase().includes(query)
   }
@@ -113,5 +125,10 @@ export default class extends Controller {
       .filter((input) => !input.closest("[data-nested-delivery-items-target='item']")?.classList.contains("hidden"))
       .map((input) => input.value)
       .filter(Boolean)
+  }
+
+  get selectedItem() {
+    const selectedId = this.hiddenTarget.value
+    return this.itemTargets.find((item) => item.dataset.value === selectedId)
   }
 }

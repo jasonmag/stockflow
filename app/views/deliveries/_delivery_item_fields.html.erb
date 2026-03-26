@@ -30,7 +30,8 @@
             data-action="click->product-lookup#select"
             data-product-lookup-target="item"
             data-label="<%= product.name %>"
-            data-value="<%= product.id %>">
+            data-value="<%= product.id %>"
+            data-unit-price="<%= product.current_price_cents.present? ? format('%.2f', product.current_price_cents / 100.0) : '' %>">
             <span class="truncate"><%= product.name %></span>
           </button>
         <% end %>
