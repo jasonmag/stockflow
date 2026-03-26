@@ -899,6 +899,129 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to product_path(product)
   end
 
+  test "product show displays effective dated pricing form and history" do
+    @product.product_prices.create!(effective_on: Date.current - 5.days, price_cents: 1250)
+    @product.product_prices.create!(effective_on: Date.current + 3.days, price_cents: 1500)
+
+    get product_path(@product)
+
+    assert_response :success
+    assert_select "h3", text: "Customer Price Track"
+    assert_select "form[action='#{product_product_prices_path(@product)}']"
+    assert_select "input[name='product_price[price_decimal]']"
+    assert_select "input[name='product_price[effective_on]'][value='#{Date.current}']"
+    assert_select "td", text: "PHP 12.50"
+    assert_select "td", text: "PHP 15.00"
+    assert_select "span", text: "Active"
+    assert_select "span", text: "Pending"
+    assert_select "form[action='#{product_product_price_path(@product, @product.product_prices.find_by!(effective_on: Date.current + 3.days))}'] button"
+  end
+
+  test "create product price with effective date" do
+    assert_difference("ProductPrice.count", 1) do
+      post product_product_prices_path(@product), params: {
+        product_price: {
+          price_decimal: "19.75",
+          effective_on: Date.current + 1.day
+        }
+      }
+    end
+
+    product_price = ProductPrice.last
+    assert_equal @product, product_price.product
+    assert_equal 1975, product_price.price_cents
+    assert_equal Date.current + 1.day, product_price.effective_on
+    assert_redirected_to product_path(@product)
+  end
+
+  test "product show displays effective dated purchase pricing form and history" do
+    @product.product_purchase_prices.create!(effective_on: Date.current - 4.days, price_cents: 950)
+    @product.product_purchase_prices.create!(effective_on: Date.current + 2.days, price_cents: 1100)
+
+    get product_path(@product)
+
+    assert_response :success
+    assert_select "h3", text: "Supplier Cost Track"
+    assert_select "form[action='#{product_product_purchase_prices_path(@product)}']"
+    assert_select "input[name='product_purchase_price[price_decimal]']"
+    assert_select "td", text: "PHP 9.50"
+    assert_select "td", text: "PHP 11.00"
+    assert_select "span", text: "Active"
+    assert_select "span", text: "Pending"
+    assert_select "form[action='#{product_product_purchase_price_path(@product, @product.product_purchase_prices.find_by!(effective_on: Date.current + 2.days))}'] button"
+  end
+
+  test "create product purchase price with effective date" do
+    assert_difference("ProductPurchasePrice.count", 1) do
+      post product_product_purchase_prices_path(@product), params: {
+        product_purchase_price: {
+          price_decimal: "8.40",
+          effective_on: Date.current + 1.day
+        }
+      }
+    end
+
+    purchase_price = ProductPurchasePrice.last
+    assert_equal @product, purchase_price.product
+    assert_equal 840, purchase_price.price_cents
+    assert_equal Date.current + 1.day, purchase_price.effective_on
+    assert_redirected_to product_path(@product)
+  end
+
+  test "products index shows current effective price" do
+    @product.product_prices.create!(effective_on: Date.current - 2.days, price_cents: 1875)
+    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 2200)
+
+    get products_path
+
+    assert_response :success
+    assert_select "th", text: "Current Effective Price"
+    assert_select "td", text: "PHP 18.75"
+    assert_select "td", text: "PHP 22.00", count: 0
+  end
+
+  test "delete upcoming selling price" do
+    price = @product.product_prices.create!(effective_on: Date.current + 3.days, price_cents: 1500)
+
+    assert_difference("ProductPrice.count", -1) do
+      delete product_product_price_path(@product, price)
+    end
+
+    assert_redirected_to product_path(@product)
+  end
+
+  test "cannot delete active selling price" do
+    price = @product.product_prices.create!(effective_on: Date.current, price_cents: 1500)
+
+    assert_no_difference("ProductPrice.count") do
+      delete product_product_price_path(@product, price)
+    end
+
+    assert_redirected_to product_path(@product)
+    assert_equal "Only upcoming prices can be deleted.", flash[:alert]
+  end
+
+  test "delete upcoming purchase price" do
+    price = @product.product_purchase_prices.create!(effective_on: Date.current + 3.days, price_cents: 900)
+
+    assert_difference("ProductPurchasePrice.count", -1) do
+      delete product_product_purchase_price_path(@product, price)
+    end
+
+    assert_redirected_to product_path(@product)
+  end
+
+  test "cannot delete active purchase price" do
+    price = @product.product_purchase_prices.create!(effective_on: Date.current, price_cents: 900)
+
+    assert_no_difference("ProductPurchasePrice.count") do
+      delete product_product_purchase_price_path(@product, price)
+    end
+
+    assert_redirected_to product_path(@product)
+    assert_equal "Only upcoming purchase prices can be deleted.", flash[:alert]
+  end
+
   test "mark payable paid" do
     payable = Payable.create!(business: @business, payable_type: :supplier, payee: "Vendor", amount_cents: 1000, currency: "PHP", due_on: Date.current, status: :unpaid)
 

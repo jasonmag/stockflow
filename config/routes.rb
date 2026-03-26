@@ -29,7 +29,10 @@ Rails.application.routes.draw do
   resources :customers
   resources :purchase_funding_sources, except: %i[show destroy]
   resources :suppliers
-  resources :products
+  resources :products do
+    resources :product_prices, only: %i[create destroy]
+    resources :product_purchase_prices, only: %i[create destroy]
+  end
   resources :locations
   resources :stock_movements, only: %i[index new create]
   resources :expenses

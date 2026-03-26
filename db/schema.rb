@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_25_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_26_103000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -214,6 +214,26 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_25_130000) do
     t.index ["payable_id"], name: "index_payments_on_payable_id"
   end
 
+  create_table "product_prices", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.date "effective_on", null: false
+    t.integer "price_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "effective_on"], name: "index_product_prices_on_product_id_and_effective_on", unique: true
+    t.index ["product_id"], name: "index_product_prices_on_product_id"
+  end
+
+  create_table "product_purchase_prices", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.date "effective_on", null: false
+    t.integer "price_cents", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id", "effective_on"], name: "index_product_purchase_prices_on_product_id_and_effective_on", unique: true
+    t.index ["product_id"], name: "index_product_purchase_prices_on_product_id"
+  end
+
   create_table "products", force: :cascade do |t|
     t.integer "business_id", null: false
     t.string "name", null: false
@@ -369,6 +389,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_25_130000) do
   add_foreign_key "payments", "businesses"
   add_foreign_key "payments", "expenses"
   add_foreign_key "payments", "payables"
+  add_foreign_key "product_prices", "products"
+  add_foreign_key "product_purchase_prices", "products"
   add_foreign_key "products", "businesses"
   add_foreign_key "purchase_funding_sources", "businesses"
   add_foreign_key "purchase_items", "products"

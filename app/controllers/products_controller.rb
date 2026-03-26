@@ -3,11 +3,12 @@ class ProductsController < ApplicationController
   require "rack/utils"
 
   before_action :set_product, only: %i[show edit update destroy]
+  before_action :load_product_pricing, only: %i[show]
   before_action :load_product_field_options, only: %i[new edit create update]
   before_action :require_owner!, only: %i[new create destroy]
 
   def index
-    @products = current_business.products.order(:name)
+    @products = current_business.products.includes(:product_prices).order(:name)
   end
 
   def show; end
@@ -61,6 +62,17 @@ class ProductsController < ApplicationController
         current_business.products.where.not(unit: [ nil, "" ]).distinct.order(:unit).pluck(:unit) +
         %w[pc box case pack bottle kg g liter ml]
       ).uniq
+    end
+
+    def load_product_pricing
+      @product_price = @product.product_prices.new(effective_on: Date.current)
+      @product_prices = @product.product_prices
+      @current_product_price = @product.current_product_price
+      @next_product_price = @product.next_product_price
+      @product_purchase_price = @product.product_purchase_prices.new(effective_on: Date.current)
+      @product_purchase_prices = @product.product_purchase_prices
+      @current_product_purchase_price = @product.current_product_purchase_price
+      @next_product_purchase_price = @product.next_product_purchase_price
     end
 
     def product_redirect_target

@@ -1,6 +1,8 @@
 class Product < ApplicationRecord
   belongs_to :business
   has_many :stock_movements, dependent: :destroy
+  has_many :product_prices, -> { order(effective_on: :desc, created_at: :desc, id: :desc) }, dependent: :destroy
+  has_many :product_purchase_prices, -> { order(effective_on: :desc, created_at: :desc, id: :desc) }, dependent: :destroy
 
   before_validation :assign_generated_sku, on: :create
 
@@ -35,6 +37,38 @@ class Product < ApplicationRecord
     else
       @invalid_base_cost_decimal = true
     end
+  end
+
+  def price_on(date = Date.current)
+    product_prices.effective_on_or_before(date).first
+  end
+
+  def current_product_price(as_of: Date.current)
+    price_on(as_of)
+  end
+
+  def current_price_cents(as_of: Date.current)
+    current_product_price(as_of: as_of)&.price_cents
+  end
+
+  def next_product_price(as_of: Date.current)
+    product_prices.where("effective_on > ?", as_of).order(:effective_on, :created_at, :id).first
+  end
+
+  def purchase_price_on(date = Date.current)
+    product_purchase_prices.effective_on_or_before(date).first
+  end
+
+  def current_product_purchase_price(as_of: Date.current)
+    purchase_price_on(as_of)
+  end
+
+  def current_purchase_price_cents(as_of: Date.current)
+    current_product_purchase_price(as_of: as_of)&.price_cents
+  end
+
+  def next_product_purchase_price(as_of: Date.current)
+    product_purchase_prices.where("effective_on > ?", as_of).order(:effective_on, :created_at, :id).first
   end
 
   private

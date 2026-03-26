@@ -19,6 +19,7 @@
           <th>Brand</th>
           <th>Unit</th>
           <th>Barcode</th>
+          <th>Current Effective Price</th>
           <th>Reorder Level</th>
           <th>Status</th>
           <th class="text-right">Actions</th>
@@ -33,6 +34,7 @@
             <td><%= row.brand.presence || "-" %></td>
             <td><%= row.unit %></td>
             <td><%= row.barcode.presence || "-" %></td>
+            <td><%= row.current_price_cents.present? ? money(row.current_price_cents) : "-" %></td>
             <td><%= row.reorder_level || "-" %></td>
             <td><%= status_badge(row.active? ? :active : :inactive) %></td>
             <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
