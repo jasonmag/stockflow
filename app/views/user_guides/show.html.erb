@@ -1,81 +1,253 @@
-<div class="mb-6">
-  <h1 class="page-title">User Guide</h1>
-  <p class="mt-1 text-sm text-slate-600">Inventory workflow from purchase to delivery, returns, spoilage, and own consumption.</p>
+<% content_for :title, "User Guide | Stockflow" %>
+
+<%
+  setup_items = [
+    "Confirm the correct business is selected in the top navigation before entering transactions.",
+    "Review Business Settings for currency, reminder lead days, funding sources, products, suppliers, and locations.",
+    "Create or verify customer records before preparing deliveries and receivables.",
+    "Check Notifications and Dashboard cards for unread reminders, overdue balances, and low-stock alerts."
+  ]
+
+  module_cards = [
+    {
+      title: "Dashboard",
+      description: "Use the dashboard to monitor month-to-date expenses, collections, net cashflow, urgent payables, urgent receivables, low stock, and today’s deliveries."
+    },
+    {
+      title: "Inventory Operations",
+      description: "Purchases, deliveries, and stock movements work together to keep on-hand inventory accurate by location."
+    },
+    {
+      title: "Cashflow Records",
+      description: "Expenses, payables, receivables, collections, and payments provide the operating finance trail around inventory activity."
+    },
+    {
+      title: "Business Setup",
+      description: "Owners manage funding sources, products, suppliers, locations, contact settings, and business members from the settings area."
+    }
+  ]
+
+  inventory_steps = [
+    {
+      title: "1. Create Purchase",
+      details: [
+        "Go to Purchases -> New Purchase.",
+        "Set supplier, purchased date, receiving location, funding source, and status.",
+        "Add line items with product, quantity, and unit cost.",
+        "Use notes for invoice or PO reference."
+      ]
+    },
+    {
+      title: "2. Receive Goods",
+      details: [
+        "Open the purchase record after physical verification.",
+        "Click Receive only once goods are accepted.",
+        "This posts stock-in movements to the receiving location."
+      ]
+    },
+    {
+      title: "3. Transfer or Adjust Stock",
+      details: [
+        "Use Stock Movements for transfer, manual in/out, returns, spoilage, and own use.",
+        "Use transfer when moving stock between locations such as Main Storage and Dispatch Area.",
+        "Use positive adjustment to add stock back and negative adjustment to remove stock."
+      ]
+    },
+    {
+      title: "4. Create Delivery",
+      details: [
+        "Go to Deliveries -> New Delivery.",
+        "Set customer, delivery date, from location, status, and optional notes.",
+        "Add delivery items and use Preview PDF when checking the report before saving.",
+        "Enable Show prices if the PDF should include prices."
+      ]
+    },
+    {
+      title: "5. Mark Delivered",
+      details: [
+        "Mark a delivery as delivered only after actual handoff or dispatch confirmation.",
+        "The system validates available stock in the selected source location.",
+        "When successful, stock-out movements are created automatically."
+      ]
+    }
+  ]
+
+  finance_steps = [
+    {
+      title: "Expenses",
+      details: [
+        "Go to Expenses -> New Expense to record operational spend.",
+        "Select occurred date, payee, category, amount, funding source, and payment method.",
+        "Attach a receipt when available.",
+        "If the category is Payables, select the covered payables so the amount follows the selected obligations."
+      ]
+    },
+    {
+      title: "Payables",
+      details: [
+        "Use Payables to record due obligations with type, status, payee, amount, due date, recurring rule, and notes.",
+        "Mark Paid when the balance is settled. This creates a payment record and updates the payable status."
+      ]
+    },
+    {
+      title: "Receivables",
+      details: [
+        "Use Receivables to track customer balances, due dates, references, and collection status.",
+        "Mark Collected when payment is received. This creates a collection record and updates the receivable status."
+      ]
+    },
+    {
+      title: "Collections and Payments History",
+      details: [
+        "Review Collections for received payments tied to receivables.",
+        "Review Payments for outgoing payments tied to payables.",
+        "Use these history screens during reconciliation and cashflow review."
+      ]
+    }
+  ]
+
+  admin_steps = [
+    "Business Settings: maintain contact details, address, reminder lead days, and base currency.",
+    "Purchase Funding Sources: define custom funding source names and whether each one is cash or credit.",
+    "Products: maintain inventory variants used in purchases, deliveries, and stock movement.",
+    "Suppliers and Locations: keep purchasing and storage master data current.",
+    "Business Members: add existing or new users to the current business and assign roles."
+  ]
+
+  note_prefixes = [
+    "PURCHASE: supplier invoice, PO, or receiving reference",
+    "DELIVERY: dispatch note, route note, or receiving remark",
+    "RETURN: delivery number, reason, and accepted-back quantity",
+    "SPOILAGE: cause, batch, and date if known",
+    "OWN_USE: department, person, or purpose",
+    "PAYABLE: reason for obligation or payment note",
+    "RECEIVABLE: invoice, DR, or customer collection note"
+  ]
+
+  end_of_day = [
+    "All physically received purchases are marked received.",
+    "All completed dispatches are marked delivered.",
+    "All manual stock corrections include clear notes and correct location fields.",
+    "Urgent payables and overdue receivables on the dashboard have follow-up owners.",
+    "Expense, collection, and payment records for the day are entered before close.",
+    "Notifications have been reviewed and irrelevant stale reminders cleared."
+  ]
+%>
+
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">User Guide</h1>
+    <p class="mt-1 text-sm text-slate-600">Operating guide for setup, inventory flow, delivery reporting, and cashflow procedures.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Dashboard", dashboard_path, class: "btn btn-secondary" %>
+    <%= link_to "Business Settings", edit_business_path, class: "btn btn-secondary" if owner? %>
+  </div>
 </div>
 
 <section class="card mb-4">
-  <h2 class="mb-3 text-base font-semibold text-slate-900">Quick Checklist</h2>
-  <ol class="list-decimal space-y-2 pl-5 text-sm text-slate-700">
-    <li>Create purchase and verify item lines.</li>
-    <li>Receive purchase only after physical goods check.</li>
-    <li>Pick inventory directly or transfer to dispatch area.</li>
-    <li>Create delivery draft with correct source location.</li>
-    <li>Mark delivery as delivered only after handoff confirmation.</li>
-    <li>Record returns as positive adjustments.</li>
-    <li>Record spoilage and own use as negative adjustments.</li>
-    <li>Reconcile purchases, deliveries, and stock movements end-of-day.</li>
-  </ol>
+  <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">Guide Scope</p>
+  <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Use this as the day-to-day operating reference for Stockflow.</h2>
+  <p class="mt-3 max-w-4xl text-sm leading-6 text-slate-600">
+    Stockflow is not only an inventory ledger. It combines purchasing, stock movement, deliveries, receivables,
+    payables, expenses, collections, payments, notifications, and owner-level business setup. The sections below
+    are organized in the order most teams work through the system.
+  </p>
 </section>
 
 <section class="card mb-4">
-  <h2 class="mb-3 text-base font-semibold text-slate-900">Step-by-Step Workflow</h2>
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Quick Start Checklist</h2>
+  <ol class="list-decimal space-y-2 pl-5 text-sm text-slate-700">
+    <% setup_items.each do |item| %>
+      <li><%= item %></li>
+    <% end %>
+  </ol>
+</section>
 
+<section class="mb-4 grid gap-4 lg:grid-cols-2">
+  <% module_cards.each do |card| %>
+    <article class="card">
+      <h2 class="text-base font-semibold text-slate-900"><%= card[:title] %></h2>
+      <p class="mt-2 text-sm leading-6 text-slate-600"><%= card[:description] %></p>
+    </article>
+  <% end %>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Inventory and Delivery Workflow</h2>
   <div class="space-y-4 text-sm text-slate-700">
-    <div>
-      <h3 class="font-semibold text-slate-900">1. Purchase Items</h3>
-      <p>Go to <strong>Purchases</strong> -> <strong>New Purchase</strong>, set supplier/date/receiving location, add line items, then save draft.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">2. Receive to Storage</h3>
-      <p>Open the purchase and click <strong>Receive</strong> after physical verification. This creates stock-in ledger entries.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">3. Collect for Delivery</h3>
-      <p>Either deliver from main storage or stage stock first using <strong>Stock Movements</strong> with movement type <strong>transfer</strong>.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">4. Deliver to Supermarket</h3>
-      <p>Create a delivery draft with customer, delivery date, source location, and line items. Use PDF actions if needed, then click <strong>Mark Delivered</strong>.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">5. Record Returns</h3>
-      <p>Use <strong>Stock Movements</strong> with movement type <strong>adjustment</strong> and a positive quantity to add returned items back.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">6. Record Spoilage</h3>
-      <p>Use <strong>adjustment</strong> with a negative quantity to remove damaged/expired stock.</p>
-    </div>
-
-    <div>
-      <h3 class="font-semibold text-slate-900">7. Record Own Consumption</h3>
-      <p>Use <strong>adjustment</strong> with a negative quantity, with notes for internal usage reason.</p>
-    </div>
+    <% inventory_steps.each do |step| %>
+      <div>
+        <h3 class="font-semibold text-slate-900"><%= step[:title] %></h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+          <% step[:details].each do |detail| %>
+            <li><%= detail %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
   </div>
 </section>
 
 <section class="card mb-4">
   <h2 class="mb-3 text-base font-semibold text-slate-900">Stock Movement Rules</h2>
   <ul class="list-disc space-y-2 pl-5 text-sm text-slate-700">
-    <li><strong>in</strong>: Adds stock to <code>to_location</code>.</li>
-    <li><strong>out</strong>: Deducts stock from <code>from_location</code>.</li>
-    <li><strong>transfer</strong>: Moves stock between locations.</li>
-    <li><strong>adjustment</strong>: Manual correction on one location (use positive or negative quantity).</li>
+    <li><strong>in</strong>: adds stock to <code>to_location</code>. Manual stock-in requires a unit cost.</li>
+    <li><strong>out</strong>: deducts stock from <code>from_location</code>.</li>
+    <li><strong>transfer</strong>: moves stock between locations using both <code>from_location</code> and <code>to_location</code>.</li>
+    <li><strong>adjustment</strong>: applies a manual correction using either positive or negative quantity on one location.</li>
+  </ul>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Finance and Follow-Up Procedures</h2>
+  <div class="space-y-4 text-sm text-slate-700">
+    <% finance_steps.each do |step| %>
+      <div>
+        <h3 class="font-semibold text-slate-900"><%= step[:title] %></h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+          <% step[:details].each do |detail| %>
+            <li><%= detail %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Dashboard, Notifications, and Reconciliation</h2>
+  <ul class="list-disc space-y-2 pl-5 text-sm text-slate-700">
+    <li>Use Dashboard first for today’s operating picture: expenses MTD, collections MTD, net cashflow, overdue payables, overdue receivables, low stock, and deliveries today.</li>
+    <li>Use Notifications for unread alerts and reminder history. Mark reminders as read once the follow-up has been handled.</li>
+    <li>Use Expenses, Collections, and Payments history screens when validating cash movement against actual operating events.</li>
+  </ul>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Owner and Business Setup Tasks</h2>
+  <ul class="list-disc space-y-2 pl-5 text-sm text-slate-700">
+    <% admin_steps.each do |step| %>
+      <li><%= step %></li>
+    <% end %>
+  </ul>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Notes Standard</h2>
+  <p class="mb-2 text-sm text-slate-700">Use consistent note prefixes so records stay auditable and easy to filter.</p>
+  <ul class="list-disc space-y-1 pl-5 text-sm text-slate-700">
+    <% note_prefixes.each do |note| %>
+      <li><code><%= note.split(":").first %>:</code><%= note.include?(":") ? " #{note.split(":", 2).last.strip}" : "" %></li>
+    <% end %>
   </ul>
 </section>
 
 <section class="card">
-  <h2 class="mb-3 text-base font-semibold text-slate-900">Notes Standard</h2>
-  <p class="mb-2 text-sm text-slate-700">Use prefixes so records are easy to audit:</p>
-  <ul class="list-disc space-y-1 pl-5 text-sm text-slate-700">
-    <li><code>PURCHASE:</code> invoice or PO reference</li>
-    <li><code>DELIVERY:</code> dispatch or receiving remarks</li>
-    <li><code>RETURN:</code> delivery number and reason</li>
-    <li><code>SPOILAGE:</code> cause and batch/date</li>
-    <li><code>OWN_USE:</code> person/department and purpose</li>
-  </ul>
+  <h2 class="mb-3 text-base font-semibold text-slate-900">End-of-Day Review</h2>
+  <ol class="list-decimal space-y-2 pl-5 text-sm text-slate-700">
+    <% end_of_day.each do |item| %>
+      <li><%= item %></li>
+    <% end %>
+  </ol>
 </section>

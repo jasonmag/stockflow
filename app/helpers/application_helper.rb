@@ -7,9 +7,9 @@ module ApplicationHelper
   def nav_link_to(name, path)
     active = current_page?(path)
     classes = if active
-      "rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+      "nav-link nav-link-active"
     else
-      "rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+      "nav-link"
     end
     link_to name, path, class: classes
   end
