@@ -1,31 +1,153 @@
-<section class="card p-8">
-  <h1 class="text-3xl font-bold text-slate-900 md:text-4xl">About Stockflow</h1>
-  <p class="mt-4 text-slate-600">
-    Stockflow is built for supplier operations that need simple, reliable control of inventory and business cashflow.
-  </p>
+<% content_for :title, "About Stockflow" %>
 
-  <dl class="mt-6 grid gap-4 md:grid-cols-2">
-    <div class="rounded-xl border border-slate-200 bg-white p-4">
-      <dt class="text-sm font-semibold text-slate-900">What it covers</dt>
-      <dd class="mt-1 text-sm text-slate-600">Inventory ledger, deliveries, expenses, payables, receivables, and collections.</dd>
-    </div>
-    <div class="rounded-xl border border-slate-200 bg-white p-4">
-      <dt class="text-sm font-semibold text-slate-900">Who it is for</dt>
-      <dd class="mt-1 text-sm text-slate-600">Owners, operations staff, and system admins managing day-to-day workflows.</dd>
-    </div>
-    <div class="rounded-xl border border-slate-200 bg-white p-4">
-      <dt class="text-sm font-semibold text-slate-900">Delivery reporting</dt>
-      <dd class="mt-1 text-sm text-slate-600">Create PDF delivery reports and email them to recipients with history logs.</dd>
-    </div>
-    <div class="rounded-xl border border-slate-200 bg-white p-4">
-      <dt class="text-sm font-semibold text-slate-900">Access points</dt>
-      <dd class="mt-1 text-sm text-slate-600">Separate login pages for ordinary users and admin users.</dd>
-    </div>
-  </dl>
+<%
+  principles = [
+    "Keep stock movement and money movement visible in the same operating system.",
+    "Support real warehouse and dispatch workflows instead of abstract reporting only.",
+    "Make approvals, overdue balances, and low-stock risk easy to see before they become operational problems.",
+    "Give regular users and system admins separate entry points with clear responsibilities."
+  ]
 
-  <div class="mt-6 flex flex-wrap gap-3">
-    <%= link_to "Back to Home", root_path, class: "btn btn-secondary" %>
-    <%= link_to "User login", login_path, class: "btn btn-primary" %>
-    <%= link_to "Admin login", admin_login_path, class: "btn btn-ghost" %>
+  audience = [
+    {
+      title: "Owners and managers",
+      description: "Monitor daily operations, cashflow pressure, and exception items that need follow-up."
+    },
+    {
+      title: "Warehouse and dispatch staff",
+      description: "Track receiving, transfers, delivery preparation, and adjustments with clear stock records."
+    },
+    {
+      title: "Accounting and operations support",
+      description: "Review expenses, payables, receivables, collections, and payment history from the same dataset."
+    },
+    {
+      title: "System admins",
+      description: "Approve registrations, set up businesses, assign memberships, and support users when needed."
+    }
+  ]
+
+  modules = [
+    ["Inventory", "Products, locations, stock ledger, transfers, adjustments, and reorder visibility."],
+    ["Purchases", "Supplier purchasing, receiving flow, funding source tracking, and item-level references."],
+    ["Deliveries", "Customer dispatch records, delivery status, PDF generation, downloads, and email reporting."],
+    ["Cashflow", "Expenses, payables, receivables, collections, payments, and overdue follow-up."],
+    ["Operations admin", "Separate public access points for users and admins with approval-driven onboarding."]
+  ]
+%>
+
+<section class="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-[linear-gradient(145deg,#0f172a_0%,#0e7490_48%,#ecfeff_100%)] px-6 py-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.16)] md:px-10 md:py-12">
+  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_80%_20%,rgba(255,255,255,0.12),transparent_18%),radial-gradient(circle_at_bottom_right,rgba(8,47,73,0.35),transparent_30%)]"></div>
+
+  <div class="relative grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)] lg:items-center">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-100/85">About Stockflow</p>
+      <h1 class="mt-4 max-w-4xl text-4xl font-semibold tracking-tight text-white md:text-5xl">
+        A business operations platform for teams that move stock and manage cashflow every day.
+      </h1>
+      <p class="mt-4 max-w-2xl text-base leading-7 text-cyan-50/90 md:text-lg">
+        Stockflow is designed for supplier and distribution workflows where inventory, deliveries, receivables,
+        payables, and operating expenses all affect each other. The goal is simple: keep the whole operating loop visible.
+      </p>
+
+      <div class="mt-8 flex flex-wrap gap-3">
+        <%= link_to "User login", login_path, class: "btn border-white/15 bg-white text-slate-900 hover:bg-cyan-50" %>
+        <%= link_to "Register", new_registration_path, class: "btn border-white/25 bg-white/10 text-white hover:bg-white/20" %>
+        <%= link_to "Back to Home", root_path, class: "btn border-white/25 bg-slate-950/25 text-white hover:bg-slate-950/35" %>
+      </div>
+    </div>
+
+    <div class="rounded-[1.75rem] border border-white/15 bg-slate-950/30 p-5 shadow-2xl backdrop-blur-md">
+      <p class="text-xs uppercase tracking-[0.24em] text-cyan-100/70">Core idea</p>
+      <h2 class="mt-2 text-2xl font-semibold text-white">One place to understand daily operations</h2>
+      <div class="mt-5 space-y-3">
+        <% principles.each_with_index do |principle, index| %>
+          <div class="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/8 px-4 py-4">
+            <span class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm font-semibold text-white">
+              <%= index + 1 %>
+            </span>
+            <p class="text-sm leading-6 text-cyan-50/85"><%= principle %></p>
+          </div>
+        <% end %>
+      </div>
+    </div>
   </div>
+</section>
+
+<section class="mt-8 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+  <article class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">What Stockflow covers</p>
+    <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Built around the real operating cycle.</h2>
+    <div class="mt-6 grid gap-4 md:grid-cols-2">
+      <% modules.each do |title, description| %>
+        <article class="rounded-2xl border border-slate-200 bg-slate-50/80 p-5">
+          <h3 class="text-xl font-semibold text-slate-900"><%= title %></h3>
+          <p class="mt-2 text-sm leading-6 text-slate-600"><%= description %></p>
+        </article>
+      <% end %>
+    </div>
+  </article>
+
+  <article class="rounded-[1.75rem] border border-cyan-100 bg-[linear-gradient(180deg,#f0fdfa_0%,#ecfeff_100%)] p-6 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">Who it is for</p>
+    <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Different roles, one shared operating picture.</h2>
+    <div class="mt-6 space-y-3">
+      <% audience.each do |entry| %>
+        <div class="rounded-2xl border border-cyan-100 bg-white/80 px-4 py-4">
+          <h3 class="text-base font-semibold text-slate-900"><%= entry[:title] %></h3>
+          <p class="mt-2 text-sm leading-6 text-slate-600"><%= entry[:description] %></p>
+        </div>
+      <% end %>
+    </div>
+  </article>
+</section>
+
+<section class="mt-8 rounded-[1.75rem] border border-slate-200 bg-slate-950 px-6 py-6 text-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] md:px-8">
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-300">Operating flow</p>
+      <h2 class="mt-3 text-3xl font-semibold tracking-tight">Purchases, stock, deliveries, and collections stay connected.</h2>
+    </div>
+    <%= link_to "User Guide", user_guide_path, class: "btn border-white/10 bg-white/10 text-white hover:bg-white/15" %>
+  </div>
+
+  <div class="mt-6 grid gap-4 md:grid-cols-4">
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/75">1. Procure</p>
+      <p class="mt-3 text-sm leading-6 text-slate-300">Create purchases and receive verified stock into the correct storage location.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/75">2. Move</p>
+      <p class="mt-3 text-sm leading-6 text-slate-300">Transfer inventory, handle returns, record spoilage, and keep the ledger accurate.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/75">3. Deliver</p>
+      <p class="mt-3 text-sm leading-6 text-slate-300">Dispatch customer orders, update delivery status, and generate PDF delivery reports.</p>
+    </article>
+    <article class="rounded-2xl border border-white/10 bg-white/5 p-5">
+      <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/75">4. Reconcile</p>
+      <p class="mt-3 text-sm leading-6 text-slate-300">Review receivables, collections, payables, expenses, and operational risk in one view.</p>
+    </article>
+  </div>
+</section>
+
+<section class="mt-8 grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(280px,0.9fr)]">
+  <article class="rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-cyan-700">Access model</p>
+    <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-900">Public entry, approval-based onboarding, separate admin access.</h2>
+    <p class="mt-4 text-base leading-7 text-slate-600">
+      Regular users register for approval, sign in through the business-user login page, and work inside their assigned business.
+      System admins use a separate login flow for registration approval, business setup, role assignment, and support operations.
+    </p>
+  </article>
+
+  <article class="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-6 shadow-sm">
+    <p class="text-sm font-semibold uppercase tracking-[0.22em] text-slate-500">Start here</p>
+    <h2 class="mt-3 text-2xl font-semibold tracking-tight text-slate-900">Choose your entry point</h2>
+    <div class="mt-5 flex flex-wrap gap-3">
+      <%= link_to "User login", login_path, class: "btn btn-primary" %>
+      <%= link_to "Admin login", admin_login_path, class: "btn btn-secondary" %>
+      <%= link_to "Register", new_registration_path, class: "btn btn-ghost" %>
+    </div>
+  </article>
 </section>
