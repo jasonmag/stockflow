@@ -3,6 +3,7 @@ require "active_support/core_ext/integer/time"
 Rails.application.configure do
   smtp_credentials = Rails.application.credentials[:smtp] || {}
   app_host = ENV["APP_HOST"].presence || Rails.application.credentials.dig(:app, :host).presence || "example.com"
+  smtp_address = ENV["SMTP_ADDRESS"].presence || smtp_credentials[:address].presence
 
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -62,15 +63,15 @@ Rails.application.configure do
 
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: app_host, protocol: "https" }
-  config.action_mailer.delivery_method = :smtp
-  config.action_mailer.perform_deliveries = true
+  config.action_mailer.delivery_method = smtp_address.present? ? :smtp : :test
+  config.action_mailer.perform_deliveries = smtp_address.present?
   config.action_mailer.smtp_settings = {
-    user_name: ENV["SMTP_USERNAME"].presence || smtp_credentials.fetch(:username),
-    password: ENV["SMTP_PASSWORD"].presence || smtp_credentials.fetch(:password),
-    address: ENV["SMTP_ADDRESS"].presence || smtp_credentials.fetch(:address),
-    port: (ENV["SMTP_PORT"].presence || smtp_credentials.fetch(:port, 587)).to_i,
+    user_name: ENV["SMTP_USERNAME"].presence || smtp_credentials[:username].presence,
+    password: ENV["SMTP_PASSWORD"].presence || smtp_credentials[:password].presence,
+    address: smtp_address || "localhost",
+    port: (ENV["SMTP_PORT"].presence || smtp_credentials[:port].presence || 587).to_i,
     domain: ENV["SMTP_DOMAIN"].presence || smtp_credentials[:domain].presence,
-    authentication: (ENV["SMTP_AUTHENTICATION"].presence || smtp_credentials.fetch(:authentication, "login")).to_sym,
+    authentication: (ENV["SMTP_AUTHENTICATION"].presence || smtp_credentials[:authentication].presence || "login").to_sym,
     enable_starttls_auto: ActiveModel::Type::Boolean.new.cast(
       ENV["SMTP_ENABLE_STARTTLS_AUTO"].presence || smtp_credentials.fetch(:enable_starttls_auto, true)
     )
