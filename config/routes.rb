@@ -6,7 +6,11 @@ Rails.application.routes.draw do
         patch :approve
       end
     end
-    resources :businesses, only: %i[index show new create]
+    resources :businesses, only: %i[index show new create] do
+      member do
+        post :invite_member
+      end
+    end
     resources :memberships, only: %i[create update destroy]
     resource :impersonation, only: %i[create destroy]
   end

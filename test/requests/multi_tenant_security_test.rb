@@ -253,6 +253,36 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_equal "Membership removed.", flash[:notice]
   end
 
+  test "system admin can invite users from admin business page" do
+    ActiveJob::Base.queue_adapter = :test
+    ActionMailer::Base.deliveries.clear
+    sign_in_as(@system_admin)
+
+    assert_difference("User.count", 1) do
+      assert_difference("Membership.count", 1) do
+        perform_enqueued_jobs do
+          post invite_member_admin_business_path(@business_one), params: {
+            membership: {
+              email_address: "invited-from-admin@example.com",
+              role: "staff"
+            }
+          }
+        end
+      end
+    end
+
+    invited_user = User.find_by!(email_address: "invited-from-admin@example.com")
+    membership = Membership.find_by!(user: invited_user, business: @business_one)
+
+    assert_equal "staff", membership.role
+    assert_redirected_to admin_business_path(@business_one)
+    assert_equal "Member invited to Business One. A set-password email has been sent.", flash[:notice]
+    assert_equal [ "invited-from-admin@example.com" ], ActionMailer::Base.deliveries.last.to
+  ensure
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+
   test "purchase rejects supplier from another business" do
     sign_in_as(@owner)
 
