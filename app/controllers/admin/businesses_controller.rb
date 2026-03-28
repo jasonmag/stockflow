@@ -7,6 +7,7 @@ module Admin
     def show
       @business = Business.find(params[:id])
       @memberships = @business.memberships.includes(:user).order(:role, :created_at)
+      @available_users = User.where.not(id: @memberships.select(:user_id)).order(:email_address)
     end
 
     def new

@@ -23,14 +23,28 @@
           <% @memberships.each do |membership| %>
             <tr>
               <td class="font-medium text-slate-900"><%= link_to membership.user.email_address, admin_user_path(membership.user), class: "hover:underline" %></td>
-              <td><%= status_badge(membership.role) %></td>
+              <td>
+                <%= form_with model: [ :admin, membership ], class: "flex items-center gap-2" do |f| %>
+                  <%= hidden_field_tag :redirect_to, "business" %>
+                  <%= f.select :role, Membership.roles.keys.map { |role| [role.humanize, role] }, {}, class: "field-input w-32" %>
+                  <%= f.submit "Save", class: "btn btn-secondary" %>
+                <% end %>
+              </td>
               <td><%= status_badge(membership.user.system_admin? ? :enabled : :disabled) %></td>
               <td class="text-right">
-                <%= button_to "Impersonate User",
-                  admin_impersonation_path,
-                  params: { user_id: membership.user_id, business_id: @business.id },
-                  method: :post,
-                  class: "btn btn-ghost" %>
+                <div class="flex justify-end gap-2">
+                  <%= button_to "Remove",
+                    admin_membership_path(membership),
+                    method: :delete,
+                    params: { redirect_to: "business" },
+                    class: "btn btn-ghost",
+                    data: { turbo_confirm: "Remove this membership?" } %>
+                  <%= button_to "Impersonate User",
+                    admin_impersonation_path,
+                    params: { user_id: membership.user_id, business_id: @business.id },
+                    method: :post,
+                    class: "btn btn-ghost" %>
+                </div>
               </td>
             </tr>
           <% end %>
@@ -39,5 +53,36 @@
     </div>
   <% else %>
     <p class="text-sm text-slate-600">No memberships for this business.</p>
+  <% end %>
+</section>
+
+<section class="card mt-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Add Member</h2>
+  <% if @available_users.any? %>
+    <%= form_with url: admin_memberships_path, method: :post, class: "grid gap-3 md:grid-cols-4" do |f| %>
+      <%= hidden_field_tag :redirect_to, "business" %>
+      <%= hidden_field_tag "membership[business_id]", @business.id %>
+      <div class="md:col-span-2">
+        <label class="field-label" for="membership_user_id">User</label>
+        <select id="membership_user_id" name="membership[user_id]" class="field-input">
+          <% @available_users.each do |user| %>
+            <option value="<%= user.id %>"><%= user.email_address %></option>
+          <% end %>
+        </select>
+      </div>
+      <div>
+        <label class="field-label" for="membership_role">Role</label>
+        <select id="membership_role" name="membership[role]" class="field-input">
+          <% Membership.roles.keys.each do |role| %>
+            <option value="<%= role %>"><%= role.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="flex items-end">
+        <%= f.submit "Add", class: "btn btn-primary w-full" %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="text-sm text-slate-600">All users already belong to this business.</p>
   <% end %>
 </section>

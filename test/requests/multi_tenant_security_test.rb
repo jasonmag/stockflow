@@ -216,6 +216,43 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_business_path(Business.order(:id).last)
   end
 
+  test "system admin can manage business memberships from admin business page" do
+    sign_in_as(@system_admin)
+    extra_user = User.create!(email_address: "new-admin-business-member@example.com", password: "password123", password_confirmation: "password123")
+
+    assert_difference("Membership.count", 1) do
+      post admin_memberships_path, params: {
+        redirect_to: "business",
+        membership: {
+          user_id: extra_user.id,
+          business_id: @business_one.id,
+          role: "staff"
+        }
+      }
+    end
+
+    membership = Membership.find_by!(user: extra_user, business: @business_one)
+    assert_redirected_to admin_business_path(@business_one)
+    assert_equal "Membership created.", flash[:notice]
+
+    patch admin_membership_path(membership), params: {
+      redirect_to: "business",
+      membership: {
+        role: "owner"
+      }
+    }
+
+    assert_redirected_to admin_business_path(@business_one)
+    assert_equal "owner", membership.reload.role
+
+    assert_difference("Membership.count", -1) do
+      delete admin_membership_path(membership), params: { redirect_to: "business" }
+    end
+
+    assert_redirected_to admin_business_path(@business_one)
+    assert_equal "Membership removed.", flash[:notice]
+  end
+
   test "purchase rejects supplier from another business" do
     sign_in_as(@owner)
 
