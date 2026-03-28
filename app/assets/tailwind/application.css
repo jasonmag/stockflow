@@ -400,3 +400,75 @@
     @apply uppercase tracking-wide text-xs font-semibold;
   }
 }
+
+@layer utilities {
+  :root[data-theme="dark"] .text-slate-900 {
+    color: var(--text-primary) !important;
+  }
+
+  :root[data-theme="dark"] .text-slate-700,
+  :root[data-theme="dark"] .text-slate-600 {
+    color: var(--text-secondary) !important;
+  }
+
+  :root[data-theme="dark"] .text-slate-500,
+  :root[data-theme="dark"] .text-slate-400,
+  :root[data-theme="dark"] .text-slate-300 {
+    color: var(--text-muted) !important;
+  }
+
+  :root[data-theme="dark"] .text-blue-700,
+  :root[data-theme="dark"] .text-cyan-700 {
+    color: var(--link-color) !important;
+  }
+
+  :root[data-theme="dark"] .text-emerald-700 {
+    color: #6ee7b7 !important;
+  }
+
+  :root[data-theme="dark"] .text-amber-700 {
+    color: #fcd34d !important;
+  }
+
+  :root[data-theme="dark"] .text-rose-600 {
+    color: #fda4af !important;
+  }
+
+  :root[data-theme="dark"] .bg-white,
+  :root[data-theme="dark"] .bg-white\/90,
+  :root[data-theme="dark"] .bg-white\/80,
+  :root[data-theme="dark"] .bg-white\/70,
+  :root[data-theme="dark"] .bg-slate-100,
+  :root[data-theme="dark"] .bg-slate-50,
+  :root[data-theme="dark"] .bg-slate-50\/80 {
+    background: var(--surface-color) !important;
+  }
+
+  :root[data-theme="dark"] .border-slate-300,
+  :root[data-theme="dark"] .border-slate-200,
+  :root[data-theme="dark"] .border-slate-200\/70 {
+    border-color: var(--border-color) !important;
+  }
+
+  :root[data-theme="dark"] .hover\:bg-cyan-50:hover,
+  :root[data-theme="dark"] .hover\:bg-cyan-50\/70:hover,
+  :root[data-theme="dark"] .hover\:bg-rose-100:hover {
+    background: var(--surface-hover) !important;
+  }
+
+  :root[data-theme="dark"] .bg-rose-50 {
+    background: color-mix(in srgb, var(--danger-color), transparent 82%) !important;
+  }
+
+  :root[data-theme="dark"] .bg-amber-50 {
+    background: color-mix(in srgb, #f59e0b, transparent 82%) !important;
+  }
+
+  :root[data-theme="dark"] .border-rose-200 {
+    border-color: color-mix(in srgb, var(--danger-color), white 20%) !important;
+  }
+
+  :root[data-theme="dark"] .border-amber-200 {
+    border-color: color-mix(in srgb, #f59e0b, white 20%) !important;
+  }
+}

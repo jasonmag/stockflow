@@ -1,7 +1,7 @@
 <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
   <div>
     <h1 class="page-title">Dashboard</h1>
-    <p class="mt-1 text-sm text-slate-600">Today: <%= Date.current.to_fs(:long) %></p>
+    <p class="mt-1 text-sm text-[color:var(--text-secondary)]">Today: <%= Date.current.to_fs(:long) %></p>
   </div>
   <div class="flex items-center gap-2">
     <%= link_to "New Expense", new_expense_path, class: "btn btn-secondary" %>
@@ -31,7 +31,7 @@
 <div class="grid gap-4 xl:grid-cols-2">
   <section class="card">
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-base font-semibold text-slate-900">Urgent Payables</h2>
+      <h2 class="text-base font-semibold text-[color:var(--text-primary)]">Urgent Payables</h2>
       <%= link_to "View all", payables_path, class: "text-sm text-blue-700 hover:underline" %>
     </div>
     <% if @overdue_payables.any? %>
@@ -39,12 +39,12 @@
         <% @overdue_payables.each do |row| %>
           <div class="flex items-start justify-between gap-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
             <div>
-              <p class="text-sm font-medium text-slate-900"><%= row.payee %></p>
-              <p class="text-xs text-slate-600">Due <%= row.due_on.to_fs(:long) %></p>
+              <p class="text-sm font-medium text-[color:var(--text-primary)]"><%= row.payee %></p>
+              <p class="text-xs text-[color:var(--text-secondary)]">Due <%= row.due_on.to_fs(:long) %></p>
             </div>
             <div class="text-right">
               <%= status_badge(row.status) %>
-              <p class="mt-1 text-sm font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></p>
+              <p class="mt-1 text-sm font-semibold text-[color:var(--text-primary)]"><%= money(row.amount_cents, row.currency) %></p>
             </div>
           </div>
         <% end %>
@@ -56,7 +56,7 @@
 
   <section class="card">
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-base font-semibold text-slate-900">Urgent Receivables</h2>
+      <h2 class="text-base font-semibold text-[color:var(--text-primary)]">Urgent Receivables</h2>
       <%= link_to "View all", receivables_path, class: "text-sm text-blue-700 hover:underline" %>
     </div>
     <% if @overdue_receivables.any? %>
@@ -64,12 +64,12 @@
         <% @overdue_receivables.each do |row| %>
           <div class="flex items-start justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
             <div>
-              <p class="text-sm font-medium text-slate-900"><%= row.reference.presence || row.customer.name %></p>
-              <p class="text-xs text-slate-600">Due <%= row.due_on.to_fs(:long) %></p>
+              <p class="text-sm font-medium text-[color:var(--text-primary)]"><%= row.reference.presence || row.customer.name %></p>
+              <p class="text-xs text-[color:var(--text-secondary)]">Due <%= row.due_on.to_fs(:long) %></p>
             </div>
             <div class="text-right">
               <%= status_badge(row.status) %>
-              <p class="mt-1 text-sm font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></p>
+              <p class="mt-1 text-sm font-semibold text-[color:var(--text-primary)]"><%= money(row.amount_cents, row.currency) %></p>
             </div>
           </div>
         <% end %>
@@ -81,14 +81,14 @@
 
   <section class="card">
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-base font-semibold text-slate-900">Low Stock Alerts</h2>
+      <h2 class="text-base font-semibold text-[color:var(--text-primary)]">Low Stock Alerts</h2>
       <%= link_to "Inventory", stock_movements_path, class: "text-sm text-blue-700 hover:underline" %>
     </div>
     <% if @low_stock_products.any? %>
       <ul class="space-y-2">
         <% @low_stock_products.each do |product| %>
           <li class="flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-            <span class="text-sm font-medium text-slate-900"><%= product.name %></span>
+            <span class="text-sm font-medium text-[color:var(--text-primary)]"><%= product.name %></span>
             <span class="badge badge-warning">Low stock</span>
           </li>
         <% end %>
@@ -100,14 +100,14 @@
 
   <section class="card">
     <div class="mb-3 flex items-center justify-between">
-      <h2 class="text-base font-semibold text-slate-900">Deliveries Today</h2>
+      <h2 class="text-base font-semibold text-[color:var(--text-primary)]">Deliveries Today</h2>
       <%= link_to "Deliveries", deliveries_path, class: "text-sm text-blue-700 hover:underline" %>
     </div>
     <% if @today_deliveries.any? %>
       <ul class="space-y-2">
         <% @today_deliveries.each do |delivery| %>
           <li class="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2">
-            <span class="text-sm font-medium text-slate-900"><%= link_to delivery.delivery_number, delivery_path(delivery), class: "hover:underline" %></span>
+            <span class="text-sm font-medium text-[color:var(--text-primary)]"><%= link_to delivery.delivery_number, delivery_path(delivery), class: "hover:underline" %></span>
             <%= status_badge(delivery.status) %>
           </li>
         <% end %>
