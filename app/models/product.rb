@@ -4,6 +4,7 @@ class Product < ApplicationRecord
   has_many :product_prices, -> { order(effective_on: :desc, created_at: :desc, id: :desc) }, dependent: :destroy
   has_many :product_purchase_prices, -> { order(effective_on: :desc, created_at: :desc, id: :desc) }, dependent: :destroy
 
+  before_validation :normalize_barcode
   before_validation :assign_generated_sku, on: :create
 
   validates :name, :unit, :inventory_type, :sku, presence: true
@@ -72,6 +73,10 @@ class Product < ApplicationRecord
   end
 
   private
+    def normalize_barcode
+      self.barcode = barcode.presence
+    end
+
     def assign_generated_sku
       return if sku.present?
 

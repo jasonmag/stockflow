@@ -903,6 +903,30 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to product_path(product)
   end
 
+  test "create product allows blank barcode and still auto-generates sku" do
+    assert_difference("Product.count", 1) do
+      post products_path, params: {
+        product: {
+          name: "Potato Chips Classic",
+          unit: "pc",
+          inventory_type: "stock_item",
+          brand: "",
+          barcode: "",
+          base_cost_decimal: "48",
+          reorder_level: "",
+          description: "",
+          active: true
+        }
+      }
+    end
+
+    product = Product.last
+    assert_nil product.barcode
+    assert product.sku.present?
+    assert_operator product.sku.length, :>=, 30
+    assert_redirected_to product_path(product)
+  end
+
   test "new product form lists existing brands and still allows typing a new one" do
     Product.create!(business: @business, name: "Sparkling Water", unit: "bottle", inventory_type: "finished_good", brand: "FreshCo", active: true)
 
@@ -989,6 +1013,8 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get products_path
 
     assert_response :success
+    assert_select "th", text: "SKU", count: 0
+    assert_select "td", text: @product.sku, count: 0
     assert_select "th", text: "Current Effective Price"
     assert_select "td", text: "PHP 18.75"
     assert_select "td", text: "PHP 22.00", count: 0

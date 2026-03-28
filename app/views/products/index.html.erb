@@ -15,7 +15,6 @@
         <tr>
           <th>Name</th>
           <th>Type</th>
-          <th>SKU</th>
           <th>Brand</th>
           <th>Unit</th>
           <th>Barcode</th>
@@ -30,7 +29,6 @@
           <tr>
             <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
             <td><%= status_badge(row.inventory_type) %></td>
-            <td><%= row.sku.presence || "-" %></td>
             <td><%= row.brand.presence || "-" %></td>
             <td><%= row.unit %></td>
             <td><%= row.barcode.presence || "-" %></td>
