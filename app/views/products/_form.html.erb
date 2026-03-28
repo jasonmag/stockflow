@@ -51,7 +51,13 @@
 
     <div>
       <%= f.label :brand, class: "field-label" %>
-      <%= f.text_field :brand, class: "field-input", placeholder: "Optional brand" %>
+      <%= f.text_field :brand, class: "field-input", placeholder: "Choose or add brand", list: "brand-options" %>
+      <p class="mt-1 text-xs text-slate-500">Pick an existing brand from the list or type a new one.</p>
+      <datalist id="brand-options">
+        <% @brand_options.each do |option| %>
+          <option value="<%= option %>"></option>
+        <% end %>
+      </datalist>
     </div>
 
     <div>

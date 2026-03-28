@@ -903,6 +903,16 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to product_path(product)
   end
 
+  test "new product form lists existing brands and still allows typing a new one" do
+    Product.create!(business: @business, name: "Sparkling Water", unit: "bottle", inventory_type: "finished_good", brand: "FreshCo", active: true)
+
+    get new_product_path
+
+    assert_response :success
+    assert_select "input[name='product[brand]'][list='brand-options']"
+    assert_select "datalist#brand-options option[value='FreshCo']"
+  end
+
   test "product show displays effective dated pricing form and history" do
     @product.product_prices.create!(effective_on: Date.current - 5.days, price_cents: 1250)
     @product.product_prices.create!(effective_on: Date.current + 3.days, price_cents: 1500)

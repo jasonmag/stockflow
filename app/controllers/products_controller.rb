@@ -62,6 +62,8 @@ class ProductsController < ApplicationController
         current_business.products.where.not(unit: [ nil, "" ]).distinct.order(:unit).pluck(:unit) +
         %w[pc box case pack bottle kg g liter ml]
       ).uniq
+
+      @brand_options = current_business.products.where.not(brand: [ nil, "" ]).distinct.order(:brand).pluck(:brand)
     end
 
     def load_product_pricing
