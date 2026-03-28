@@ -1,22 +1,35 @@
 namespace :admin do
-  desc "Ensure a super admin exists"
+  desc "Ensure a system admin exists"
   task ensure: :environment do
-    email = ENV.fetch("ADMIN_EMAIL", "").strip.downcase
+    email_address = ENV.fetch("ADMIN_EMAIL", "").strip.downcase
     password = ENV.fetch("ADMIN_PASSWORD", "")
-    next if email.empty? || password.empty?
 
-    user = User.find_or_initialize_by(email: email)
+    if email_address.empty? || password.empty?
+      puts "Skipping admin:ensure because ADMIN_EMAIL or ADMIN_PASSWORD is blank."
+      next
+    end
+
+    user = User.find_or_initialize_by(email_address: email_address)
+
     if user.new_record?
-      company = Company.order(:id).first || Company.create!(name: "Admin Company", address: "")
-      user.company = company
-      user.role = :super_admin
       user.password = password
       user.password_confirmation = password
+      user.approved = true
+      user.approved_at = Time.current
+      user.approved_by = nil
+      user.system_admin = true
       user.save!
-      puts "Created super admin for #{email}."
+
+      puts "Created system admin for #{email_address}."
     else
-      user.update!(role: :super_admin) unless user.super_admin?
-      puts "Super admin already exists for #{email}."
+      updates = {}
+      updates[:system_admin] = true unless user.system_admin?
+      updates[:approved] = true unless user.approved?
+      updates[:approved_at] = Time.current if user.approved_at.blank?
+
+      user.update!(updates) if updates.any?
+
+      puts "System admin already exists for #{email_address}."
     end
   end
 end
