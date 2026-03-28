@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     patch :switch
     get :members
     post :add_member
+    delete "members/:membership_id", to: "businesses#remove_member", as: :remove_member
   end
 
   root "home#index"

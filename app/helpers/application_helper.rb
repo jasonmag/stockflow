@@ -4,6 +4,26 @@ module ApplicationHelper
     "#{currency} #{format('%.2f', cents.to_f / 100.0)}"
   end
 
+  def page_title
+    content_for(:title).presence || "Stockflow"
+  end
+
+  def meta_description
+    content_for(:meta_description).presence || "Stockflow helps supplier teams manage inventory, purchasing, deliveries, receivables, payables, and cashflow from one operational workspace."
+  end
+
+  def meta_image_url
+    absolute_public_url("/share-card.png")
+  end
+
+  def canonical_url
+    request.original_url
+  end
+
+  def absolute_public_url(path)
+    URI.join(request.base_url, path).to_s
+  end
+
   def nav_link_to(name, path)
     active = current_page?(path)
     classes = if active

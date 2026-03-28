@@ -1238,4 +1238,32 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     clear_enqueued_jobs
     clear_performed_jobs
   end
+
+  test "email delivery pdf sends attachment through mailer job" do
+    ActiveJob::Base.queue_adapter = :test
+    ActionMailer::Base.deliveries.clear
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 1, unit_price_cents: 1250)
+
+    perform_enqueued_jobs do
+      post email_pdf_delivery_path(delivery), params: {
+        recipients: "ops@example.com",
+        subject: "Delivery PDF",
+        message: "Attached."
+      }
+    end
+
+    log = DeliveryEmailLog.order(:id).last
+    assert_equal "sent", log.status
+    assert_not_nil log.sent_at
+
+    email = ActionMailer::Base.deliveries.last
+    assert_equal [ "ops@example.com" ], email.to
+    assert_equal "Delivery PDF", email.subject
+    assert_equal 1, email.attachments.size
+    assert_equal "application/pdf", email.attachments.first.mime_type
+  ensure
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
 end

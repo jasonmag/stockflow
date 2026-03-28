@@ -18,6 +18,7 @@
           <tr>
             <th>Email</th>
             <th>Role</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -25,6 +26,13 @@
             <tr>
               <td class="font-medium text-slate-900"><%= membership.user.email_address %></td>
               <td><%= status_badge(membership.role) %></td>
+              <td class="text-right">
+                <%= button_to "Remove",
+                  remove_member_business_path(membership_id: membership.id),
+                  method: :delete,
+                  class: "btn btn-ghost",
+                  data: { turbo_confirm: "Remove this member from #{@business.name}?" } %>
+              </td>
             </tr>
           <% end %>
         </tbody>
@@ -37,7 +45,7 @@
 
 <section class="card">
   <h2 class="mb-3 text-base font-semibold text-slate-900">Add Member</h2>
-  <%= form_with url: add_member_business_path, method: :post, class: "grid gap-3 md:grid-cols-4" do |f| %>
+  <%= form_with url: add_member_business_path, method: :post, class: "grid gap-3 md:grid-cols-3" do |f| %>
     <div class="md:col-span-2">
       <%= f.label :email_address, class: "field-label" %>
       <%= f.email_field :email_address, name: "membership[email_address]", required: true, class: "field-input", placeholder: "member@example.com" %>
@@ -46,12 +54,11 @@
       <%= f.label :role, class: "field-label" %>
       <%= f.select :role, Membership.roles.keys.map { |key| [key.humanize, key] }, {}, name: "membership[role]", class: "field-input" %>
     </div>
-    <div>
-      <%= f.label :password, "Password (new users only)", class: "field-label" %>
-      <%= f.password_field :password, name: "membership[password]", class: "field-input", placeholder: "Optional for existing user" %>
+    <div class="md:col-span-3">
+      <p class="text-sm text-slate-600">Stockflow will email an invitation. New users will receive a secure set-password link.</p>
     </div>
-    <div class="md:col-span-4">
-      <%= f.submit "Add Member", class: "btn btn-primary" %>
+    <div class="md:col-span-3">
+      <%= f.submit "Invite Member", class: "btn btn-primary" %>
     </div>
   <% end %>
 </section>

@@ -1,5 +1,5 @@
 class BusinessesController < ApplicationController
-  before_action :require_owner!, only: %i[edit update members add_member]
+  before_action :require_owner!, only: %i[edit update members add_member remove_member]
 
   def switch
     business = Current.user.businesses.find(params[:business_id])
@@ -32,17 +32,17 @@ class BusinessesController < ApplicationController
     business = current_business
     email = membership_params[:email_address].to_s.strip.downcase
     role = membership_params[:role]
-    password = membership_params[:password]
 
     user = User.find_by(email_address: email)
+    new_user = user.nil?
 
-    if user.nil?
-      if password.blank?
-        redirect_to members_business_path, alert: "Password is required when creating a new member account."
-        return
-      end
-
-      user = User.new(email_address: email, password:, password_confirmation: password)
+    if new_user
+      generated_password = SecureRandom.base58(24)
+      user = User.new(
+        email_address: email,
+        password: generated_password,
+        password_confirmation: generated_password
+      )
       unless user.save
         redirect_to members_business_path, alert: user.errors.full_messages.to_sentence
         return
@@ -51,7 +51,25 @@ class BusinessesController < ApplicationController
 
     membership = business.memberships.new(user:, role:)
     if membership.save
-      redirect_to members_business_path, notice: "Member added to #{business.name}."
+      MembershipInvitationMailer.invite(
+        user:,
+        business:,
+        inviter: Current.user,
+        role:,
+        new_user:
+      ).deliver_later
+
+      redirect_to members_business_path, notice: invitation_notice_for(business, new_user)
+    else
+      redirect_to members_business_path, alert: membership.errors.full_messages.to_sentence
+    end
+  end
+
+  def remove_member
+    membership = current_business.memberships.find(params[:membership_id])
+
+    if membership.destroy
+      redirect_to members_business_path, notice: "Member removed from #{current_business.name}."
     else
       redirect_to members_business_path, alert: membership.errors.full_messages.to_sentence
     end
@@ -70,6 +88,14 @@ class BusinessesController < ApplicationController
     end
 
     def membership_params
-      params.require(:membership).permit(:email_address, :role, :password)
+      params.require(:membership).permit(:email_address, :role)
+    end
+
+    def invitation_notice_for(business, new_user)
+      if new_user
+        "Member invited to #{business.name}. A set-password email has been sent."
+      else
+        "Member added to #{business.name}. An invitation email has been sent."
+      end
     end
 end

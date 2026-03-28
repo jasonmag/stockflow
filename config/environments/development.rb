@@ -1,6 +1,9 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  smtp_credentials = Rails.application.credentials[:smtp] || {}
+  app_host = ENV["APP_HOST"].presence || Rails.application.credentials.dig(:app, :host).presence || "localhost:3000"
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Make code changes take effect immediately without server restart.
@@ -32,13 +35,34 @@ Rails.application.configure do
   config.active_storage.service = :local
 
   # Don't care if the mailer can't send.
-  config.action_mailer.raise_delivery_errors = false
+  config.action_mailer.raise_delivery_errors = true
 
   # Make template changes take effect immediately.
   config.action_mailer.perform_caching = false
 
   # Set localhost to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+  if app_host.include?(":")
+    host, port = app_host.split(":", 2)
+    config.action_mailer.default_url_options = { host:, port: port.to_i }
+  else
+    config.action_mailer.default_url_options = { host: app_host }
+  end
+
+  smtp_address = ENV["SMTP_ADDRESS"].presence || smtp_credentials[:address].presence
+  config.action_mailer.delivery_method = smtp_address.present? ? :smtp : :file
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.file_settings = { location: Rails.root.join("tmp", "mails") }
+  config.action_mailer.smtp_settings = {
+    user_name: ENV["SMTP_USERNAME"].presence || smtp_credentials[:username].presence,
+    password: ENV["SMTP_PASSWORD"].presence || smtp_credentials[:password].presence,
+    address: smtp_address || "localhost",
+    port: (ENV["SMTP_PORT"].presence || smtp_credentials[:port].presence || 587).to_i,
+    domain: ENV["SMTP_DOMAIN"].presence || smtp_credentials[:domain].presence,
+    authentication: (ENV["SMTP_AUTHENTICATION"].presence || smtp_credentials[:authentication].presence || "login").to_sym,
+    enable_starttls_auto: ActiveModel::Type::Boolean.new.cast(
+      ENV["SMTP_ENABLE_STARTTLS_AUTO"].presence || smtp_credentials.fetch(:enable_starttls_auto, true)
+    )
+  }
 
   # Print deprecation notices to the Rails logger.
   config.active_support.deprecation = :log

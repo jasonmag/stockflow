@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
   before_action :ensure_system_admin_uses_impersonation!
   before_action :ensure_business_selected
   before_action :ensure_staff_can_manage_operations!
-  helper_method :current_business, :owner?, :system_admin?, :impersonating?
+  helper_method :current_business, :owner?, :system_admin?, :impersonating?, :recaptcha_enabled?
 
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
@@ -70,5 +70,25 @@ class ApplicationController < ActionController::Base
 
     def admin_namespace?
       controller_path.start_with?("admin/")
+    end
+
+    def recaptcha_enabled?
+      Recaptcha.configuration.site_key.present? && Recaptcha.configuration.secret_key.present?
+    end
+
+    def verify_recaptcha_if_enabled(view:, action:, model: nil, minimum_score: 0.5)
+      return true unless recaptcha_enabled?
+
+      verified = verify_recaptcha(
+        model:,
+        action:,
+        minimum_score:,
+        message: "reCAPTCHA verification failed. Please try again."
+      )
+      return true if verified
+
+      flash.now[:alert] = "reCAPTCHA verification failed. Please try again."
+      render view, status: :unprocessable_entity
+      false
     end
 end

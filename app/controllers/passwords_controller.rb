@@ -6,6 +6,8 @@ class PasswordsController < ApplicationController
   end
 
   def create
+    return unless verify_recaptcha_if_enabled(view: :new, action: "password_reset")
+
     if user = User.find_by(email_address: params[:email_address])
       PasswordsMailer.reset(user).deliver_later
     end

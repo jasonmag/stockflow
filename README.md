@@ -79,6 +79,51 @@ Run MVP integration tests:
 bin/rails test test/requests/mvp_flows_test.rb
 ```
 
+## Email Sending
+
+Stockflow sends email for:
+
+- Business member invitations with a secure set-password link for new users
+- Password reset instructions
+- Delivery report PDFs as attachments
+
+Development defaults to writing rendered emails under `tmp/mails`. The app now prefers Rails credentials for mail setup and falls back to environment variables.
+
+Example credentials structure:
+
+```yml
+smtp:
+  address: smtp.mail.me.com
+  port: 587
+  domain: jasonmag.com
+  authentication: plain
+  enable_starttls_auto: true
+  username: info@jasonmag.com
+  password: your_app_specific_password
+mailer:
+  from: info@jasonmag.com
+app:
+  host: stockflow.jasonmag.com
+```
+
+## reCAPTCHA
+
+Public unauthenticated forms are protected with Google reCAPTCHA v3:
+
+- User login
+- Admin login
+- Registration
+- Password reset request
+
+Configure it in Rails credentials:
+
+```yml
+recaptcha:
+  v3:
+    site_key: your_site_key
+    secret_key: your_secret_key
+```
+
 ## Delivery Report (PDF + Email)
 
 From a delivery record you can:
@@ -94,10 +139,16 @@ Background email jobs are processed by Solid Queue.
 - `RAILS_MASTER_KEY`
 - `SECRET_KEY_BASE`
 - `APP_HOST`
+- `MAILER_FROM`
 - `SMTP_USERNAME`
 - `SMTP_PASSWORD`
 - `SMTP_ADDRESS`
 - `SMTP_PORT`
+- `SMTP_DOMAIN`
+- `SMTP_AUTHENTICATION`
+- `SMTP_ENABLE_STARTTLS_AUTO`
+- `RECAPTCHA_SITE_KEY`
+- `RECAPTCHA_SECRET_KEY`
 - `S3_ACCESS_KEY_ID`
 - `S3_SECRET_ACCESS_KEY`
 - `S3_BUCKET`

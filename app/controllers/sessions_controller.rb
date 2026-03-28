@@ -17,6 +17,10 @@ class SessionsController < ApplicationController
   end
 
   def create
+    view = params[:login_scope] == "admin" ? :admin_new : :new
+    action_name = params[:login_scope] == "admin" ? "admin_login" : "user_login"
+    return unless verify_recaptcha_if_enabled(view:, action: action_name)
+
     if user = User.authenticate_by(params.permit(:email_address, :password))
       if params[:login_scope] == "admin" && !user.system_admin?
         redirect_to admin_login_path, alert: "System admin access is required for admin login."

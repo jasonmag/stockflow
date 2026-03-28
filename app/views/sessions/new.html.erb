@@ -79,6 +79,12 @@
           class: "field-input mt-2" %>
       </div>
 
+      <% if recaptcha_enabled? %>
+        <div>
+          <%= recaptcha_v3(action: "user_login", turbo: true) %>
+        </div>
+      <% end %>
+
       <div class="flex flex-wrap gap-3 pt-2">
         <%= form.submit "Sign in", class: "btn btn-primary min-w-32" %>
         <%= link_to "Register", new_registration_path, class: "btn btn-secondary" %>

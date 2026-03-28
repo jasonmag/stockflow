@@ -7,6 +7,8 @@ class RegistrationsController < ApplicationController
 
   def create
     @user = User.new(registration_params.merge(approved: false, approved_at: nil, approved_by: nil, system_admin: false))
+    return unless verify_recaptcha_if_enabled(view: :new, action: "registration", model: @user)
+
     if @user.save
       redirect_to login_path, notice: "Registration submitted. Wait for super admin approval before signing in."
     else

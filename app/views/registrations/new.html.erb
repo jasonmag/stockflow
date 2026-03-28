@@ -78,6 +78,12 @@
           class: "field-input" %>
       </div>
 
+      <% if recaptcha_enabled? %>
+        <div>
+          <%= recaptcha_v3(action: "registration", turbo: true) %>
+        </div>
+      <% end %>
+
       <div class="flex flex-wrap gap-3 pt-2">
         <%= form.submit "Submit registration", class: "btn btn-primary min-w-44" %>
         <%= link_to "Back to login", login_path, class: "btn btn-secondary" %>

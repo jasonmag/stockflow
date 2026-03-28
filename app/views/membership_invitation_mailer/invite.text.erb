@@ -1,0 +1,9 @@
+<%= @inviter.email_address %> added you to <%= @business.name %> on Stockflow as <%= @role.humanize %>.
+
+<% if @new_user %>
+Set your password using this secure invitation link. The link expires in 15 minutes:
+<%= @set_password_url %>
+<% else %>
+Sign in here:
+<%= @login_url %>
+<% end %>

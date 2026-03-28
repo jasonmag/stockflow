@@ -126,22 +126,61 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
   end
 
   test "business owner can add members to current business" do
+    ActiveJob::Base.queue_adapter = :test
+    ActionMailer::Base.deliveries.clear
     sign_in_as(@owner)
     patch switch_business_path, params: { business_id: @business_one.id }
 
     assert_difference("Membership.count", 1) do
-      post add_member_business_path, params: {
-        membership: {
-          email_address: "new-member@example.com",
-          role: "staff",
-          password: "password123"
+      perform_enqueued_jobs do
+        post add_member_business_path, params: {
+          membership: {
+            email_address: "new-member@example.com",
+            role: "staff"
+          }
         }
-      }
+      end
     end
 
     membership = Membership.order(:id).last
     assert_equal @business_one.id, membership.business_id
     assert_equal "staff", membership.role
+    assert_equal "new-member@example.com", membership.user.email_address
+    assert_equal 1, ActionMailer::Base.deliveries.size
+    assert_equal [ "new-member@example.com" ], ActionMailer::Base.deliveries.last.to
+  ensure
+    clear_enqueued_jobs
+    clear_performed_jobs
+  end
+
+  test "business owner can remove members from current business" do
+    sign_in_as(@owner)
+    patch switch_business_path, params: { business_id: @business_one.id }
+
+    membership = Membership.find_by!(user: @staff, business: @business_one)
+
+    assert_difference("Membership.count", -1) do
+      delete remove_member_business_path(membership_id: membership.id)
+    end
+
+    assert_redirected_to members_business_path
+    assert_equal "Member removed from Business One.", flash[:notice]
+    assert_not Membership.exists?(membership.id)
+  end
+
+  test "business owner cannot remove last owner membership from current business" do
+    sign_in_as(@owner)
+    patch switch_business_path, params: { business_id: @business_one.id }
+
+    membership = Membership.find_by!(user: @owner, business: @business_one)
+
+    assert_no_difference("Membership.count") do
+      delete remove_member_business_path(membership_id: membership.id)
+    end
+
+    assert_redirected_to members_business_path
+    assert_equal "Cannot remove the last store admin account for this business.", flash[:alert]
+    assert Membership.exists?(membership.id)
   end
 
   test "staff cannot access owner member management page" do

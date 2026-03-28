@@ -42,6 +42,12 @@
           class: "field-input" %>
       </div>
 
+      <% if recaptcha_enabled? %>
+        <div>
+          <%= recaptcha_v3(action: "admin_login", turbo: true) %>
+        </div>
+      <% end %>
+
       <div class="flex flex-wrap gap-3 pt-2">
         <%= form.submit "Sign in to admin", class: "btn btn-primary min-w-40" %>
         <%= link_to "User login", login_path, class: "btn btn-secondary" %>

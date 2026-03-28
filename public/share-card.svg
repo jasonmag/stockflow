@@ -1,0 +1,37 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="74" y1="36" x2="1116" y2="624" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#082F49"/>
+      <stop offset="0.52" stop-color="#0F766E"/>
+      <stop offset="1" stop-color="#ECFEFF"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="717" y1="155" x2="1018" y2="475" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ECFEFF"/>
+      <stop offset="1" stop-color="#A5F3FC"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" rx="40" fill="url(#bg)"/>
+  <circle cx="1030" cy="116" r="88" fill="white" fill-opacity="0.1"/>
+  <circle cx="167" cy="550" r="120" fill="white" fill-opacity="0.08"/>
+  <circle cx="1130" cy="516" r="134" fill="#164E63" fill-opacity="0.18"/>
+
+  <text x="88" y="118" fill="#A5F3FC" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" letter-spacing="8">STOCKFLOW</text>
+  <text x="88" y="226" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700">Inventory, delivery,</text>
+  <text x="88" y="312" fill="white" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700">purchasing, cashflow.</text>
+  <text x="88" y="382" fill="#D1FAE5" font-family="Arial, Helvetica, sans-serif" font-size="32" font-weight="400">One operational workspace for supplier teams.</text>
+
+  <g opacity="0.96">
+    <rect x="720" y="110" width="360" height="410" rx="34" fill="#020617" fill-opacity="0.18" stroke="white" stroke-opacity="0.18"/>
+    <rect x="756" y="152" width="288" height="122" rx="28" fill="url(#panel)"/>
+    <rect x="756" y="305" width="172" height="168" rx="26" fill="#ECFEFF"/>
+    <path d="M796 213H962" stroke="#0C4A6E" stroke-width="28" stroke-linecap="round"/>
+    <path d="M882 275V305" stroke="#CFFAFE" stroke-width="26" stroke-linecap="round"/>
+    <path d="M1007 275V335C1007 397.408 956.408 448 894 448H874" stroke="#CFFAFE" stroke-width="26" stroke-linecap="round"/>
+    <path d="M792 390H900" stroke="#0F766E" stroke-width="24" stroke-linecap="round"/>
+    <path d="M965 340H1037" stroke="#CFFAFE" stroke-width="26" stroke-linecap="round"/>
+    <path d="M965 398H1037" stroke="#CFFAFE" stroke-width="26" stroke-linecap="round"/>
+  </g>
+
+  <text x="88" y="542" fill="#E2E8F0" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="400">Stock movements, PDF reports, receivables, payables, and approvals in one view.</text>
+</svg>

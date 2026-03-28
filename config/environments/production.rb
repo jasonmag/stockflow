@@ -1,6 +1,9 @@
 require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
+  smtp_credentials = Rails.application.credentials[:smtp] || {}
+  app_host = ENV["APP_HOST"].presence || Rails.application.credentials.dig(:app, :host).presence || "example.com"
+
   # Settings specified here will take precedence over those in config/application.rb.
 
   # Code is not reloaded between requests.
@@ -58,18 +61,20 @@ Rails.application.configure do
   config.action_mailer.raise_delivery_errors = true
 
   # Set host to be used by links generated in mailer templates.
-  config.action_mailer.default_url_options = { host: ENV.fetch("APP_HOST", "example.com") }
-
-  # Specify outgoing SMTP server. Remember to add smtp/* credentials via rails credentials:edit.
-  # config.action_mailer.delivery_method = :smtp
-  # config.action_mailer.smtp_settings = {
-  #   user_name: ENV["SMTP_USERNAME"],
-  #   password: ENV["SMTP_PASSWORD"],
-  #   address: ENV.fetch("SMTP_ADDRESS", "smtp.example.com"),
-  #   port: ENV.fetch("SMTP_PORT", 587).to_i,
-  #   authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain").to_sym,
-  #   enable_starttls_auto: ENV.fetch("SMTP_ENABLE_STARTTLS_AUTO", "true") == "true"
-  # }
+  config.action_mailer.default_url_options = { host: app_host, protocol: "https" }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.perform_deliveries = true
+  config.action_mailer.smtp_settings = {
+    user_name: ENV["SMTP_USERNAME"].presence || smtp_credentials.fetch(:username),
+    password: ENV["SMTP_PASSWORD"].presence || smtp_credentials.fetch(:password),
+    address: ENV["SMTP_ADDRESS"].presence || smtp_credentials.fetch(:address),
+    port: (ENV["SMTP_PORT"].presence || smtp_credentials.fetch(:port, 587)).to_i,
+    domain: ENV["SMTP_DOMAIN"].presence || smtp_credentials[:domain].presence,
+    authentication: (ENV["SMTP_AUTHENTICATION"].presence || smtp_credentials.fetch(:authentication, "login")).to_sym,
+    enable_starttls_auto: ActiveModel::Type::Boolean.new.cast(
+      ENV["SMTP_ENABLE_STARTTLS_AUTO"].presence || smtp_credentials.fetch(:enable_starttls_auto, true)
+    )
+  }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation cannot be found).
