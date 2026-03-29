@@ -29,8 +29,8 @@
       <tbody>
         <% @categories.each do |category| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= category.name %></td>
-            <td class="text-right">
+            <td data-label="Name" class="font-medium text-slate-900"><%= category.name %></td>
+            <td data-label="Actions" class="text-right">
               <div class="flex flex-wrap justify-end gap-2">
                 <%= link_to "Edit", edit_category_path(category), class: "btn btn-ghost" %>
                 <%= button_to "Delete", category_path(category), method: :delete, class: "btn btn-danger", data: { turbo_confirm: "Delete this category?" } %>

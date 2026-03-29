@@ -21,11 +21,11 @@
       <tbody>
         <% @suppliers.each do |row| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
-            <td><%= row.contact_name.presence || "-" %></td>
-            <td><%= row.contact_email.presence || "-" %></td>
-            <td><%= row.contact_phone.presence || "-" %></td>
-            <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+            <td data-label="Name" class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td data-label="Contact"><%= row.contact_name.presence || "-" %></td>
+            <td data-label="Email"><%= row.contact_email.presence || "-" %></td>
+            <td data-label="Phone"><%= row.contact_phone.presence || "-" %></td>
+            <td data-label="Actions" class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
           </tr>
         <% end %>
       </tbody>

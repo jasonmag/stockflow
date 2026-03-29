@@ -22,16 +22,16 @@
         <tbody>
           <% @memberships.each do |membership| %>
             <tr>
-              <td class="font-medium text-slate-900"><%= link_to membership.user.email_address, admin_user_path(membership.user), class: "hover:underline" %></td>
-              <td>
+              <td data-label="User" class="font-medium text-slate-900"><%= link_to membership.user.email_address, admin_user_path(membership.user), class: "hover:underline" %></td>
+              <td data-label="Role">
                 <%= form_with model: [ :admin, membership ], class: "flex items-center gap-2" do |f| %>
                   <%= hidden_field_tag :redirect_to, "business" %>
                   <%= f.select :role, Membership.roles.keys.map { |role| [role.humanize, role] }, {}, class: "field-input w-32" %>
                   <%= f.submit "Save", class: "btn btn-secondary" %>
                 <% end %>
               </td>
-              <td><%= status_badge(membership.user.system_admin? ? :enabled : :disabled) %></td>
-              <td class="text-right">
+              <td data-label="System Admin"><%= status_badge(membership.user.system_admin? ? :enabled : :disabled) %></td>
+              <td data-label="Actions" class="text-right">
                 <div class="flex justify-end gap-2">
                   <%= button_to "Remove",
                     admin_membership_path(membership),

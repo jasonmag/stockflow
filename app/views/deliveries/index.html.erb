@@ -30,7 +30,7 @@
       <%= f.label :end_date, "End date", class: "field-label" %>
       <%= f.date_field :end_date, value: params[:end_date], class: "field-input" %>
     </div>
-    <div class="sm:col-span-2 lg:col-span-4 flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 sm:col-span-2 lg:col-span-4">
       <%= f.submit "Apply filters", class: "btn btn-secondary" %>
       <%= link_to "Reset", deliveries_path, class: "btn btn-ghost" %>
     </div>
@@ -53,18 +53,18 @@
       <tbody>
         <% @deliveries.each do |delivery| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= link_to delivery.delivery_number, delivery_path(delivery), class: "hover:underline" %></td>
-            <td><%= delivery.delivered_on %></td>
-            <td><%= delivery.customer.name %></td>
-            <td><%= status_badge(delivery.status) %></td>
-            <td>
+            <td data-label="Delivery #" class="font-medium text-slate-900"><%= link_to delivery.delivery_number, delivery_path(delivery), class: "hover:underline" %></td>
+            <td data-label="Date"><%= delivery.delivered_on %></td>
+            <td data-label="Customer"><%= delivery.customer.name %></td>
+            <td data-label="Status"><%= status_badge(delivery.status) %></td>
+            <td data-label="PDF">
               <% if delivery.report_pdf.attached? %>
                 <span class="badge badge-success">Attached</span>
               <% else %>
                 <span class="badge badge-neutral">Missing</span>
               <% end %>
             </td>
-            <td>
+            <td data-label="Actions">
               <div class="flex flex-wrap justify-end gap-2">
                 <%= link_to "View", delivery_path(delivery), class: "btn btn-ghost" %>
                 <%= button_to "Generate PDF", generate_pdf_delivery_path(delivery), method: :post, class: "btn btn-secondary" %>

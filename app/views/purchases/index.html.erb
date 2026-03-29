@@ -21,11 +21,11 @@
       <tbody>
         <% @purchases.each do |purchase| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= link_to purchase.reference.presence || "Purchase ##{purchase.id}", purchase, class: "hover:underline" %></td>
-            <td><%= purchase.supplier.name %></td>
-            <td><%= purchase.purchased_on.to_fs(:long) %></td>
-            <td><%= status_badge(purchase.status) %></td>
-            <td class="text-right">
+            <td data-label="Purchase" class="font-medium text-slate-900"><%= link_to purchase.reference.presence || "Purchase ##{purchase.id}", purchase, class: "hover:underline" %></td>
+            <td data-label="Supplier"><%= purchase.supplier.name %></td>
+            <td data-label="Purchased On"><%= purchase.purchased_on.to_fs(:long) %></td>
+            <td data-label="Status"><%= status_badge(purchase.status) %></td>
+            <td data-label="Actions" class="text-right">
               <div class="flex justify-end gap-2">
                 <%= link_to "View", purchase, class: "btn btn-ghost" %>
                 <% unless purchase.received? %>

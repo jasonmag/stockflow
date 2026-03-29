@@ -37,12 +37,12 @@
       <tbody>
         <% @payables.each do |row| %>
           <tr class="<%= 'bg-rose-50' if row.overdue? %>">
-            <td class="font-medium text-slate-900"><%= link_to row.payee, payable_path(row), class: "hover:underline" %></td>
-            <td><%= row.payable_type.humanize %></td>
-            <td><%= row.due_on %></td>
-            <td><%= status_badge(row.status) %></td>
-            <td class="font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></td>
-            <td>
+            <td data-label="Payee" class="font-medium text-slate-900"><%= link_to row.payee, payable_path(row), class: "hover:underline" %></td>
+            <td data-label="Type"><%= row.payable_type.humanize %></td>
+            <td data-label="Due date"><%= row.due_on %></td>
+            <td data-label="Status"><%= status_badge(row.status) %></td>
+            <td data-label="Amount" class="font-semibold text-slate-900"><%= money(row.amount_cents, row.currency) %></td>
+            <td data-label="Actions">
               <div class="flex flex-wrap gap-2">
                 <%= link_to "Show", payable_path(row), class: "btn btn-secondary" %>
                 <%= link_to "Edit", edit_payable_path(row), class: "btn btn-secondary" %>

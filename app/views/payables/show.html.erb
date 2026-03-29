@@ -50,10 +50,10 @@
         <tbody>
           <% @payments.each do |payment| %>
             <tr>
-              <td><%= payment.paid_on.to_fs(:long) %></td>
-              <td class="font-semibold text-slate-900"><%= money(payment.amount_cents) %></td>
-              <td><%= status_badge(payment.method) %></td>
-              <td><%= payment.notes.presence || "-" %></td>
+              <td data-label="Paid On"><%= payment.paid_on.to_fs(:long) %></td>
+              <td data-label="Amount" class="font-semibold text-slate-900"><%= money(payment.amount_cents) %></td>
+              <td data-label="Method"><%= status_badge(payment.method) %></td>
+              <td data-label="Notes"><%= payment.notes.presence || "-" %></td>
             </tr>
           <% end %>
         </tbody>

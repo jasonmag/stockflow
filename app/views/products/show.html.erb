@@ -131,17 +131,17 @@
           </div>
 
           <% if @product_prices.any? %>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="table-wrap">
+              <table class="table-base">
                 <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-2 pr-4 font-medium">Effective Date</th>
-                    <th class="py-2 pr-4 font-medium">Price</th>
-                    <th class="py-2 font-medium">Status</th>
-                    <th class="py-2 text-right font-medium">Action</th>
+                  <tr>
+                    <th>Effective Date</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th class="text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody>
                   <% @product_prices.each do |price| %>
                     <% badge = if price.effective_on > Date.current
                       :pending
@@ -151,10 +151,10 @@
                       :inactive
                     end %>
                     <tr>
-                      <td class="py-3 pr-4"><%= price.effective_on.to_fs(:long) %></td>
-                      <td class="py-3 pr-4 font-semibold text-slate-900"><%= money(price.price_cents) %></td>
-                      <td class="py-3"><%= status_badge(badge) %></td>
-                      <td class="py-3 text-right">
+                      <td data-label="Effective Date"><%= price.effective_on.to_fs(:long) %></td>
+                      <td data-label="Price" class="font-semibold text-slate-900"><%= money(price.price_cents) %></td>
+                      <td data-label="Status"><%= status_badge(badge) %></td>
+                      <td data-label="Action" class="text-right">
                         <% if price.effective_on > Date.current %>
                           <%= button_to product_product_price_path(@product, price), method: :delete, class: "inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100", title: "Delete upcoming selling price", aria: { label: "Delete upcoming selling price" }, form: { data: { turbo_confirm: "Delete this upcoming selling price?" }, class: "inline-block" } do %>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">
@@ -251,17 +251,17 @@
           </div>
 
           <% if @product_purchase_prices.any? %>
-            <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <div class="table-wrap">
+              <table class="table-base">
                 <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-2 pr-4 font-medium">Effective Date</th>
-                    <th class="py-2 pr-4 font-medium">Purchase Price</th>
-                    <th class="py-2 font-medium">Status</th>
-                    <th class="py-2 text-right font-medium">Action</th>
+                  <tr>
+                    <th>Effective Date</th>
+                    <th>Purchase Price</th>
+                    <th>Status</th>
+                    <th class="text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-slate-100 text-slate-700">
+                <tbody>
                   <% @product_purchase_prices.each do |price| %>
                     <% badge = if price.effective_on > Date.current
                       :pending
@@ -271,10 +271,10 @@
                       :inactive
                     end %>
                     <tr>
-                      <td class="py-3 pr-4"><%= price.effective_on.to_fs(:long) %></td>
-                      <td class="py-3 pr-4 font-semibold text-slate-900"><%= money(price.price_cents) %></td>
-                      <td class="py-3"><%= status_badge(badge) %></td>
-                      <td class="py-3 text-right">
+                      <td data-label="Effective Date"><%= price.effective_on.to_fs(:long) %></td>
+                      <td data-label="Purchase Price" class="font-semibold text-slate-900"><%= money(price.price_cents) %></td>
+                      <td data-label="Status"><%= status_badge(badge) %></td>
+                      <td data-label="Action" class="text-right">
                         <% if price.effective_on > Date.current %>
                           <%= button_to product_product_purchase_price_path(@product, price), method: :delete, class: "inline-flex h-9 w-9 items-center justify-center rounded-full border border-rose-200 bg-rose-50 text-rose-600 transition hover:bg-rose-100", title: "Delete upcoming purchase price", aria: { label: "Delete upcoming purchase price" }, form: { data: { turbo_confirm: "Delete this upcoming purchase price?" }, class: "inline-block" } do %>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-4 w-4" aria-hidden="true">

@@ -72,12 +72,12 @@
       <tbody>
         <% @expenses.each do |expense| %>
           <tr>
-            <td><%= expense.occurred_on %></td>
-            <td class="font-medium text-slate-900"><%= expense.payee %></td>
-            <td><%= expense.category&.name || "-" %></td>
-            <td><%= expense.funding_source %></td>
-            <td class="font-semibold text-slate-900"><%= money(expense.amount_cents, expense.currency) %></td>
-            <td class="text-right"><%= link_to "View", expense_path(expense), class: "btn btn-ghost" %></td>
+            <td data-label="Date"><%= expense.occurred_on %></td>
+            <td data-label="Payee" class="font-medium text-slate-900"><%= expense.payee %></td>
+            <td data-label="Category"><%= expense.category&.name || "-" %></td>
+            <td data-label="Funding"><%= expense.funding_source %></td>
+            <td data-label="Amount" class="font-semibold text-slate-900"><%= money(expense.amount_cents, expense.currency) %></td>
+            <td data-label="Actions" class="text-right"><%= link_to "View", expense_path(expense), class: "btn btn-ghost" %></td>
           </tr>
         <% end %>
       </tbody>

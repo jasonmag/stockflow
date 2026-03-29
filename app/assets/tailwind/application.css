@@ -116,6 +116,25 @@
     @apply rounded-lg px-3 py-2 text-sm font-semibold tracking-wide;
   }
 
+  .nav-panel {
+    @apply mt-4 flex flex-col gap-4;
+  }
+
+  .nav-section {
+    @apply border-t border-slate-200 pt-4;
+  }
+
+  .nav-links {
+    @apply flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center;
+  }
+
+  .nav-menu-toggle {
+    border-color: var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-primary);
+    @apply inline-flex items-center justify-center rounded-lg border px-3 py-2 text-sm font-medium;
+  }
+
   .nav-shell {
     background: color-mix(in srgb, var(--surface-color), transparent 3%);
     @apply rounded-[1.25rem] px-4 py-4 shadow-sm;
@@ -128,7 +147,7 @@
 
   .nav-link {
     color: var(--text-secondary);
-    @apply inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition;
+    @apply inline-flex items-center rounded-lg px-3 py-2 text-sm font-medium transition md:w-auto;
   }
 
   .nav-link:hover {
@@ -402,6 +421,82 @@
 }
 
 @layer utilities {
+  @media (max-width: 767px) {
+    .page-title {
+      @apply text-xl;
+    }
+
+    .btn,
+    .nav-link,
+    .nav-menu-toggle {
+      @apply w-full;
+    }
+
+    .nav-meta {
+      @apply text-left;
+    }
+
+    .nav-utility {
+      @apply flex-col items-stretch;
+    }
+
+    .table-wrap {
+      @apply overflow-visible border-0 bg-transparent;
+    }
+
+    .table-base,
+    .table-base tbody,
+    .table-base tr,
+    .table-base td {
+      display: block;
+      width: 100%;
+    }
+
+    .table-base thead {
+      display: none;
+    }
+
+    .table-base tbody {
+      @apply space-y-3;
+    }
+
+    .table-base tbody tr {
+      border: 1px solid var(--border-color);
+      background: var(--surface-color);
+      @apply rounded-xl px-4 py-3 shadow-sm;
+    }
+
+    .table-base tbody tr:hover {
+      background: var(--surface-color);
+    }
+
+    .table-base td {
+      @apply flex items-start justify-between gap-4 px-0 py-2 text-right;
+    }
+
+    .table-base td::before {
+      content: attr(data-label);
+      color: var(--text-muted);
+      @apply text-left text-xs font-semibold uppercase tracking-wide;
+    }
+
+    .table-base td[data-label="Actions"],
+    .table-base td[data-label="PDF"] {
+      @apply block text-left;
+    }
+
+    .table-base td[data-label="Actions"]::before,
+    .table-base td[data-label="PDF"]::before {
+      @apply mb-2 block;
+    }
+
+    [data-mobile-label]::before {
+      content: attr(data-mobile-label);
+      color: var(--text-muted);
+      @apply mb-1 block text-xs font-semibold uppercase tracking-wide;
+    }
+  }
+
   :root[data-theme="dark"] .text-slate-900 {
     color: var(--text-primary) !important;
   }

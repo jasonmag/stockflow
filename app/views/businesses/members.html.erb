@@ -24,9 +24,9 @@
         <tbody>
           <% @memberships.each do |membership| %>
             <tr>
-              <td class="font-medium text-slate-900"><%= membership.user.email_address %></td>
-              <td><%= status_badge(membership.role) %></td>
-              <td class="text-right">
+              <td data-label="Email" class="font-medium text-slate-900"><%= membership.user.email_address %></td>
+              <td data-label="Role"><%= status_badge(membership.role) %></td>
+              <td data-label="Actions" class="text-right">
                 <%= button_to "Remove",
                   remove_member_business_path(membership_id: membership.id),
                   method: :delete,

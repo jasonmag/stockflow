@@ -17,10 +17,10 @@
       <tbody>
         <% @payments.each do |p| %>
           <tr>
-            <td><%= p.paid_on.to_fs(:long) %></td>
-            <td class="font-semibold text-slate-900"><%= money(p.amount_cents) %></td>
-            <td><%= status_badge(p.method) %></td>
-            <td><%= p.notes.presence || "-" %></td>
+            <td data-label="Paid On"><%= p.paid_on.to_fs(:long) %></td>
+            <td data-label="Amount" class="font-semibold text-slate-900"><%= money(p.amount_cents) %></td>
+            <td data-label="Method"><%= status_badge(p.method) %></td>
+            <td data-label="Notes"><%= p.notes.presence || "-" %></td>
           </tr>
         <% end %>
       </tbody>

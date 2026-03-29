@@ -22,9 +22,9 @@
       <tbody>
         <% @purchase_funding_sources.each do |row| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= row.name %></td>
-            <td><%= row.source_type.titleize %></td>
-            <td class="text-right"><%= link_to "Edit", edit_purchase_funding_source_path(row), class: "btn btn-ghost" %></td>
+            <td data-label="Name" class="font-medium text-slate-900"><%= row.name %></td>
+            <td data-label="Option"><%= row.source_type.titleize %></td>
+            <td data-label="Actions" class="text-right"><%= link_to "Edit", edit_purchase_funding_source_path(row), class: "btn btn-ghost" %></td>
           </tr>
         <% end %>
       </tbody>

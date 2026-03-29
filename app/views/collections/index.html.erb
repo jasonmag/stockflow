@@ -17,10 +17,10 @@
       <tbody>
         <% @collections.each do |c| %>
           <tr>
-            <td><%= c.collected_on.to_fs(:long) %></td>
-            <td class="font-semibold text-slate-900"><%= money(c.amount_cents) %></td>
-            <td><%= status_badge(c.method) %></td>
-            <td><%= c.notes.presence || "-" %></td>
+            <td data-label="Collected On"><%= c.collected_on.to_fs(:long) %></td>
+            <td data-label="Amount" class="font-semibold text-slate-900"><%= money(c.amount_cents) %></td>
+            <td data-label="Method"><%= status_badge(c.method) %></td>
+            <td data-label="Notes"><%= c.notes.presence || "-" %></td>
           </tr>
         <% end %>
       </tbody>

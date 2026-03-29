@@ -48,14 +48,14 @@
         <tbody>
           <% @memberships.each do |membership| %>
             <tr>
-              <td class="font-medium text-slate-900"><%= link_to membership.business.name, admin_business_path(membership.business), class: "hover:underline" %></td>
-              <td>
+              <td data-label="Business" class="font-medium text-slate-900"><%= link_to membership.business.name, admin_business_path(membership.business), class: "hover:underline" %></td>
+              <td data-label="Role">
                 <%= form_with model: [ :admin, membership ], class: "flex items-center gap-2" do |f| %>
                   <%= f.select :role, Membership.roles.keys.map { |role| [role.humanize, role] }, {}, class: "field-input w-32" %>
                   <%= f.submit "Save", class: "btn btn-secondary" %>
                 <% end %>
               </td>
-              <td class="text-right">
+              <td data-label="Actions" class="text-right">
                 <%= button_to "Remove", admin_membership_path(membership), method: :delete, class: "btn btn-ghost", data: { turbo_confirm: "Remove this membership?" } %>
               </td>
             </tr>

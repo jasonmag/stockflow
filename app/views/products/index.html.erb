@@ -27,15 +27,15 @@
       <tbody>
         <% @products.each do |row| %>
           <tr>
-            <td class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
-            <td><%= status_badge(row.inventory_type) %></td>
-            <td><%= row.brand.presence || "-" %></td>
-            <td><%= row.unit %></td>
-            <td><%= row.barcode.presence || "-" %></td>
-            <td><%= row.current_price_cents.present? ? money(row.current_price_cents) : "-" %></td>
-            <td><%= row.reorder_level || "-" %></td>
-            <td><%= status_badge(row.active? ? :active : :inactive) %></td>
-            <td class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+            <td data-label="Name" class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+            <td data-label="Type"><%= status_badge(row.inventory_type) %></td>
+            <td data-label="Brand"><%= row.brand.presence || "-" %></td>
+            <td data-label="Unit"><%= row.unit %></td>
+            <td data-label="Barcode"><%= row.barcode.presence || "-" %></td>
+            <td data-label="Current Effective Price"><%= row.current_price_cents.present? ? money(row.current_price_cents) : "-" %></td>
+            <td data-label="Reorder Level"><%= row.reorder_level || "-" %></td>
+            <td data-label="Status"><%= status_badge(row.active? ? :active : :inactive) %></td>
+            <td data-label="Actions" class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
           </tr>
         <% end %>
       </tbody>

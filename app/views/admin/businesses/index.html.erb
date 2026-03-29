@@ -23,9 +23,9 @@
         <tbody>
           <% @businesses.each do |business| %>
             <tr>
-              <td class="font-medium text-slate-900"><%= business.name %></td>
-              <td><%= business.memberships.size %></td>
-              <td class="text-right"><%= link_to "View", admin_business_path(business), class: "btn btn-ghost" %></td>
+              <td data-label="Name" class="font-medium text-slate-900"><%= business.name %></td>
+              <td data-label="Members"><%= business.memberships.size %></td>
+              <td data-label="Actions" class="text-right"><%= link_to "View", admin_business_path(business), class: "btn btn-ghost" %></td>
             </tr>
           <% end %>
         </tbody>

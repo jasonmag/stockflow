@@ -75,10 +75,10 @@
         <tbody>
           <% @delivery.delivery_items.each do |item| %>
             <tr>
-              <td class="font-medium text-slate-900"><%= item.product.name %></td>
-              <td><%= item.quantity %></td>
-              <td><%= item.unit_price_cents.present? ? money(item.unit_price_cents) : "-" %></td>
-              <td><%= item.unit_price_cents.present? ? money((item.unit_price_cents * item.quantity.to_d).round) : "-" %></td>
+              <td data-label="Product" class="font-medium text-slate-900"><%= item.product.name %></td>
+              <td data-label="Quantity"><%= item.quantity %></td>
+              <td data-label="Unit Price"><%= item.unit_price_cents.present? ? money(item.unit_price_cents) : "-" %></td>
+              <td data-label="Sub-total"><%= item.unit_price_cents.present? ? money((item.unit_price_cents * item.quantity.to_d).round) : "-" %></td>
             </tr>
           <% end %>
         </tbody>
@@ -129,10 +129,10 @@
         <tbody>
           <% @email_logs.each do |log| %>
             <tr>
-              <td><%= log.sent_at&.to_fs(:long) || "-" %></td>
-              <td><%= log.recipients %></td>
-              <td><%= status_badge(log.status) %></td>
-              <td><%= log.error_message.presence || "-" %></td>
+              <td data-label="Sent At"><%= log.sent_at&.to_fs(:long) || "-" %></td>
+              <td data-label="Recipients"><%= log.recipients %></td>
+              <td data-label="Status"><%= status_badge(log.status) %></td>
+              <td data-label="Error"><%= log.error_message.presence || "-" %></td>
             </tr>
           <% end %>
         </tbody>
