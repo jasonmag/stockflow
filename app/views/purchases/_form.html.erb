@@ -59,6 +59,19 @@
     </div>
 
     <div class="md:col-span-2">
+      <%= label_tag "purchase_expense_id", "Referenced Expense", class: "field-label" %>
+      <%= select_tag "purchase[expense_id]",
+        options_for_select(
+          [["No linked expense", ""]] + @expense_reference_options.map do |expense|
+            ["#{expense.payee} - #{money(expense.amount_cents, expense.currency)} on #{expense.occurred_on}#{expense.category.present? ? " (#{expense.category.name})" : ""}", expense.id]
+          end,
+          purchase.expense&.id
+        ),
+        class: "field-input" %>
+      <p class="mt-1 text-xs text-slate-600">Choose an existing expense to link to this purchase. Leave blank to keep it unlinked until the purchase creates its own expense.</p>
+    </div>
+
+    <div class="md:col-span-2">
       <%= f.label :purchase_image, "Purchase Picture", class: "field-label" %>
       <%= f.file_field :purchase_image, class: "field-input", accept: "image/*" %>
       <p class="mt-1 text-xs text-slate-600">Upload the supplier receipt, purchase photo, or invoice image. When Google Drive storage is connected, Stockflow also syncs this file to the configured Drive folder.</p>

@@ -193,6 +193,61 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to expense_path(Expense.last)
   end
 
+  test "updating an expense receipt syncs to the expenses storage folder" do
+    expense = @business.expenses.create!(
+      occurred_on: Date.current,
+      payee: "Fuel Station",
+      category: @category,
+      amount_cents: 12000,
+      currency: "PHP",
+      funding_source: "Cash",
+      payment_method: "cash",
+      notes: "Delivery fuel",
+      receipt: fixture_file_upload("receipt.txt", "text/plain")
+    )
+
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "demo-folder-id",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    sync_service = Object.new
+    captured_folder_name = nil
+    sync_service.define_singleton_method(:sync!) { true }
+
+    original_new = GoogleDriveAttachmentSync.method(:new)
+    GoogleDriveAttachmentSync.singleton_class.define_method(:new) do |**kwargs|
+      captured_folder_name = kwargs[:folder_name]
+      sync_service
+    end
+
+    begin
+      patch expense_path(expense), params: {
+        expense: {
+          occurred_on: expense.occurred_on,
+          payee: expense.payee,
+          category_id: expense.category_id,
+          amount_cents: expense.amount_cents,
+          currency: expense.currency,
+          funding_source: expense.funding_source,
+          payment_method: expense.payment_method,
+          notes: "Updated delivery fuel",
+          receipt: fixture_file_upload("receipt.txt", "text/plain")
+        }
+      }
+    ensure
+      GoogleDriveAttachmentSync.singleton_class.define_method(:new, original_new)
+    end
+
+    assert_equal "Expenses", captured_folder_name
+    assert expense.reload.receipt.attached?
+    assert_equal "Updated delivery fuel", expense.notes
+    assert_redirected_to expense_path(expense)
+  end
+
   test "payables expense creates payments for selected payables" do
     payables_category = @business.categories.find_or_create_by!(name: "Payables")
     payable_one = @business.payables.create!(
@@ -671,6 +726,113 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal "Purchases", captured_folder_name
     assert Purchase.last.purchase_image.attached?
     assert_redirected_to purchase_path(Purchase.last)
+  end
+
+  test "purchase show uses storage link for view purchase and hides google drive action" do
+    purchase = Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft,
+      purchase_image_storage_url: "https://drive.google.com/file/d/purchase-file/view"
+    )
+    purchase.purchase_image.attach(
+      io: file_fixture("receipt.txt").open,
+      filename: "receipt.txt",
+      content_type: "text/plain"
+    )
+
+    get purchase_path(purchase)
+
+    assert_response :success
+    assert_select "a[href='https://drive.google.com/file/d/purchase-file/view'][target='_blank']", text: "View Purchase"
+    assert_select "a", text: "Open in Google Drive", count: 0
+    assert_select "a", text: "View Uploaded Picture", count: 0
+  end
+
+  test "purchase show links to referenced expense when present" do
+    purchase = Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :received
+    )
+    purchase.purchase_items.create!(product: @product, quantity: 2, unit_cost_cents: 1250)
+    purchase.send(:sync_expense!)
+
+    get purchase_path(purchase)
+
+    assert_response :success
+    assert_select "a[href='#{expense_path(purchase.expense)}']", text: "View Expense"
+  end
+
+  test "edit purchase shows referenced expense selector" do
+    purchase = Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft
+    )
+    expense = @business.expenses.create!(
+      occurred_on: Date.current,
+      payee: "Fuel Station",
+      category: @category,
+      amount_cents: 12000,
+      currency: "PHP",
+      funding_source: "Cash",
+      payment_method: "cash",
+      notes: "Delivery fuel",
+      receipt: fixture_file_upload("receipt.txt", "text/plain")
+    )
+
+    get edit_purchase_path(purchase)
+
+    assert_response :success
+    assert_select "select[name='purchase[expense_id]']"
+    assert_select "option[value='#{expense.id}']", text: /Fuel Station/
+  end
+
+  test "update purchase links selected referenced expense" do
+    purchase = Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft
+    )
+    expense = @business.expenses.create!(
+      occurred_on: Date.current,
+      payee: "Fuel Station",
+      category: @category,
+      amount_cents: 12000,
+      currency: "PHP",
+      funding_source: "Cash",
+      payment_method: "cash",
+      notes: "Delivery fuel",
+      receipt: fixture_file_upload("receipt.txt", "text/plain")
+    )
+
+    patch purchase_path(purchase), params: {
+      purchase: {
+        supplier_id: @supplier.id,
+        purchased_on: purchase.purchased_on,
+        receiving_location_id: @location.id,
+        funding_source: "Cash",
+        status: "draft",
+        expense_id: expense.id,
+        purchase_items_attributes: {}
+      }
+    }
+
+    assert_redirected_to purchase_path(purchase)
+    assert_equal purchase.id, expense.reload.purchase_id
   end
 
   test "create purchase with received status adds items to inventory" do

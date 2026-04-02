@@ -3,6 +3,7 @@ class PurchasesController < ApplicationController
   before_action :ensure_editable!, only: %i[edit update]
   before_action :require_owner!, only: %i[destroy]
   before_action :ensure_destroyable!, only: %i[destroy]
+  before_action :load_form_options, only: %i[new edit create update]
 
   def index
     @purchases = current_business.purchases.includes(:supplier).order(purchased_on: :desc)
@@ -31,12 +32,14 @@ class PurchasesController < ApplicationController
 
     Purchase.transaction do
       @purchase.save!
+      sync_expense_reference!(@purchase)
       sync_inventory_if_received!(@purchase)
     end
 
     sync_purchase_image_storage!(@purchase)
     redirect_to @purchase, notice: "Purchase created."
   rescue ActiveRecord::RecordInvalid
+    load_form_options
     render :new, status: :unprocessable_entity
   rescue GoogleDriveAttachmentSync::Error => e
     redirect_to @purchase, alert: "Purchase saved, but photo upload to Google Drive failed: #{e.message}"
@@ -45,12 +48,14 @@ class PurchasesController < ApplicationController
   def update
     Purchase.transaction do
       @purchase.update!(purchase_params)
+      sync_expense_reference!(@purchase)
       sync_inventory_if_received!(@purchase)
     end
 
     sync_purchase_image_storage!(@purchase)
     redirect_to @purchase, notice: "Purchase updated."
   rescue ActiveRecord::RecordInvalid
+    load_form_options
     render :edit, status: :unprocessable_entity
   rescue GoogleDriveAttachmentSync::Error => e
     redirect_to @purchase, alert: "Purchase updated, but photo upload to Google Drive failed: #{e.message}"
@@ -113,8 +118,32 @@ class PurchasesController < ApplicationController
       end
     end
 
+    def load_form_options
+      current_purchase_id = @purchase&.id
+      @expense_reference_options = current_business.expenses
+        .includes(:category)
+        .where(purchase_id: [ nil, current_purchase_id ])
+        .order(occurred_on: :desc, id: :desc)
+    end
+
     def sync_inventory_if_received!(purchase)
       purchase.receive! if purchase.received? && !purchase.inventory_received?
+    end
+
+    def sync_expense_reference!(purchase)
+      selected_expense_id = params.dig(:purchase, :expense_id).presence
+      selected_expense = selected_expense_id.present? ? current_business.expenses.find(selected_expense_id) : nil
+
+      if selected_expense&.purchase.present? && selected_expense.purchase != purchase
+        purchase.errors.add(:expense, "is already linked to another purchase")
+        raise ActiveRecord::RecordInvalid, purchase
+      end
+
+      current_expense = purchase.expense
+      return if current_expense == selected_expense
+
+      current_expense&.update!(purchase: nil) if current_expense.present?
+      selected_expense&.update!(purchase:)
     end
 
     def sync_purchase_image_storage!(purchase)
