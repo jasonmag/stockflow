@@ -9,6 +9,6 @@ export default class extends Controller {
 
   sync() {
     const date = this.dateTarget.value
-    this.referenceTarget.value = date ? `PO-${date}` : ""
+    this.referenceTarget.value = date ? `PO-${date}-1` : ""
   }
 }

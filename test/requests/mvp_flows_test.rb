@@ -660,8 +660,24 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get new_purchase_path
 
     assert_response :success
-    assert_select "input[name='purchase[reference]'][value='PO-#{Date.current}'][readonly]"
+    assert_select "input[name='purchase[reference]'][value='PO-#{Date.current}-1'][readonly]"
     assert_select "input[name='purchase[purchased_on]'][value='#{Date.current}']"
+  end
+
+  test "purchase form uses the next available purchase order name for the day" do
+    Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft
+    )
+
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "input[name='purchase[reference]'][value='PO-#{Date.current}-2'][readonly]"
   end
 
   test "purchase form includes product selection for purchase items" do
@@ -732,8 +748,40 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal 125_000, Purchase.last.purchase_items.last.unit_cost_cents
-    assert_equal "PO-#{Date.current}", Purchase.last.reference
+    assert_equal "PO-#{Date.current}-1", Purchase.last.reference
     assert_redirected_to purchase_path(Purchase.last)
+  end
+
+  test "create purchase generates a unique purchase order name for the same day" do
+    Purchase.create!(
+      business: @business,
+      supplier: @supplier,
+      purchased_on: Date.current,
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft
+    )
+
+    assert_difference("Purchase.count", 1) do
+      post purchases_path, params: {
+        purchase: {
+          supplier_id: @supplier.id,
+          purchased_on: Date.current,
+          receiving_location_id: @location.id,
+          funding_source: "Cash",
+          status: "draft",
+          purchase_items_attributes: {
+            "0" => {
+              product_id: @product.id,
+              quantity: 1,
+              unit_cost_decimal: "12.50"
+            }
+          }
+        }
+      }
+    end
+
+    assert_equal "PO-#{Date.current}-2", Purchase.last.reference
   end
 
   test "create purchase ignores trailing blank purchase item rows" do
@@ -1054,7 +1102,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     }
 
     assert_redirected_to purchase_path(purchase)
-    assert_equal "PO-#{new_date}", purchase.reload.reference
+    assert_equal "PO-#{new_date}-1", purchase.reload.reference
   end
 
   test "update purchase to received adds items to inventory" do

@@ -18,12 +18,12 @@ class PurchasesController < ApplicationController
       receiving_location_id: params[:receiving_location_id],
       funding_source: params[:funding_source]
     )
-    @purchase.reference = "PO-#{@purchase.purchased_on}" if @purchase.purchased_on.present?
+    @purchase.reference = @purchase.next_reference
     @purchase.purchase_items.build
   end
 
   def edit
-    @purchase.reference = "PO-#{@purchase.purchased_on}" if @purchase.purchased_on.present? && @purchase.reference.blank?
+    @purchase.reference = @purchase.next_reference if @purchase.purchased_on.present? && @purchase.reference.blank?
     @purchase.purchase_items.build if @purchase.purchase_items.empty?
   end
 

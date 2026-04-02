@@ -16,6 +16,7 @@ class Purchase < ApplicationRecord
   before_validation :normalize_funding_source
 
   validates :purchased_on, :receiving_location, :funding_source, presence: true
+  validates :reference, uniqueness: { scope: :business_id }, allow_blank: true
   validates_same_business_of :supplier, :receiving_location
   validate :funding_source_enabled_for_business
 
@@ -52,9 +53,15 @@ class Purchase < ApplicationRecord
     purchase_image_storage_file_id.present? && purchase_image_storage_blob_id == purchase_image.blob_id
   end
 
+  def next_reference
+    return if purchased_on.blank? || business.blank?
+
+    self.class.next_reference_for(business:, purchased_on:, excluding_id: id)
+  end
+
   private
     def assign_reference
-      self.reference = purchased_on.present? ? "PO-#{purchased_on}" : nil
+      self.reference = next_reference
     end
 
     def normalize_funding_source
@@ -92,5 +99,25 @@ class Purchase < ApplicationRecord
       return if business.purchase_funding_source_enabled?(funding_source)
 
       errors.add(:funding_source, "is not enabled in store settings")
+    end
+
+    class << self
+      def next_reference_for(business:, purchased_on:, excluding_id: nil)
+        base_reference = "PO-#{purchased_on}"
+        scope = business.purchases.where("reference = ? OR reference LIKE ?", base_reference, "#{base_reference}-%")
+        scope = scope.where.not(id: excluding_id) if excluding_id.present?
+
+        existing_references = scope.pluck(:reference)
+        sequence = existing_references.filter_map do |reference|
+          if reference == base_reference
+            1
+          else
+            match = reference.match(/\A#{Regexp.escape(base_reference)}-(\d+)\z/)
+            match && match[1].to_i
+          end
+        end.max.to_i + 1
+
+        "#{base_reference}-#{sequence}"
+      end
     end
 end
