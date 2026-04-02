@@ -35,7 +35,7 @@
     </div>
     <div>
       <dt class="kpi-label">PDF Status</dt>
-      <dd class="mt-1"><%= status_badge(@delivery.report_pdf.attached? ? :attached : :missing) %></dd>
+      <dd class="mt-1"><%= status_badge(@delivery.report_pdf_available? ? :attached : :missing) %></dd>
     </div>
     <div>
       <dt class="kpi-label">Show Prices</dt>
@@ -52,13 +52,19 @@
   <div class="mb-3 flex flex-wrap gap-2">
     <%= link_to "Preview PDF", preview_pdf_delivery_path(@delivery), class: "btn btn-secondary", target: "_blank", rel: "noopener" %>
     <%= button_to "Generate PDF", generate_pdf_delivery_path(@delivery), method: :post, class: "btn btn-secondary" %>
-    <% if @delivery.report_pdf.attached? %>
+    <% if @delivery.report_pdf_available? %>
       <%= link_to "Download PDF", download_pdf_delivery_path(@delivery), class: "btn btn-ghost" %>
     <% end %>
     <% unless @delivery.delivered? %>
       <%= button_to "Mark Delivered", mark_delivered_delivery_path(@delivery), method: :patch, class: "btn btn-primary" %>
     <% end %>
   </div>
+
+  <% if @delivery.report_pdf_storage_synced_at.present? %>
+    <p class="mb-3 text-sm text-slate-600">Google Drive sync completed on <%= @delivery.report_pdf_storage_synced_at.to_fs(:long) %>.</p>
+  <% elsif @delivery.report_pdf_storage_error.present? %>
+    <p class="mb-3 text-sm text-rose-600"><%= @delivery.report_pdf_storage_error %></p>
+  <% end %>
 
   <h2 class="mb-3 text-base font-semibold text-slate-900">Delivery Items</h2>
   <% if @delivery.delivery_items.any? %>

@@ -30,6 +30,16 @@ class DeliveriesController < ApplicationController
   end
 
   def preview_pdf
+    if @delivery&.report_pdf_storage_url.present?
+      redirect_to @delivery.report_pdf_storage_url, allow_other_host: true
+      return
+    end
+
+    if @delivery&.report_pdf&.attached?
+      redirect_to rails_blob_path(@delivery.report_pdf, disposition: "inline")
+      return
+    end
+
     delivery = @delivery || current_business.deliveries.new(delivery_params)
 
     send_data(
@@ -74,12 +84,16 @@ class DeliveriesController < ApplicationController
   end
 
   def generate_pdf
-    Deliveries::ReportPdfGenerator.new(delivery: @delivery).generate_and_attach!
+    generate_and_store_delivery_pdf!(@delivery)
     redirect_to @delivery, notice: "PDF generated."
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @delivery, alert: "PDF generated, but Google Drive upload failed: #{e.message}"
   end
 
   def download_pdf
-    if @delivery.report_pdf.attached?
+    if @delivery.report_pdf_storage_url.present?
+      redirect_to @delivery.report_pdf_storage_url, allow_other_host: true
+    elsif @delivery.report_pdf.attached?
       redirect_to rails_blob_path(@delivery.report_pdf, disposition: "attachment")
     else
       redirect_to @delivery, alert: "Generate PDF first."
@@ -93,7 +107,7 @@ class DeliveriesController < ApplicationController
       return
     end
 
-    Deliveries::ReportPdfGenerator.new(delivery: @delivery).generate_and_attach! unless @delivery.report_pdf.attached?
+    generate_and_store_delivery_pdf!(@delivery) unless @delivery.report_pdf_available?
 
     log = @delivery.delivery_email_logs.create!(
       sent_by_user: Current.user,
@@ -105,6 +119,8 @@ class DeliveriesController < ApplicationController
 
     DeliveryReportEmailJob.perform_later(log.id)
     redirect_to @delivery, notice: "Delivery report email queued."
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @delivery, alert: "Delivery PDF prepared, but Google Drive upload failed: #{e.message}"
   end
 
   def mark_delivered
@@ -142,5 +158,22 @@ class DeliveriesController < ApplicationController
 
     def sync_inventory_if_delivered!(delivery)
       delivery.mark_delivered! if delivery.delivered? && !delivery.inventory_delivered?
+    end
+
+    def sync_delivery_pdf_storage!(delivery)
+      GoogleDriveAttachmentSync.new(
+        record: delivery,
+        attachment_name: :report_pdf,
+        folder_name: "Deliveries",
+        tracking_prefix: "report_pdf_storage",
+        filename_prefix: delivery.delivery_number.presence || "delivery-#{delivery.id}",
+        replace_existing: true
+      ).sync!
+    end
+
+    def generate_and_store_delivery_pdf!(delivery)
+      Deliveries::ReportPdfGenerator.new(delivery:).generate_and_attach!
+      sync_delivery_pdf_storage!(delivery)
+      delivery.report_pdf.purge if delivery.business.storage_connection&.provider == "google_drive" && delivery.report_pdf.attached?
     end
 end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_02_113000) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_02_161000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -131,6 +131,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_113000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "marked_delivered_at"
+    t.string "report_pdf_storage_file_id"
+    t.string "report_pdf_storage_url"
+    t.integer "report_pdf_storage_blob_id"
+    t.datetime "report_pdf_storage_synced_at"
+    t.text "report_pdf_storage_error"
     t.index ["business_id", "delivery_number"], name: "index_deliveries_on_business_id_and_delivery_number", unique: true
     t.index ["business_id"], name: "index_deliveries_on_business_id"
     t.index ["customer_id"], name: "index_deliveries_on_customer_id"
@@ -176,6 +181,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_113000) do
     t.integer "purchase_id"
     t.string "funding_source", default: "Cash", null: false
     t.string "payment_method", default: "cash", null: false
+    t.string "receipt_storage_file_id"
+    t.string "receipt_storage_url"
+    t.integer "receipt_storage_blob_id"
+    t.datetime "receipt_storage_synced_at"
+    t.text "receipt_storage_error"
     t.index ["business_id"], name: "index_expenses_on_business_id"
     t.index ["category_id"], name: "index_expenses_on_category_id"
     t.index ["purchase_id"], name: "index_expenses_on_purchase_id", unique: true
@@ -320,6 +330,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_02_113000) do
     t.string "funding_source", default: "Cash", null: false
     t.string "reference"
     t.datetime "received_at"
+    t.string "purchase_image_storage_file_id"
+    t.string "purchase_image_storage_url"
+    t.integer "purchase_image_storage_blob_id"
+    t.datetime "purchase_image_storage_synced_at"
+    t.text "purchase_image_storage_error"
     t.index ["business_id"], name: "index_purchases_on_business_id"
     t.index ["receiving_location_id"], name: "index_purchases_on_receiving_location_id"
     t.index ["supplier_id"], name: "index_purchases_on_supplier_id"

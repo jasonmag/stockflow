@@ -46,6 +46,25 @@
       <dt class="kpi-label">Notes</dt>
       <dd class="mt-1 text-sm text-slate-900"><%= @purchase.notes.presence || "-" %></dd>
     </div>
+    <div class="sm:col-span-2">
+      <dt class="kpi-label">Purchase Picture</dt>
+      <dd class="mt-2 flex flex-wrap gap-2">
+        <% if @purchase.purchase_image.attached? %>
+          <%= link_to "View Uploaded Picture", rails_blob_path(@purchase.purchase_image, disposition: "attachment"), class: "btn btn-ghost" %>
+          <% if @purchase.purchase_image_storage_url.present? %>
+            <%= link_to "Open in Google Drive", @purchase.purchase_image_storage_url, class: "btn btn-ghost", target: "_blank", rel: "noopener noreferrer" %>
+          <% elsif @purchase.purchase_image_storage_synced_at.present? %>
+            <span class="text-sm text-slate-600">Synced to Google Drive on <%= @purchase.purchase_image_storage_synced_at.to_fs(:long) %>.</span>
+          <% elsif @purchase.purchase_image_storage_error.present? %>
+            <span class="text-sm text-rose-600"><%= @purchase.purchase_image_storage_error %></span>
+          <% else %>
+            <span class="text-sm text-slate-600">Attached in Stockflow.</span>
+          <% end %>
+        <% else %>
+          <span class="text-sm text-slate-600">No picture uploaded.</span>
+        <% end %>
+      </dd>
+    </div>
   </dl>
 </section>
 

@@ -151,6 +151,48 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal Date.current, payable.due_on
   end
 
+  test "expense receipt sync targets the expenses storage folder" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "demo-folder-id",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    sync_service = Object.new
+    captured_folder_name = nil
+    sync_service.define_singleton_method(:sync!) { true }
+
+    original_new = GoogleDriveAttachmentSync.method(:new)
+    GoogleDriveAttachmentSync.singleton_class.define_method(:new) do |**kwargs|
+      captured_folder_name = kwargs[:folder_name]
+      sync_service
+    end
+
+    begin
+      post expenses_path, params: {
+        expense: {
+          occurred_on: Date.current,
+          payee: "Fuel Station",
+          category_id: @category.id,
+          amount_cents: 12000,
+          currency: "PHP",
+          funding_source: "Cash",
+          payment_method: "cash",
+          notes: "Delivery fuel",
+          receipt: fixture_file_upload("receipt.txt", "text/plain")
+        }
+      }
+    ensure
+      GoogleDriveAttachmentSync.singleton_class.define_method(:new, original_new)
+    end
+
+    assert_equal "Expenses", captured_folder_name
+    assert Expense.last.receipt.attached?
+    assert_redirected_to expense_path(Expense.last)
+  end
+
   test "payables expense creates payments for selected payables" do
     payables_category = @business.categories.find_or_create_by!(name: "Payables")
     payable_one = @business.payables.create!(
@@ -449,6 +491,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get new_purchase_path
 
     assert_response :success
+    assert_select "input[name='purchase[purchase_image]'][type='file'][accept='image/*']"
     assert_select "[data-controller='nested-purchase-items'] button", text: "Add another product"
     assert_select "a[href='#{new_product_path(return_to: new_purchase_path)}']", text: "Add new inventory variant"
     assert_select "[data-controller='nested-purchase-items'] template"
@@ -576,6 +619,58 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to purchase_path(purchase)
     assert_equal 2, purchase.purchase_items.count
     assert_equal [@product.id, second_product.id].sort, purchase.purchase_items.pluck(:product_id).sort
+  end
+
+  test "create purchase uploads picture and syncs it to configured storage" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "demo-folder-id",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    sync_service = Object.new
+    sync_called = false
+    sync_service.define_singleton_method(:sync!) { sync_called = true }
+
+    original_new = GoogleDriveAttachmentSync.method(:new)
+    captured_folder_name = nil
+    GoogleDriveAttachmentSync.singleton_class.define_method(:new) do |**kwargs|
+      raise "purchase should be persisted" unless kwargs[:record].persisted?
+
+      captured_folder_name = kwargs[:folder_name]
+      sync_service
+    end
+
+    begin
+      assert_difference("Purchase.count", 1) do
+        post purchases_path, params: {
+          purchase: {
+            supplier_id: @supplier.id,
+            purchased_on: Date.current,
+            receiving_location_id: @location.id,
+            funding_source: "Cash",
+            status: "draft",
+            purchase_image: fixture_file_upload("receipt.txt", "text/plain"),
+            purchase_items_attributes: {
+              "0" => {
+                product_id: @product.id,
+                quantity: 2,
+                unit_cost_decimal: "12.50"
+              }
+            }
+          }
+        }
+      end
+    ensure
+      GoogleDriveAttachmentSync.singleton_class.define_method(:new, original_new)
+    end
+
+    assert sync_called
+    assert_equal "Purchases", captured_folder_name
+    assert Purchase.last.purchase_image.attached?
+    assert_redirected_to purchase_path(Purchase.last)
   end
 
   test "create purchase with received status adds items to inventory" do
@@ -1344,13 +1439,83 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal 6.0, totals[@product.id]
   end
 
-  test "generate delivery pdf attaches report" do
+  test "generate delivery pdf stores the report in configured business storage" do
     delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
     delivery.delivery_items.create!(product: @product, quantity: 1)
 
-    post generate_pdf_delivery_path(delivery)
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "demo-folder-id",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
 
-    assert delivery.reload.report_pdf.attached?
+    sync_service = Object.new
+    captured_folder_name = nil
+
+    original_new = GoogleDriveAttachmentSync.method(:new)
+    GoogleDriveAttachmentSync.singleton_class.define_method(:new) do |**kwargs|
+      captured_folder_name = kwargs[:folder_name]
+      sync_service.define_singleton_method(:sync!) do
+        kwargs[:record].update_columns(
+          report_pdf_storage_file_id: "drive-file-123",
+          report_pdf_storage_url: "https://drive.google.com/file/d/drive-file-123/view",
+          report_pdf_storage_synced_at: Time.current,
+          report_pdf_storage_error: nil
+        )
+      end
+      sync_service
+    end
+
+    begin
+      post generate_pdf_delivery_path(delivery)
+    ensure
+      GoogleDriveAttachmentSync.singleton_class.define_method(:new, original_new)
+    end
+
+    delivery.reload
+    assert_not delivery.report_pdf.attached?
+    assert_equal "drive-file-123", delivery.report_pdf_storage_file_id
+    assert_equal "Deliveries", captured_folder_name
+  end
+
+  test "generate delivery pdf replaces the existing file in configured business storage" do
+    delivery = Delivery.create!(business: @business, customer: @customer, delivered_on: Date.current, from_location: @location, status: :draft)
+    delivery.delivery_items.create!(product: @product, quantity: 1)
+    delivery.update_columns(
+      report_pdf_storage_file_id: "old-drive-file",
+      report_pdf_storage_url: "https://drive.google.com/file/d/old-drive-file/view"
+    )
+
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "demo-folder-id",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    sync_service = Object.new
+    captured_replace_existing = nil
+    sync_service.define_singleton_method(:sync!) do
+      true
+    end
+
+    original_new = GoogleDriveAttachmentSync.method(:new)
+    GoogleDriveAttachmentSync.singleton_class.define_method(:new) do |**kwargs|
+      captured_replace_existing = kwargs[:replace_existing]
+      sync_service
+    end
+
+    begin
+      post generate_pdf_delivery_path(delivery)
+    ensure
+      GoogleDriveAttachmentSync.singleton_class.define_method(:new, original_new)
+    end
+
+    assert_equal true, captured_replace_existing
+    assert_redirected_to delivery_path(delivery)
   end
 
   test "preview delivery pdf streams inline without saving a delivery" do

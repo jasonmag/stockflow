@@ -62,6 +62,14 @@ class Delivery < ApplicationRecord
     delivery_number.presence || "Auto-generated on save"
   end
 
+  def report_pdf_storage_synced?
+    report_pdf_storage_file_id.present?
+  end
+
+  def report_pdf_available?
+    report_pdf_storage_synced? || report_pdf.attached?
+  end
+
   private
     def assign_delivery_number
       return if delivery_number.present?

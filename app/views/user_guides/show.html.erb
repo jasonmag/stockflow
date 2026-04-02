@@ -108,10 +108,48 @@
 
   admin_steps = [
     "Business Settings: maintain contact details, address, reminder lead days, and base currency.",
+    "Google Drive Storage: connect the business to Google Drive, then edit and save the target folder ID used for uploaded files.",
     "Purchase Funding Sources: define custom funding source names and whether each one is cash or credit.",
     "Products: maintain inventory variants used in purchases, deliveries, and stock movement.",
     "Suppliers and Locations: keep purchasing and storage master data current.",
     "Business Members: add existing or new users to the current business and assign roles."
+  ]
+
+  storage_setup_steps = [
+    {
+      title: "Google Cloud prerequisites",
+      details: [
+        "Create or use a Google Cloud project for the business Google Drive connection.",
+        "Enable the Google Drive API in that same project.",
+        "Create an OAuth client and save the client ID and client secret in Stockflow credentials under google_drive.",
+        "Add the exact callback URL used by Stockflow to the OAuth client redirect URIs."
+      ]
+    },
+    {
+      title: "Connect Google Drive in Stockflow",
+      details: [
+        "Open Business Settings and go to File Storage Authentication.",
+        "Click Connect Google Drive and complete the Google sign-in and consent screen in a single browser tab.",
+        "After a successful connection, confirm the Connected Google Account matches the intended Drive account."
+      ]
+    },
+    {
+      title: "Set the storage folder",
+      details: [
+        "Click Edit Folder before changing the storage link field.",
+        "Paste either the full Google Drive folder URL or the raw folder ID.",
+        "Stockflow saves the normalized folder ID, not the full URL.",
+        "Click Update Google Drive Folder to save the new destination."
+      ]
+    },
+    {
+      title: "Folder field rules",
+      details: [
+        "Use root only when uploads should go to the connected account root drive.",
+        "Use a specific shared folder ID when uploads should be isolated to one business folder.",
+        "Do not enter local server paths such as /rails/storage, /mnt, C:\\, or file:// locations."
+      ]
+    }
   ]
 
   note_prefixes = [
@@ -231,6 +269,22 @@
       <li><%= step %></li>
     <% end %>
   </ul>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Google Drive Storage Setup</h2>
+  <div class="space-y-4 text-sm text-slate-700">
+    <% storage_setup_steps.each do |step| %>
+      <div>
+        <h3 class="font-semibold text-slate-900"><%= step[:title] %></h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5">
+          <% step[:details].each do |detail| %>
+            <li><%= detail %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+  </div>
 </section>
 
 <section class="card mb-4">

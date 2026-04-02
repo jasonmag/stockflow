@@ -34,6 +34,10 @@ class Expense < ApplicationRecord
     @payable_ids || payments.where.not(payable_id: nil).pluck(:payable_id).map(&:to_s)
   end
 
+  def receipt_storage_synced?
+    receipt_storage_file_id.present? && receipt_storage_blob_id == receipt.blob_id
+  end
+
   private
     def sync_currency_from_business
       self.currency = business&.currency if business.present?

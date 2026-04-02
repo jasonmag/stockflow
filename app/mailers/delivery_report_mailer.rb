@@ -3,9 +3,8 @@ class DeliveryReportMailer < ApplicationMailer
     @delivery = Delivery.find(delivery_id)
     @message = message
 
-    if @delivery.report_pdf.attached?
-      attachments[@delivery.report_pdf.filename.to_s] = @delivery.report_pdf.download
-    end
+    attachments["delivery-report-#{@delivery.delivery_number}.pdf"] =
+      Deliveries::ReportPdfGenerator.new(delivery: @delivery).render
 
     mail(to: recipients, subject: subject)
   end

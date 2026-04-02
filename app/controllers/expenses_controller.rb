@@ -23,20 +23,26 @@ class ExpensesController < ApplicationController
   def create
     @expense = current_business.expenses.new(expense_params)
     if @expense.save
+      sync_expense_receipt_storage!(@expense)
       redirect_to @expense, notice: "Expense created."
     else
       load_form_options
       render :new, status: :unprocessable_entity
     end
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @expense, alert: "Expense saved, but receipt upload to Google Drive failed: #{e.message}"
   end
 
   def update
     if @expense.update(expense_params)
+      sync_expense_receipt_storage!(@expense)
       redirect_to @expense, notice: "Expense updated."
     else
       load_form_options
       render :edit, status: :unprocessable_entity
     end
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @expense, alert: "Expense updated, but receipt upload to Google Drive failed: #{e.message}"
   end
 
   def destroy
@@ -57,5 +63,15 @@ class ExpensesController < ApplicationController
       @payables_category = current_business.categories.find_or_create_by!(name: "Payables")
       @expense_categories = current_business.categories.order(:name)
       @coverable_payables = current_business.payables.where(status: %i[unpaid overdue]).order(:due_on, :payee)
+    end
+
+    def sync_expense_receipt_storage!(expense)
+      GoogleDriveAttachmentSync.new(
+        record: expense,
+        attachment_name: :receipt,
+        folder_name: "Expenses",
+        tracking_prefix: "receipt_storage",
+        filename_prefix: "expense-#{expense.id}"
+      ).sync!
     end
 end

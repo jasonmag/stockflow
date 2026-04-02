@@ -50,6 +50,13 @@
       <dd class="mt-1 text-sm text-slate-900">
         <% if @expense.receipt.attached? %>
           <%= link_to "View Receipt", rails_blob_path(@expense.receipt, disposition: "attachment"), class: "btn btn-ghost" %>
+          <% if @expense.receipt_storage_url.present? %>
+            <%= link_to "Open in Google Drive", @expense.receipt_storage_url, class: "btn btn-ghost", target: "_blank", rel: "noopener noreferrer" %>
+          <% elsif @expense.receipt_storage_synced_at.present? %>
+            <span class="block mt-2 text-sm text-slate-600">Synced to Google Drive on <%= @expense.receipt_storage_synced_at.to_fs(:long) %>.</span>
+          <% elsif @expense.receipt_storage_error.present? %>
+            <span class="block mt-2 text-sm text-rose-600"><%= @expense.receipt_storage_error %></span>
+          <% end %>
         <% else %>
           -
         <% end %>

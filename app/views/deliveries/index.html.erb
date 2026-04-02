@@ -58,7 +58,7 @@
             <td data-label="Customer"><%= delivery.customer.name %></td>
             <td data-label="Status"><%= status_badge(delivery.status) %></td>
             <td data-label="PDF">
-              <% if delivery.report_pdf.attached? %>
+              <% if delivery.report_pdf_available? %>
                 <span class="badge badge-success">Attached</span>
               <% else %>
                 <span class="badge badge-neutral">Missing</span>

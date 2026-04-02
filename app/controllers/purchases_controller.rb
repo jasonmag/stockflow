@@ -34,9 +34,12 @@ class PurchasesController < ApplicationController
       sync_inventory_if_received!(@purchase)
     end
 
+    sync_purchase_image_storage!(@purchase)
     redirect_to @purchase, notice: "Purchase created."
   rescue ActiveRecord::RecordInvalid
     render :new, status: :unprocessable_entity
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @purchase, alert: "Purchase saved, but photo upload to Google Drive failed: #{e.message}"
   end
 
   def update
@@ -45,9 +48,12 @@ class PurchasesController < ApplicationController
       sync_inventory_if_received!(@purchase)
     end
 
+    sync_purchase_image_storage!(@purchase)
     redirect_to @purchase, notice: "Purchase updated."
   rescue ActiveRecord::RecordInvalid
     render :edit, status: :unprocessable_entity
+  rescue GoogleDriveAttachmentSync::Error => e
+    redirect_to @purchase, alert: "Purchase updated, but photo upload to Google Drive failed: #{e.message}"
   end
 
   def destroy
@@ -80,7 +86,7 @@ class PurchasesController < ApplicationController
     end
 
     def purchase_params
-      permitted = params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status)
+      permitted = params.require(:purchase).permit(:supplier_id, :purchased_on, :receiving_location_id, :funding_source, :notes, :status, :purchase_image)
       raw_items = params[:purchase]&.[](:purchase_items_attributes)
 
       return permitted unless raw_items.present?
@@ -109,5 +115,15 @@ class PurchasesController < ApplicationController
 
     def sync_inventory_if_received!(purchase)
       purchase.receive! if purchase.received? && !purchase.inventory_received?
+    end
+
+    def sync_purchase_image_storage!(purchase)
+      GoogleDriveAttachmentSync.new(
+        record: purchase,
+        attachment_name: :purchase_image,
+        folder_name: "Purchases",
+        tracking_prefix: "purchase_image_storage",
+        filename_prefix: purchase.reference.presence || "purchase-#{purchase.id}"
+      ).sync!
     end
 end

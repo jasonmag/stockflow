@@ -4,6 +4,7 @@ class Purchase < ApplicationRecord
   belongs_to :business
   belongs_to :supplier
   belongs_to :receiving_location, class_name: "Location"
+  has_one_attached :purchase_image
   has_many :purchase_items, dependent: :destroy
   has_many :stock_movements, as: :reference, dependent: :nullify
   has_one :expense, dependent: :nullify
@@ -45,6 +46,10 @@ class Purchase < ApplicationRecord
 
   def inventory_received?
     stock_movements.inward.exists?
+  end
+
+  def purchase_image_storage_synced?
+    purchase_image_storage_file_id.present? && purchase_image_storage_blob_id == purchase_image.blob_id
   end
 
   private

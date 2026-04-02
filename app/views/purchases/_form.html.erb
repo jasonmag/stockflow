@@ -57,6 +57,12 @@
       <%= f.label :notes, class: "field-label" %>
       <%= f.text_area :notes, class: "field-input", rows: 3 %>
     </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :purchase_image, "Purchase Picture", class: "field-label" %>
+      <%= f.file_field :purchase_image, class: "field-input", accept: "image/*" %>
+      <p class="mt-1 text-xs text-slate-600">Upload the supplier receipt, purchase photo, or invoice image. When Google Drive storage is connected, Stockflow also syncs this file to the configured Drive folder.</p>
+    </div>
   </div>
 
   <section class="rounded-lg border border-slate-200 p-4">
