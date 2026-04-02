@@ -19,7 +19,7 @@ class StockMovementsController < ApplicationController
 
   private
     def stock_movement_params
-      params.require(:stock_movement).permit(:movement_type, :product_id, :quantity, :unit_cost_cents, :from_location_id, :to_location_id, :occurred_on, :notes)
+      params.require(:stock_movement).permit(:movement_type, :product_id, :quantity, :unit_cost_decimal, :unit_cost_cents, :from_location_id, :to_location_id, :occurred_on, :notes)
     end
 
     def build_current_inventory_rows

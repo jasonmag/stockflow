@@ -7,7 +7,7 @@
     <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" }, data: { action: "input->purchase-item-total#update", purchase_item_total_target: "quantity" } %>
   </div>
   <div data-mobile-label="Unit cost">
-    <%= form.number_field :unit_cost_decimal, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Unit cost" }, data: { action: "input->purchase-item-total#update keydown.enter->nested-purchase-items#addFromUnitCost keydown.tab->nested-purchase-items#addFromUnitCost", purchase_item_total_target: "unitCost" } %>
+    <%= form.number_field :unit_cost_decimal, step: "0.0001", min: 0.0001, class: "field-input", placeholder: "0.0000", aria: { label: "Unit cost" }, data: { action: "input->purchase-item-total#update keydown.enter->nested-purchase-items#addFromUnitCost keydown.tab->nested-purchase-items#addFromUnitCost", purchase_item_total_target: "unitCost" } %>
   </div>
   <div data-mobile-label="Sub-total">
     <div class="purchase-item-subtotal" data-purchase-item-total-target="subtotal">PHP 0.00</div>

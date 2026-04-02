@@ -57,6 +57,6 @@ class ReceivablesController < ApplicationController
     end
 
     def receivable_params
-      params.require(:receivable).permit(:customer_id, :reference, :delivered_on, :due_on, :amount_cents, :currency, :status, :notes)
+      params.require(:receivable).permit(:customer_id, :reference, :delivered_on, :due_on, :amount_decimal, :amount_cents, :currency, :status, :notes)
     end
 end

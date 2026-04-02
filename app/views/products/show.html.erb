@@ -112,7 +112,7 @@
           <%= form_with model: [@product, @product_price], class: "grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto]" do |f| %>
             <div>
               <%= f.label :price_decimal, "Selling Price", class: "field-label" %>
-              <%= f.number_field :price_decimal, value: @product_price.price_decimal, class: "field-input", min: 0, step: "0.01", placeholder: "0.00" %>
+              <%= f.number_field :price_decimal, value: @product_price.price_decimal, class: "field-input", min: 0, step: "0.0001", placeholder: "0.0000" %>
             </div>
             <div>
               <%= f.label :effective_on, "Effective Date", class: "field-label" %>
@@ -232,7 +232,7 @@
           <%= form_with model: [@product, @product_purchase_price], class: "grid gap-4 md:grid-cols-[minmax(0,1fr)_220px_auto]" do |f| %>
             <div>
               <%= f.label :price_decimal, "Purchase Price", class: "field-label" %>
-              <%= f.number_field :price_decimal, value: @product_purchase_price.price_decimal, class: "field-input", min: 0, step: "0.01", placeholder: "0.00" %>
+              <%= f.number_field :price_decimal, value: @product_purchase_price.price_decimal, class: "field-input", min: 0, step: "0.0001", placeholder: "0.0000" %>
             </div>
             <div>
               <%= f.label :effective_on, "Effective Date", class: "field-label" %>

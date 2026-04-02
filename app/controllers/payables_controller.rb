@@ -63,6 +63,6 @@ class PayablesController < ApplicationController
     end
 
     def payable_params
-      params.require(:payable).permit(:payable_type, :payee, :amount_cents, :currency, :due_on, :status, :notes, :recurring_rule)
+      params.require(:payable).permit(:payable_type, :payee, :amount_decimal, :amount_cents, :currency, :due_on, :status, :notes, :recurring_rule)
     end
 end

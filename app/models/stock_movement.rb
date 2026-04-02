@@ -12,6 +12,7 @@ class StockMovement < ApplicationRecord
   validates :occurred_on, :quantity, :movement_type, presence: true
   validates :unit_cost_cents, presence: true, if: :in?
   validates_same_business_of :product, :from_location, :to_location
+  validate :unit_cost_decimal_is_valid
   validate :movement_locations_valid
   validate :reference_matches_business
 
@@ -26,7 +27,35 @@ class StockMovement < ApplicationRecord
     to_location&.name || reference_to_label || "-"
   end
 
+  def unit_cost_decimal
+    return @unit_cost_decimal if defined?(@unit_cost_decimal) && @unit_cost_decimal.present?
+    return if unit_cost_cents.blank?
+
+    format("%.4f", unit_cost_cents / 100.0)
+  end
+
+  def unit_cost_decimal=(value)
+    @unit_cost_decimal = value.to_s
+
+    if @unit_cost_decimal.blank?
+      self.unit_cost_cents = nil
+      return
+    end
+
+    self.unit_cost_cents = (BigDecimal(@unit_cost_decimal) * 100).round
+    @invalid_unit_cost_decimal = false
+  rescue ArgumentError
+    self.unit_cost_cents = nil
+    @invalid_unit_cost_decimal = true
+  end
+
   private
+    def unit_cost_decimal_is_valid
+      return unless @invalid_unit_cost_decimal
+
+      errors.add(:unit_cost_decimal, "is not a valid amount")
+    end
+
     def reference_from_label
       case reference
       when Purchase

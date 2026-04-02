@@ -43,7 +43,7 @@
 
     <div>
       <%= f.label :amount_decimal, "Amount", class: "field-label" %>
-      <%= f.number_field :amount_decimal, class: "field-input", min: 0.01, step: 0.01, placeholder: "0.00", data: { expense_payables_target: "amount" } %>
+      <%= f.number_field :amount_decimal, class: "field-input", min: 0.0001, step: "0.0001", placeholder: "0.0000", data: { expense_payables_target: "amount" } %>
     </div>
 
     <div>

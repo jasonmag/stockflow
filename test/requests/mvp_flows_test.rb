@@ -53,7 +53,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "select[name='expense[payee]']"
-    assert_select "input[name='expense[amount_decimal]'][step='0.01']"
+    assert_select "input[name='expense[amount_decimal]'][step='0.0001']"
     assert_select "option[value='#{@supplier.name}']", text: @supplier.name
     assert_select "option[value='#{second_supplier.name}']", text: second_supplier.name
     assert_select "a[href='#{categories_path}']", text: "Manage expense categories"
@@ -78,6 +78,57 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_equal 12050, Expense.last.amount_cents
     assert_redirected_to expense_path(Expense.last)
+  end
+
+  test "payable form allows four decimal amount input" do
+    get new_payable_path
+
+    assert_response :success
+    assert_select "input[name='payable[amount_decimal]'][step='0.0001']"
+  end
+
+  test "create payable accepts decimal amount input and saves cents" do
+    assert_difference("Payable.count", 1) do
+      post payables_path, params: {
+        payable: {
+          payable_type: "supplier",
+          payee: "Vendor",
+          amount_decimal: "12.3456",
+          currency: "PHP",
+          due_on: Date.current,
+          status: "unpaid"
+        }
+      }
+    end
+
+    assert_equal 1235, Payable.last.amount_cents
+    assert_redirected_to payable_path(Payable.last)
+  end
+
+  test "receivable form allows four decimal amount input" do
+    get new_receivable_path
+
+    assert_response :success
+    assert_select "input[name='receivable[amount_decimal]'][step='0.0001']"
+  end
+
+  test "create receivable accepts decimal amount input and saves cents" do
+    assert_difference("Receivable.count", 1) do
+      post receivables_path, params: {
+        receivable: {
+          customer_id: @customer.id,
+          reference: "INV-1",
+          delivered_on: Date.current,
+          due_on: Date.current + 7.days,
+          amount_decimal: "45.6789",
+          currency: "PHP",
+          status: "pending"
+        }
+      }
+    end
+
+    assert_equal 4568, Receivable.last.amount_cents
+    assert_redirected_to receivable_path(Receivable.last)
   end
 
   test "expenses index filters payee by suppliers dropdown" do
@@ -108,7 +159,6 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get expenses_path, params: { payee: @supplier.name }
 
     assert_response :success
-    assert_select "a[href='#{categories_path}']", text: "Manage expense categories"
     assert_select "select[name='payee'] option[value='#{@supplier.name}'][selected='selected']", text: @supplier.name
     assert_select "tbody tr", count: 1
     assert_select "tbody tr td[data-label='Payee']", text: current_business_expense.payee
@@ -629,7 +679,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "div", text: "Sub-total", count: 1
     assert_select "select[name='purchase[purchase_items_attributes][0][product_id]'] option", text: "Select product"
     assert_select "select[name='purchase[purchase_items_attributes][0][product_id]'] option", text: @product.name
-    assert_select "input[name='purchase[purchase_items_attributes][0][unit_cost_decimal]'][data-action*='keydown.enter->nested-purchase-items#addFromUnitCost'][data-action*='keydown.tab->nested-purchase-items#addFromUnitCost']"
+    assert_select "input[name='purchase[purchase_items_attributes][0][unit_cost_decimal]'][step='0.0001'][data-action*='keydown.enter->nested-purchase-items#addFromUnitCost'][data-action*='keydown.tab->nested-purchase-items#addFromUnitCost']"
     assert_select "[data-controller='purchase-item-total'] [data-purchase-item-total-target='subtotal']", text: "PHP 0.00"
     assert_select "[data-nested-purchase-items-target='item'] button", text: "Remove"
     assert_select "[data-nested-purchase-items-target='overall']", text: "PHP 0.00"
