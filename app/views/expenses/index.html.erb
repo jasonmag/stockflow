@@ -37,10 +37,6 @@
         options_from_collection_for_select(current_business.categories.order(:name), :id, :name, params[:category_id]),
         { include_blank: "All categories" },
         class: "field-input" %>
-      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
-        <span>Need another category?</span>
-        <%= link_to "Manage expense categories", categories_path, class: "font-semibold text-slate-900 hover:underline" %>
-      </div>
     </div>
     <div>
       <%= f.label :funding_source, "Funding source", class: "field-label" %>
