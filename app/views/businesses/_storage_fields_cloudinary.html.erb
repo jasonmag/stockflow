@@ -1,0 +1,19 @@
+<div class="grid gap-4 md:grid-cols-2">
+  <div>
+    <%= storage_form.label :storage_account_name, "Cloudinary Cloud Name", class: "field-label" %>
+    <%= storage_form.text_field :storage_account_name, class: "field-input", placeholder: "your-cloud-name" %>
+  </div>
+  <div>
+    <%= storage_form.label :app_key, "Cloudinary API Key", class: "field-label" %>
+    <%= storage_form.password_field :app_key, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :app_secret, "Cloudinary API Secret", class: "field-label" %>
+    <%= storage_form.password_field :app_secret, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :external_root_path, "Cloudinary Folder", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "stockflow/businesses/demo-biz" %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "cloudinary" %>

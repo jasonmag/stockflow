@@ -1,0 +1,23 @@
+<div class="grid gap-4 md:grid-cols-2">
+  <div>
+    <%= storage_form.label :client_id, "SharePoint App Client ID", class: "field-label" %>
+    <%= storage_form.password_field :client_id, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :client_secret, "SharePoint App Client Secret", class: "field-label" %>
+    <%= storage_form.password_field :client_secret, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :tenant_id, "Microsoft Tenant ID", class: "field-label" %>
+    <%= storage_form.password_field :tenant_id, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :site_id, "SharePoint Site ID or URL", class: "field-label" %>
+    <%= storage_form.text_field :site_id, class: "field-input", placeholder: "site-id or https://company.sharepoint.com/sites/operations" %>
+  </div>
+  <div class="md:col-span-2">
+    <%= storage_form.label :external_root_path, "SharePoint Folder Path", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "/Shared Documents/Stockflow" %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "sharepoint" %>

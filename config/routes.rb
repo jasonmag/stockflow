@@ -25,6 +25,10 @@ Rails.application.routes.draw do
     patch :switch
     get :members
     post :add_member
+    resource :storage_connection, only: %i[update destroy], controller: "business_storage_connections" do
+      get :connect_google_drive
+      get :google_drive_callback
+    end
     delete "members/:membership_id", to: "businesses#remove_member", as: :remove_member
   end
 

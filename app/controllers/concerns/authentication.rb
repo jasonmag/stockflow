@@ -1,5 +1,6 @@
 module Authentication
   extend ActiveSupport::Concern
+  MAX_RETURN_TO_URL_BYTES = 512
 
   included do
     before_action :require_authentication
@@ -32,7 +33,7 @@ module Authentication
     end
 
     def request_authentication
-      session[:return_to_after_authenticating] = request.url
+      session[:return_to_after_authenticating] = storable_return_path
       redirect_to(request.path.start_with?("/admin") ? admin_login_path : login_path)
     end
 
@@ -69,5 +70,12 @@ module Authentication
       return nil if user_id.blank?
 
       User.find_by(id: user_id)
+    end
+
+    def storable_return_path
+      return request.path unless request.get?
+
+      fullpath = request.fullpath
+      fullpath.bytesize <= MAX_RETURN_TO_URL_BYTES ? fullpath : request.path
     end
 end

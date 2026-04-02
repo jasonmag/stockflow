@@ -201,6 +201,15 @@ class MultiTenantSecurityTest < ActionDispatch::IntegrationTest
     assert_equal "Only owners can do that.", flash[:alert]
   end
 
+  test "staff cannot connect business storage" do
+    sign_in_as(@staff)
+
+    get connect_google_drive_business_storage_connection_path
+
+    assert_redirected_to root_path
+    assert_equal "Only owners can do that.", flash[:alert]
+  end
+
   test "system admin can create business stores" do
     sign_in_as(@system_admin)
 

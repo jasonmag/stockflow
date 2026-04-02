@@ -63,7 +63,7 @@ class ApplicationController < ActionController::Base
       return unless Current.user
       return if admin_namespace?
       return if system_admin? || owner?
-      return if %w[stock_movements deliveries dashboard user_guides notifications businesses sessions].include?(controller_name)
+      return if %w[stock_movements deliveries dashboard user_guides notifications businesses business_storage_connections sessions].include?(controller_name)
 
       redirect_to root_path, alert: "Not authorized."
     end

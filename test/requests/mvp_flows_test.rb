@@ -14,7 +14,15 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     @location = Location.create!(business: @business, name: "Warehouse", location_type: :warehouse)
     @product = Product.create!(business: @business, name: "Canned Goods", unit: "pc", active: true)
 
+    ENV["GOOGLE_DRIVE_CLIENT_ID"] = "google-client-id"
+    ENV["GOOGLE_DRIVE_CLIENT_SECRET"] = "google-client-secret"
+
     sign_in_as(@user)
+  end
+
+  teardown do
+    ENV.delete("GOOGLE_DRIVE_CLIENT_ID")
+    ENV.delete("GOOGLE_DRIVE_CLIENT_SECRET")
   end
 
   test "create expense" do
@@ -225,6 +233,134 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "select[name='business[currency]'] option[selected='selected']", text: "PHP"
     assert_select "select[name='business[currency]'] option", text: "USD"
+    assert_select "a[href='#{connect_google_drive_business_storage_connection_path}']", text: "Connect Google Drive"
+    assert_select "input[name='storage_connection[external_root_path]']", count: 0
+    assert_select "a[href='https://developers.google.com/workspace/drive/api/guides/api-specific-auth']"
+  end
+
+  test "google drive folder update rejects local server storage locations" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "root",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    patch business_storage_connection_path, params: {
+      storage_connection: {
+        external_root_path: "/rails/storage/business-files"
+      }
+    }
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "must point to external storage, not local server storage"
+  end
+
+  test "owner can start google drive oauth connection" do
+    get connect_google_drive_business_storage_connection_path
+
+    assert_response :redirect
+    assert_match %r{\Ahttps://accounts\.google\.com/o/oauth2/v2/auth}, response.location
+  end
+
+  test "owner can finish google drive oauth connection" do
+    client = Object.new
+    client.define_singleton_method(:authorization_uri) { |state:, redirect_uri:| "https://accounts.google.com/o/oauth2/v2/auth?state=#{state}&redirect_uri=#{CGI.escape(redirect_uri)}" }
+    client.define_singleton_method(:exchange_code) do |code:, redirect_uri:|
+      raise "unexpected code" unless code == "oauth-code"
+      raise "missing redirect uri" if redirect_uri.blank?
+
+      { access_token: "google-access-token", refresh_token: "google-refresh-token", expires_in: 3600 }
+    end
+    client.define_singleton_method(:drive_profile) do |access_token:|
+      raise "unexpected access token" unless access_token == "google-access-token"
+
+      { display_name: "Owner", email_address: "owner@example.com" }
+    end
+
+    original_new = GoogleDriveOauthClient.method(:new)
+    GoogleDriveOauthClient.singleton_class.define_method(:new) { |*| client }
+
+    begin
+      get connect_google_drive_business_storage_connection_path
+
+      state = Rack::Utils.parse_query(URI.parse(response.location).query)["state"]
+
+      assert_difference("BusinessStorageConnection.count", 1) do
+        get google_drive_callback_business_storage_connection_path, params: { state:, code: "oauth-code" }
+      end
+    ensure
+      GoogleDriveOauthClient.singleton_class.define_method(:new, original_new)
+    end
+
+    assert_redirected_to edit_business_path
+    connection = @business.reload.storage_connection
+    assert_equal "google_drive", connection.provider
+    assert_equal "oauth2", connection.auth_method
+    assert_equal "owner@example.com", connection.connected_account_label
+    assert_equal "root", connection.external_root_path
+    assert_equal "google_drive", @business.file_storage_provider
+    assert_equal "root", @business.file_storage_location
+  end
+
+  test "owner can update google drive destination folder" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "root",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    patch business_storage_connection_path, params: {
+      storage_connection: {
+        external_root_path: "https://drive.google.com/drive/folders/demo-biz-files"
+      }
+    }
+
+    assert_redirected_to edit_business_path
+    assert_equal "demo-biz-files", @business.reload.storage_connection.external_root_path
+    assert_equal "demo-biz-files", @business.file_storage_location
+  end
+
+  test "owner can update google drive destination folder using a drive url with account segment" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "root",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    patch business_storage_connection_path, params: {
+      storage_connection: {
+        external_root_path: "https://drive.google.com/drive/u/2/folders/116SXXaVV1AJmcckFpwGu-_xRAkeZjEhU"
+      }
+    }
+
+    assert_redirected_to edit_business_path
+    assert_equal "116SXXaVV1AJmcckFpwGu-_xRAkeZjEhU", @business.reload.storage_connection.external_root_path
+    assert_equal "116SXXaVV1AJmcckFpwGu-_xRAkeZjEhU", @business.file_storage_location
+  end
+
+  test "owner can disconnect business storage" do
+    @business.create_storage_connection!(
+      provider: "google_drive",
+      connected_account_label: "owner@example.com",
+      external_root_path: "https://drive.google.com/drive/folders/demo-biz-files",
+      access_token: "access-token",
+      refresh_token: "refresh-token"
+    )
+
+    assert_difference("BusinessStorageConnection.count", -1) do
+      delete business_storage_connection_path
+    end
+
+    assert_redirected_to edit_business_path
+    assert_nil @business.reload.storage_connection
+    assert_nil @business.file_storage_provider
+    assert_nil @business.file_storage_location
   end
 
   test "business owner can create purchase funding source settings" do

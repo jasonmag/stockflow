@@ -1,0 +1,27 @@
+<div class="grid gap-4 md:grid-cols-2">
+  <div>
+    <%= storage_form.label :access_key_id, "S3 Access Key ID", class: "field-label" %>
+    <%= storage_form.password_field :access_key_id, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :secret_access_key, "S3 Secret Access Key", class: "field-label" %>
+    <%= storage_form.password_field :secret_access_key, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :bucket_name, "S3 Bucket Name", class: "field-label" %>
+    <%= storage_form.text_field :bucket_name, class: "field-input", placeholder: "stockflow-business-files" %>
+  </div>
+  <div>
+    <%= storage_form.label :region, "S3 Region", class: "field-label" %>
+    <%= storage_form.text_field :region, class: "field-input", placeholder: "ap-southeast-1" %>
+  </div>
+  <div>
+    <%= storage_form.label :endpoint, "Custom S3 Endpoint", class: "field-label" %>
+    <%= storage_form.text_field :endpoint, class: "field-input", placeholder: "Optional for S3-compatible providers" %>
+  </div>
+  <div>
+    <%= storage_form.label :external_root_path, "S3 Prefix / Folder", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "businesses/demo-biz" %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "amazon_s3" %>

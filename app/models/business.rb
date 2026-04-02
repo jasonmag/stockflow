@@ -1,5 +1,8 @@
 class Business < ApplicationRecord
   SUPPORTED_CURRENCIES = %w[PHP USD EUR GBP JPY SGD AUD CAD].freeze
+  FILE_STORAGE_PROVIDERS = {
+    "google_drive" => "Google Drive"
+  }.freeze
   LEGACY_PURCHASE_FUNDING_SOURCE_LABELS = {
     "personal" => "Cash",
     "business" => "Cash",
@@ -36,15 +39,27 @@ class Business < ApplicationRecord
   has_many :collections, dependent: :destroy
   has_many :deliveries, dependent: :destroy
   has_many :notifications, dependent: :destroy
+  has_one :storage_connection, class_name: "BusinessStorageConnection", dependent: :destroy
 
   after_create_commit :ensure_default_purchase_funding_sources!
 
   validates :name, presence: true
   validates :currency, presence: true, inclusion: { in: SUPPORTED_CURRENCIES }
+  validates :file_storage_provider, inclusion: { in: FILE_STORAGE_PROVIDERS.keys }, allow_blank: true
   validates :reminder_lead_days, numericality: { greater_than_or_equal_to: 0 }
+  validate :file_storage_location_required_for_external_provider
+  validate :file_storage_location_must_be_external
 
   def currency_options
     SUPPORTED_CURRENCIES.map { |currency| [ currency, currency ] }
+  end
+
+  def file_storage_provider_options
+    FILE_STORAGE_PROVIDERS.map { |value, label| [ label, value ] }
+  end
+
+  def file_storage_provider_label
+    FILE_STORAGE_PROVIDERS[file_storage_provider]
   end
 
   def purchase_funding_source_keys
@@ -86,6 +101,36 @@ class Business < ApplicationRecord
   end
 
   private
+    def file_storage_location_required_for_external_provider
+      return if file_storage_provider.blank?
+      return if file_storage_location.present?
+
+      errors.add(:file_storage_location, "can't be blank when an external storage provider is selected")
+    end
+
+    def file_storage_location_must_be_external
+      return if file_storage_location.blank?
+
+      normalized_location = file_storage_location.to_s.downcase
+      local_patterns = [
+        "storage/",
+        "/storage",
+        "tmp/storage",
+        "local",
+        "server",
+        "localhost",
+        "file://",
+        "c:\\",
+        "/mnt/",
+        "/var/",
+        "/home/"
+      ]
+
+      return unless local_patterns.any? { |pattern| normalized_location.include?(pattern) }
+
+      errors.add(:file_storage_location, "must point to external storage, not local server storage")
+    end
+
     def normalize_purchase_funding_source(value)
       self.class.normalize_purchase_funding_source_label(value)
     end

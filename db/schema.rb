@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_26_103000) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_02_113000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -39,6 +39,38 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_26_103000) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "business_storage_connections", force: :cascade do |t|
+    t.integer "business_id", null: false
+    t.string "provider", null: false
+    t.string "auth_method", null: false
+    t.string "external_root_path", null: false
+    t.string "connected_account_label", null: false
+    t.string "status", default: "connected", null: false
+    t.datetime "connected_at"
+    t.datetime "last_verified_at"
+    t.text "last_error_message"
+    t.text "client_id"
+    t.text "client_secret"
+    t.text "access_key_id"
+    t.text "secret_access_key"
+    t.text "access_token"
+    t.text "refresh_token"
+    t.text "service_account_json"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.text "tenant_id"
+    t.text "app_key"
+    t.text "app_secret"
+    t.string "storage_account_name"
+    t.string "bucket_name"
+    t.string "container_name"
+    t.string "region"
+    t.string "endpoint"
+    t.string "drive_id"
+    t.string "site_id"
+    t.index ["business_id"], name: "index_business_storage_connections_on_business_id", unique: true
+  end
+
   create_table "businesses", force: :cascade do |t|
     t.string "name", null: false
     t.string "contact_email"
@@ -49,6 +81,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_26_103000) do
     t.datetime "updated_at", null: false
     t.text "purchase_funding_sources", default: "Cash\nCredit", null: false
     t.string "currency", default: "PHP", null: false
+    t.string "file_storage_provider"
+    t.string "file_storage_location"
   end
 
   create_table "categories", force: :cascade do |t|
@@ -365,6 +399,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_26_103000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "business_storage_connections", "businesses"
   add_foreign_key "categories", "businesses"
   add_foreign_key "collections", "businesses"
   add_foreign_key "collections", "receivables"

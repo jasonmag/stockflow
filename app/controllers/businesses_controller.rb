@@ -81,10 +81,20 @@ class BusinessesController < ApplicationController
       @products = current_business.products.order(:name)
       @suppliers = current_business.suppliers.order(:name)
       @locations = current_business.locations.order(:name)
+      @storage_connection = current_business.storage_connection || current_business.build_storage_connection(
+        provider: current_business.file_storage_provider,
+        external_root_path: current_business.file_storage_location
+      )
     end
 
     def business_params
-      params.require(:business).permit(:contact_email, :contact_phone, :address, :reminder_lead_days, :currency)
+      params.require(:business).permit(
+        :contact_email,
+        :contact_phone,
+        :address,
+        :reminder_lead_days,
+        :currency
+      )
     end
 
     def membership_params

@@ -1,0 +1,23 @@
+<div class="grid gap-4 md:grid-cols-2">
+  <div>
+    <%= storage_form.label :client_id, "OneDrive App Client ID", class: "field-label" %>
+    <%= storage_form.password_field :client_id, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :client_secret, "OneDrive App Client Secret", class: "field-label" %>
+    <%= storage_form.password_field :client_secret, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :tenant_id, "Microsoft Tenant ID", class: "field-label" %>
+    <%= storage_form.password_field :tenant_id, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :refresh_token, "OneDrive Refresh Token", class: "field-label" %>
+    <%= storage_form.password_field :refresh_token, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div class="md:col-span-2">
+    <%= storage_form.label :external_root_path, "OneDrive Folder Path", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "/Stockflow/Business Files" %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "onedrive" %>

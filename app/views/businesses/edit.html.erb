@@ -9,44 +9,147 @@
   </div>
 </div>
 
-<%= form_with model: @business, url: business_path, method: :patch, class: "card space-y-6" do |f| %>
-  <% if @business.errors.any? %>
-    <div class="flash flash-alert">
-      <p class="font-semibold"><%= pluralize(@business.errors.count, "error") %> prevented these settings from being saved:</p>
-      <ul class="mt-2 list-disc pl-5">
-        <% @business.errors.full_messages.each do |message| %>
-          <li><%= message %></li>
-        <% end %>
-      </ul>
+<div class="card space-y-6">
+  <%= form_with model: @business, url: business_path, method: :patch, class: "space-y-6" do |f| %>
+    <% if @business.errors.any? %>
+      <div class="flash flash-alert">
+        <p class="font-semibold"><%= pluralize(@business.errors.count, "error") %> prevented these settings from being saved:</p>
+        <ul class="mt-2 list-disc pl-5">
+          <% @business.errors.full_messages.each do |message| %>
+            <li><%= message %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="grid gap-4 md:grid-cols-2">
+      <div>
+        <%= f.label :contact_email, class: "field-label" %>
+        <%= f.email_field :contact_email, class: "field-input" %>
+      </div>
+
+      <div>
+        <%= f.label :contact_phone, class: "field-label" %>
+        <%= f.text_field :contact_phone, class: "field-input" %>
+      </div>
+
+      <div class="md:col-span-2">
+        <%= f.label :address, class: "field-label" %>
+        <%= f.text_area :address, class: "field-input", rows: 3 %>
+      </div>
+
+      <div>
+        <%= f.label :reminder_lead_days, class: "field-label" %>
+        <%= f.number_field :reminder_lead_days, class: "field-input", min: 0 %>
+      </div>
+
+      <div>
+        <%= f.label :currency, class: "field-label" %>
+        <%= f.select :currency, options_for_select(@business.currency_options, @business.currency), {}, class: "field-input" %>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <%= f.submit "Save Settings", class: "btn btn-primary" %>
+      <%= link_to "Cancel", dashboard_path, class: "btn btn-secondary" %>
     </div>
   <% end %>
 
-  <div class="grid gap-4 md:grid-cols-2">
-    <div>
-      <%= f.label :contact_email, class: "field-label" %>
-      <%= f.email_field :contact_email, class: "field-input" %>
+  <section class="rounded-lg border border-slate-200 p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-sm font-semibold text-slate-900">File Storage Authentication</h2>
+        <p class="mt-1 text-xs text-slate-600">Authenticate the business against its external storage destination before files are uploaded.</p>
+      </div>
+      <% if @storage_connection.persisted? %>
+        <div class="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">
+          Connected via <%= @storage_connection.auth_method_label %>
+        </div>
+      <% else %>
+        <div class="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+          Not connected
+        </div>
+      <% end %>
     </div>
 
-    <div>
-      <%= f.label :contact_phone, class: "field-label" %>
-      <%= f.text_field :contact_phone, class: "field-input" %>
-    </div>
+    <div class="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+      <% if @storage_connection.errors.any? %>
+        <div class="flash flash-alert">
+          <p class="font-semibold"><%= pluralize(@storage_connection.errors.count, "error") %> prevented the Google Drive connection from being saved:</p>
+          <ul class="mt-2 list-disc pl-5">
+            <% @storage_connection.errors.full_messages.each do |message| %>
+              <li><%= message %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
 
-    <div class="md:col-span-2">
-      <%= f.label :address, class: "field-label" %>
-      <%= f.text_area :address, class: "field-input", rows: 3 %>
-    </div>
+      <p class="text-sm text-slate-600">
+        Stockflow will open Google’s own sign-in and consent screen so this app can upload business files directly to Google Drive.
+      </p>
 
-    <div>
-      <%= f.label :reminder_lead_days, class: "field-label" %>
-      <%= f.number_field :reminder_lead_days, class: "field-input", min: 0 %>
-    </div>
+      <p class="mt-3 text-xs text-slate-600">
+        <%= link_to "Open the official Google Drive authentication guide",
+          "https://developers.google.com/workspace/drive/api/guides/api-specific-auth",
+          class: "font-medium text-sky-700 hover:text-sky-800",
+          target: "_blank",
+          rel: "noopener noreferrer" %>
+      </p>
 
-    <div>
-      <%= f.label :currency, class: "field-label" %>
-      <%= f.select :currency, options_for_select(@business.currency_options, @business.currency), {}, class: "field-input" %>
+      <% if @storage_connection.persisted? %>
+        <div class="mt-4 grid gap-4 md:grid-cols-2">
+          <div>
+            <p class="field-label">Connected Google Account</p>
+            <p class="field-input"><%= @storage_connection.connected_account_label %></p>
+          </div>
+          <div>
+            <p class="field-label">Storage Provider</p>
+            <p class="field-input">Google Drive</p>
+          </div>
+        </div>
+
+        <%= form_with scope: :storage_connection,
+          url: business_storage_connection_path,
+          method: :patch,
+          class: "mt-4 space-y-4",
+          data: {
+            turbo: false,
+            controller: "google-drive-folder",
+            action: "submit->google-drive-folder#submit"
+          } do |storage_form| %>
+          <div>
+            <%= storage_form.label :external_root_path, "Google Drive Folder URL or ID", class: "field-label" %>
+            <%= storage_form.text_field :external_root_path,
+              value: @storage_connection.external_root_path,
+              class: "field-input bg-slate-100 cursor-not-allowed",
+              placeholder: "https://drive.google.com/drive/folders/... or folder ID",
+              readonly: true,
+              data: {
+                google_drive_folder_target: "input",
+                action: "input->google-drive-folder#preview blur->google-drive-folder#preview"
+              } %>
+            <p class="mt-1 text-xs text-slate-600">Use `root` to store files in the connected account’s root drive, or paste a specific Google Drive folder URL or folder ID.</p>
+            <p class="mt-1 text-xs text-slate-600">The form will save this normalized folder ID: <span class="font-mono" data-google-drive-folder-target="preview"><%= @storage_connection.external_root_path.presence || "root" %></span></p>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn btn-secondary" data-google-drive-folder-target="edit" data-action="google-drive-folder#edit">Edit Folder</button>
+            <button type="button" class="btn btn-secondary hidden" data-google-drive-folder-target="cancel" data-action="google-drive-folder#cancel">Cancel</button>
+            <%= storage_form.submit "Update Google Drive Folder", class: "btn btn-primary hidden", data: { google_drive_folder_target: "submit" } %>
+          </div>
+        <% end %>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <%= link_to "Reconnect Google Drive", connect_google_drive_business_storage_connection_path, class: "btn btn-secondary" %>
+          <%= button_to "Disconnect Google Drive", business_storage_connection_path, method: :delete, class: "btn btn-secondary" %>
+        </div>
+      <% else %>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <%= link_to "Connect Google Drive", connect_google_drive_business_storage_connection_path, class: "btn btn-primary" %>
+        </div>
+      <% end %>
     </div>
-  </div>
+  </section>
 
   <section class="rounded-lg border border-slate-200 p-4">
     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -140,8 +243,4 @@
     <% end %>
   </section>
 
-  <div class="flex flex-wrap gap-2">
-    <%= f.submit "Save Settings", class: "btn btn-primary" %>
-    <%= link_to "Cancel", dashboard_path, class: "btn btn-secondary" %>
-  </div>
-<% end %>
+</div>

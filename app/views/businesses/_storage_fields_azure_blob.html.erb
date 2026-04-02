@@ -1,0 +1,19 @@
+<div class="grid gap-4 md:grid-cols-2">
+  <div>
+    <%= storage_form.label :storage_account_name, "Azure Storage Account Name", class: "field-label" %>
+    <%= storage_form.text_field :storage_account_name, class: "field-input", placeholder: "stockflowstorage" %>
+  </div>
+  <div>
+    <%= storage_form.label :secret_access_key, "Azure Storage Access Key", class: "field-label" %>
+    <%= storage_form.password_field :secret_access_key, value: nil, class: "field-input", placeholder: (@storage_connection.persisted? ? "Saved securely. Enter to replace." : nil) %>
+  </div>
+  <div>
+    <%= storage_form.label :container_name, "Azure Container Name", class: "field-label" %>
+    <%= storage_form.text_field :container_name, class: "field-input", placeholder: "business-files" %>
+  </div>
+  <div>
+    <%= storage_form.label :external_root_path, "Azure Blob Path Prefix", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "businesses/demo-biz" %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "azure_blob" %>

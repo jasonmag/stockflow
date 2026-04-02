@@ -1,0 +1,15 @@
+<div class="grid gap-4 md:grid-cols-1">
+  <div>
+    <%= storage_form.label :external_root_path, "External Storage Destination", class: "field-label" %>
+    <%= storage_form.text_field :external_root_path, class: "field-input", placeholder: "External root URL, shared folder, or API destination path" %>
+  </div>
+  <div>
+    <%= storage_form.label :service_account_json, "Service Account / Integration JSON", class: "field-label" %>
+    <%= text_area_tag "storage_connection[service_account_json]",
+      nil,
+      class: "field-input",
+      rows: 5,
+      placeholder: (@storage_connection.persisted? ? "Saved securely. Paste new JSON only when rotating credentials." : "{ ... }") %>
+  </div>
+</div>
+<%= render "storage_provider_doc_link", provider_key: "other" %>

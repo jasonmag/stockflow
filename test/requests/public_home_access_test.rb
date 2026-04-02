@@ -77,4 +77,13 @@ class PublicHomeAccessTest < ActionDispatch::IntegrationTest
     assert_redirected_to admin_login_path
     assert_equal "System admin access is required for admin login.", flash[:alert]
   end
+
+  test "google drive callback with long oauth code redirects to login without overflowing the session cookie" do
+    get google_drive_callback_business_storage_connection_path, params: {
+      state: "oauth-state",
+      code: "x" * 3000
+    }
+
+    assert_redirected_to login_path
+  end
 end
