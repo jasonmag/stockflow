@@ -35,6 +35,10 @@
         { prompt: "Select category" },
         class: "field-input",
         data: { expense_payables_target: "category", action: "change->expense-payables#toggle change->expense-payables#syncAmount" } %>
+      <div class="mt-2 flex items-center gap-2 text-xs text-slate-600">
+        <span>Category not listed?</span>
+        <%= link_to "Manage expense categories", categories_path, class: "font-semibold text-slate-900 hover:underline" %>
+      </div>
     </div>
 
     <div>

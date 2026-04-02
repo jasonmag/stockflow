@@ -87,6 +87,7 @@ class BusinessStorageConnectionsController < ApplicationController
 
     def load_business_settings
       @purchase_funding_sources = current_business.purchase_funding_sources.order(:name)
+      @expense_categories = current_business.categories.order(:name)
       @products = current_business.products.order(:name)
       @suppliers = current_business.suppliers.order(:name)
       @locations = current_business.locations.order(:name)

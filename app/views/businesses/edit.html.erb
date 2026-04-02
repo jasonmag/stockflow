@@ -177,6 +177,29 @@
   <section class="rounded-lg border border-slate-200 p-4">
     <div class="flex flex-wrap items-start justify-between gap-3">
       <div>
+        <h2 class="text-sm font-semibold text-slate-900">Expense Categories</h2>
+        <p class="mt-1 text-xs text-slate-600">Manage the categories available in expense forms and expense filters.</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <%= link_to "View Categories", categories_path, class: "btn btn-secondary" %>
+        <%= link_to "Add New Category", categories_path, class: "btn btn-primary" %>
+      </div>
+    </div>
+
+    <% if @expense_categories.any? %>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <% @expense_categories.each do |category| %>
+          <span class="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm text-slate-700"><%= category.name %></span>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="mt-3 text-sm text-slate-600">No categories yet. Add one to make it available in expenses.</p>
+    <% end %>
+  </section>
+
+  <section class="rounded-lg border border-slate-200 p-4">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
         <h2 class="text-sm font-semibold text-slate-900">Products</h2>
         <p class="mt-1 text-xs text-slate-600">Manage product and inventory variant options used in purchasing and stock movement.</p>
       </div>

@@ -55,6 +55,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "select[name='expense[payee]']"
     assert_select "option[value='#{@supplier.name}']", text: @supplier.name
     assert_select "option[value='#{second_supplier.name}']", text: second_supplier.name
+    assert_select "a[href='#{categories_path}']", text: "Manage expense categories"
   end
 
   test "expenses index filters payee by suppliers dropdown" do
@@ -85,6 +86,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     get expenses_path, params: { payee: @supplier.name }
 
     assert_response :success
+    assert_select "a[href='#{categories_path}']", text: "Manage expense categories"
     assert_select "select[name='payee'] option[value='#{@supplier.name}'][selected='selected']", text: @supplier.name
     assert_select "tbody tr", count: 1
     assert_select "tbody tr td[data-label='Payee']", text: current_business_expense.payee
@@ -533,6 +535,10 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "a[href='#{new_product_path(return_to: edit_business_path)}']", text: "Add New Product Variant"
     assert_select "a[href='#{products_path}']", text: "View Products"
     assert_includes response.body, @product.name
+    assert_select "h2", text: "Expense Categories"
+    assert_select "a[href='#{categories_path}']", text: "View Categories"
+    assert_select "a[href='#{categories_path}']", text: "Add New Category"
+    assert_includes response.body, @category.name
     assert_select "h2", text: "Suppliers"
     assert_select "a[href='#{new_supplier_path(return_to: edit_business_path)}']", text: "Add New Supplier"
     assert_select "a[href='#{suppliers_path}']", text: "View Suppliers"
