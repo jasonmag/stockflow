@@ -5,10 +5,11 @@ class ExpensesController < ApplicationController
 
   def index
     @expenses = current_business.expenses.includes(:category).order(occurred_on: :desc)
+    @suppliers = current_business.suppliers.order(:name)
     @expenses = @expenses.where(occurred_on: params[:start_date]..params[:end_date]) if params[:start_date].present? && params[:end_date].present?
     @expenses = @expenses.where(category_id: params[:category_id]) if params[:category_id].present?
     @expenses = @expenses.where(funding_source: params[:funding_source]) if params[:funding_source].present?
-    @expenses = @expenses.where("payee LIKE ?", "%#{params[:payee]}%") if params[:payee].present?
+    @expenses = @expenses.where(payee: params[:payee]) if params[:payee].present?
 
     mtd = current_business.expenses.for_month_to_date
     @cash_expenses_mtd = mtd.where(funding_source: current_business.purchase_funding_source_names_for(:cash)).sum(:amount_cents)
@@ -62,6 +63,7 @@ class ExpensesController < ApplicationController
     def load_form_options
       @payables_category = current_business.categories.find_or_create_by!(name: "Payables")
       @expense_categories = current_business.categories.order(:name)
+      @suppliers = current_business.suppliers.order(:name)
       @coverable_payables = current_business.payables.where(status: %i[unpaid overdue]).order(:due_on, :payee)
     end
 

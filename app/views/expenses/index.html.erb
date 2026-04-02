@@ -47,7 +47,10 @@
     </div>
     <div>
       <%= f.label :payee, "Payee", class: "field-label" %>
-      <%= f.text_field :payee, value: params[:payee], placeholder: "Search payee", class: "field-input" %>
+      <%= f.select :payee,
+        options_for_select([["All suppliers", ""]] + @suppliers.map { |supplier| [supplier.name, supplier.name] }, params[:payee]),
+        {},
+        class: "field-input" %>
     </div>
     <div class="sm:col-span-2 lg:col-span-5 flex items-center gap-2">
       <%= f.submit "Apply filters", class: "btn btn-secondary" %>

@@ -18,7 +18,11 @@
 
     <div>
       <%= f.label :payee, class: "field-label" %>
-      <%= f.text_field :payee, class: "field-input", data: { expense_payables_target: "payee" } %>
+      <%= f.select :payee,
+        options_for_select(@suppliers.map { |supplier| [supplier.name, supplier.name] }, expense.payee),
+        { prompt: "Select supplier" },
+        class: "field-input",
+        data: { expense_payables_target: "payee" } %>
     </div>
 
     <div>

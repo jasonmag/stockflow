@@ -46,6 +46,50 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_redirected_to expense_path(Expense.last)
   end
 
+  test "expense form shows payee dropdown from suppliers" do
+    second_supplier = Supplier.create!(business: @business, name: "Backup Supplier")
+
+    get new_expense_path
+
+    assert_response :success
+    assert_select "select[name='expense[payee]']"
+    assert_select "option[value='#{@supplier.name}']", text: @supplier.name
+    assert_select "option[value='#{second_supplier.name}']", text: second_supplier.name
+  end
+
+  test "expenses index filters payee by suppliers dropdown" do
+    second_supplier = Supplier.create!(business: @business, name: "Backup Supplier")
+    current_business_expense = @business.expenses.create!(
+      occurred_on: Date.current,
+      payee: @supplier.name,
+      category: @category,
+      amount_cents: 12000,
+      currency: "PHP",
+      funding_source: "Cash",
+      payment_method: "cash",
+      notes: "Delivery fuel",
+      receipt: fixture_file_upload("receipt.txt", "text/plain")
+    )
+    @business.expenses.create!(
+      occurred_on: Date.current,
+      payee: second_supplier.name,
+      category: @category,
+      amount_cents: 8000,
+      currency: "PHP",
+      funding_source: "Cash",
+      payment_method: "cash",
+      notes: "Backup order",
+      receipt: fixture_file_upload("receipt.txt", "text/plain")
+    )
+
+    get expenses_path, params: { payee: @supplier.name }
+
+    assert_response :success
+    assert_select "select[name='payee'] option[value='#{@supplier.name}'][selected='selected']", text: @supplier.name
+    assert_select "tbody tr", count: 1
+    assert_select "tbody tr td[data-label='Payee']", text: current_business_expense.payee
+  end
+
   test "new money forms default to the business currency" do
     @business.update!(currency: "USD")
 
