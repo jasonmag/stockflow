@@ -53,9 +53,31 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "select[name='expense[payee]']"
+    assert_select "input[name='expense[amount_decimal]'][step='0.01']"
     assert_select "option[value='#{@supplier.name}']", text: @supplier.name
     assert_select "option[value='#{second_supplier.name}']", text: second_supplier.name
     assert_select "a[href='#{categories_path}']", text: "Manage expense categories"
+  end
+
+  test "create expense accepts decimal amount input and saves cents" do
+    assert_difference("Expense.count", 1) do
+      post expenses_path, params: {
+        expense: {
+          occurred_on: Date.current,
+          payee: @supplier.name,
+          category_id: @category.id,
+          amount_decimal: "120.50",
+          currency: "PHP",
+          funding_source: "Cash",
+          payment_method: "cash",
+          notes: "Delivery fuel",
+          receipt: fixture_file_upload("receipt.txt", "text/plain")
+        }
+      }
+    end
+
+    assert_equal 12050, Expense.last.amount_cents
+    assert_redirected_to expense_path(Expense.last)
   end
 
   test "expenses index filters payee by suppliers dropdown" do

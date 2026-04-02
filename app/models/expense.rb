@@ -13,6 +13,8 @@ class Expense < ApplicationRecord
 
   attr_writer :payable_ids
 
+  validate :amount_decimal_is_valid
+
   before_validation :sync_currency_from_business
   before_validation :sync_payment_method_from_funding_source
   before_validation :sync_payables_expense_attributes
@@ -34,11 +36,39 @@ class Expense < ApplicationRecord
     @payable_ids || payments.where.not(payable_id: nil).pluck(:payable_id).map(&:to_s)
   end
 
+  def amount_decimal
+    return @amount_decimal if defined?(@amount_decimal) && @amount_decimal.present?
+    return if amount_cents.blank?
+
+    format("%.2f", amount_cents / 100.0)
+  end
+
+  def amount_decimal=(value)
+    @amount_decimal = value.to_s
+
+    if @amount_decimal.blank?
+      self.amount_cents = nil
+      return
+    end
+
+    self.amount_cents = (BigDecimal(@amount_decimal) * 100).round
+    @invalid_amount_decimal = false
+  rescue ArgumentError
+    self.amount_cents = nil
+    @invalid_amount_decimal = true
+  end
+
   def receipt_storage_synced?
     receipt_storage_file_id.present? && receipt_storage_blob_id == receipt.blob_id
   end
 
   private
+    def amount_decimal_is_valid
+      return unless @invalid_amount_decimal
+
+      errors.add(:amount_decimal, "is not a valid amount")
+    end
+
     def sync_currency_from_business
       self.currency = business&.currency if business.present?
     end

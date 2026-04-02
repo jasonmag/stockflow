@@ -57,7 +57,7 @@ class ExpensesController < ApplicationController
     end
 
     def expense_params
-      params.require(:expense).permit(:occurred_on, :payee, :category_id, :amount_cents, :currency, :funding_source, :payment_method, :notes, :receipt, payable_ids: [])
+      params.require(:expense).permit(:occurred_on, :payee, :category_id, :amount_decimal, :amount_cents, :currency, :funding_source, :payment_method, :notes, :receipt, payable_ids: [])
     end
 
     def load_form_options

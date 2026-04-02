@@ -23,7 +23,7 @@ export default class extends Controller {
     const total = selectedOptions.reduce((sum, option) => sum + Number(option.dataset.amountCents || 0), 0)
     const payees = [...new Set(selectedOptions.map((option) => option.text.split(" - ")[0]).filter(Boolean))]
 
-    this.amountTarget.value = total
+    this.amountTarget.value = (total / 100).toFixed(2)
     this.payeeTarget.value = payees.join(", ")
   }
 
