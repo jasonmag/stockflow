@@ -31,7 +31,7 @@ class StockMovement < ApplicationRecord
     return @unit_cost_decimal if defined?(@unit_cost_decimal) && @unit_cost_decimal.present?
     return if unit_cost_cents.blank?
 
-    format("%.4f", unit_cost_cents / 100.0)
+    MoneyPrecision.to_formatted_decimal(unit_cost_cents)
   end
 
   def unit_cost_decimal=(value)
@@ -42,9 +42,9 @@ class StockMovement < ApplicationRecord
       return
     end
 
-    self.unit_cost_cents = (BigDecimal(@unit_cost_decimal) * 100).round
+    self.unit_cost_cents = MoneyPrecision.parse(@unit_cost_decimal)
     @invalid_unit_cost_decimal = false
-  rescue ArgumentError
+  rescue ArgumentError, TypeError
     self.unit_cost_cents = nil
     @invalid_unit_cost_decimal = true
   end

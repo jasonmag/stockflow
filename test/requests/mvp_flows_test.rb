@@ -76,7 +76,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_equal 12050, Expense.last.amount_cents
+    assert_equal 1_205_000, Expense.last.amount_cents
     assert_redirected_to expense_path(Expense.last)
   end
 
@@ -101,7 +101,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_equal 1235, Payable.last.amount_cents
+    assert_equal 123_456, Payable.last.amount_cents
     assert_redirected_to payable_path(Payable.last)
   end
 
@@ -127,7 +127,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_equal 4568, Receivable.last.amount_cents
+    assert_equal 456_789, Receivable.last.amount_cents
     assert_redirected_to receivable_path(Receivable.last)
   end
 
@@ -731,7 +731,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
       }
     end
 
-    assert_equal 1250, Purchase.last.purchase_items.last.unit_cost_cents
+    assert_equal 125_000, Purchase.last.purchase_items.last.unit_cost_cents
     assert_equal "PO-#{Date.current}", Purchase.last.reference
     assert_redirected_to purchase_path(Purchase.last)
   end
@@ -1007,7 +1007,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     expense = Expense.last
     assert_equal Purchase.last, expense.purchase
     assert_equal "Purchases", expense.category.name
-    assert_equal 2500, expense.amount_cents
+    assert_equal 250_000, expense.amount_cents
     assert_equal "Cash", expense.funding_source
     assert_equal "cash", expense.payment_method
   end
@@ -1111,7 +1111,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     end
 
     assert_equal purchase.reload, Expense.last.purchase
-    assert_equal 600, Expense.last.amount_cents
+    assert_equal 60_000, Expense.last.amount_cents
   end
 
   test "update purchase saves multiple purchase items" do
@@ -1273,8 +1273,8 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   end
 
   test "delivery form matches purchase flow affordances" do
-    @product.product_prices.create!(effective_on: Date.current - 1.day, price_cents: 1250)
-    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 1600)
+    @product.product_prices.create!(effective_on: Date.current - 1.day, price_cents: 125_000)
+    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 160_000)
 
     get new_delivery_path
 
@@ -1292,7 +1292,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='delivery-item-total'] [data-delivery-item-total-target='subtotal']", text: "PHP 0.00"
     assert_select "[data-nested-delivery-items-target='item'] button", text: "Remove"
     assert_select "[data-nested-delivery-items-target='overall']", text: "PHP 0.00"
-    assert_select "[data-product-lookup-target='item'][data-value='#{@product.id}'][data-unit-price='12.50']"
+    assert_select "[data-product-lookup-target='item'][data-value='#{@product.id}'][data-unit-price='12.5000']"
   end
 
   test "create customer from delivery flow redirects back with customer selected" do
@@ -1414,7 +1414,7 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal "Demo Brand", product.brand
     assert product.sku.present?
     assert_operator product.sku.length, :>=, 30
-    assert_equal 250, product.base_cost_cents
+    assert_equal 25_000, product.base_cost_cents
     assert_redirected_to product_path(product)
   end
 
@@ -1453,8 +1453,8 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   end
 
   test "product show displays effective dated pricing form and history" do
-    @product.product_prices.create!(effective_on: Date.current - 5.days, price_cents: 1250)
-    @product.product_prices.create!(effective_on: Date.current + 3.days, price_cents: 1500)
+    @product.product_prices.create!(effective_on: Date.current - 5.days, price_cents: 125_000)
+    @product.product_prices.create!(effective_on: Date.current + 3.days, price_cents: 150_000)
 
     get product_path(@product)
 
@@ -1482,14 +1482,14 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     product_price = ProductPrice.last
     assert_equal @product, product_price.product
-    assert_equal 1975, product_price.price_cents
+    assert_equal 197_500, product_price.price_cents
     assert_equal Date.current + 1.day, product_price.effective_on
     assert_redirected_to product_path(@product)
   end
 
   test "product show displays effective dated purchase pricing form and history" do
-    @product.product_purchase_prices.create!(effective_on: Date.current - 4.days, price_cents: 950)
-    @product.product_purchase_prices.create!(effective_on: Date.current + 2.days, price_cents: 1100)
+    @product.product_purchase_prices.create!(effective_on: Date.current - 4.days, price_cents: 95_000)
+    @product.product_purchase_prices.create!(effective_on: Date.current + 2.days, price_cents: 110_000)
 
     get product_path(@product)
 
@@ -1516,14 +1516,14 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
 
     purchase_price = ProductPurchasePrice.last
     assert_equal @product, purchase_price.product
-    assert_equal 840, purchase_price.price_cents
+    assert_equal 84_000, purchase_price.price_cents
     assert_equal Date.current + 1.day, purchase_price.effective_on
     assert_redirected_to product_path(@product)
   end
 
   test "products index shows current effective price" do
-    @product.product_prices.create!(effective_on: Date.current - 2.days, price_cents: 1875)
-    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 2200)
+    @product.product_prices.create!(effective_on: Date.current - 2.days, price_cents: 187_500)
+    @product.product_prices.create!(effective_on: Date.current + 2.days, price_cents: 220_000)
 
     get products_path
 

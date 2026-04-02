@@ -12,7 +12,7 @@ class ProductPurchasePrice < ApplicationRecord
     return @price_decimal if defined?(@price_decimal) && @price_decimal.present?
     return if price_cents.blank?
 
-    format("%.2f", price_cents / 100.0)
+    MoneyPrecision.to_formatted_decimal(price_cents)
   end
 
   def price_decimal=(value)
@@ -24,9 +24,9 @@ class ProductPurchasePrice < ApplicationRecord
     end
 
     normalized = @price_decimal.strip
-    self.price_cents = (BigDecimal(normalized) * 100).round(0).to_i
+    self.price_cents = MoneyPrecision.parse(normalized)
     @invalid_price_decimal = false
-  rescue ArgumentError
+  rescue ArgumentError, TypeError
     self.price_cents = nil
     @invalid_price_decimal = true
   end

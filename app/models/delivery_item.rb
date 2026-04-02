@@ -10,7 +10,7 @@ class DeliveryItem < ApplicationRecord
     return @unit_price_decimal if defined?(@unit_price_decimal) && @unit_price_decimal.present?
     return if unit_price_cents.blank?
 
-    format("%.2f", unit_price_cents / 100.0)
+    MoneyPrecision.to_formatted_decimal(unit_price_cents)
   end
 
   def unit_price_decimal=(value)
@@ -21,9 +21,9 @@ class DeliveryItem < ApplicationRecord
       return
     end
 
-    self.unit_price_cents = (BigDecimal(@unit_price_decimal) * 100).round
+    self.unit_price_cents = MoneyPrecision.parse(@unit_price_decimal)
     @invalid_unit_price_decimal = false
-  rescue ArgumentError
+  rescue ArgumentError, TypeError
     self.unit_price_cents = nil
     @invalid_unit_price_decimal = true
   end

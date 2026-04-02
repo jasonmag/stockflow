@@ -80,7 +80,7 @@
 <section class="card mb-4">
   <h2 class="mb-3 text-base font-semibold text-slate-900">Items</h2>
   <% if @purchase.purchase_items.any? %>
-    <% total_cents = @purchase.purchase_items.sum { |item| item.unit_cost_cents * item.quantity.to_d } %>
+    <% total_cents = @purchase.purchase_items.sum { |item| (item.unit_cost_cents * item.quantity.to_d).round(0) } %>
     <div class="table-wrap">
       <table class="table-base">
         <thead>
@@ -97,7 +97,7 @@
               <td data-label="Product" class="font-medium text-slate-900"><%= item.product.name %></td>
               <td data-label="Quantity"><%= item.quantity %></td>
               <td data-label="Unit Cost"><%= money(item.unit_cost_cents) %></td>
-              <td data-label="Sub-total"><%= money(item.unit_cost_cents * item.quantity.to_d) %></td>
+              <td data-label="Sub-total"><%= money((item.unit_cost_cents * item.quantity.to_d).round(0)) %></td>
             </tr>
           <% end %>
         </tbody>

@@ -21,7 +21,7 @@ class Receivable < ApplicationRecord
     return @amount_decimal if defined?(@amount_decimal) && @amount_decimal.present?
     return if amount_cents.blank?
 
-    format("%.4f", amount_cents / 100.0)
+    MoneyPrecision.to_formatted_decimal(amount_cents)
   end
 
   def amount_decimal=(value)
@@ -32,9 +32,9 @@ class Receivable < ApplicationRecord
       return
     end
 
-    self.amount_cents = (BigDecimal(@amount_decimal) * 100).round
+    self.amount_cents = MoneyPrecision.parse(@amount_decimal)
     @invalid_amount_decimal = false
-  rescue ArgumentError
+  rescue ArgumentError, TypeError
     self.amount_cents = nil
     @invalid_amount_decimal = true
   end

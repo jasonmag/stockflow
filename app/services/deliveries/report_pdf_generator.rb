@@ -58,7 +58,7 @@ module Deliveries
       end
 
       def format_currency(cents)
-        format("%.2f", cents.to_f / 100.0)
+        MoneyPrecision.to_display_decimal(cents || 0)
       end
 
       def preview_items

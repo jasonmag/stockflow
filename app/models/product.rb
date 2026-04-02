@@ -24,7 +24,7 @@ class Product < ApplicationRecord
   def base_cost_decimal
     return if base_cost_cents.nil?
 
-    format("%.4f", base_cost_cents.to_f / 100.0)
+    MoneyPrecision.to_formatted_decimal(base_cost_cents)
   end
 
   def base_cost_decimal=(value)
@@ -33,7 +33,7 @@ class Product < ApplicationRecord
 
     normalized = value.to_s.strip
     if normalized.match?(/\A\d{1,8}(\.\d{1,4})?\z/)
-      self.base_cost_cents = (BigDecimal(normalized) * 100).round(0).to_i
+      self.base_cost_cents = MoneyPrecision.parse(normalized)
       @invalid_base_cost_decimal = false
     else
       @invalid_base_cost_decimal = true

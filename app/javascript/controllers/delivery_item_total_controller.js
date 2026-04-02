@@ -21,7 +21,9 @@ export default class extends Controller {
   formatCurrency(value) {
     return new Intl.NumberFormat("en-PH", {
       style: "currency",
-      currency: this.currencyValue || "PHP"
+      currency: this.currencyValue || "PHP",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
     }).format(value || 0)
   }
 

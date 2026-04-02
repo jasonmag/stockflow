@@ -1,7 +1,7 @@
 module ApplicationHelper
   def money(cents, currency = nil)
     currency ||= current_business&.currency || "PHP"
-    "#{currency} #{format('%.2f', cents.to_f / 100.0)}"
+    "#{currency} #{MoneyPrecision.to_display_decimal(cents || 0)}"
   end
 
   def page_title
