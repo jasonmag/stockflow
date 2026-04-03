@@ -1,7 +1,20 @@
 <div class="grid gap-3 items-start rounded-lg bg-white p-1 md:grid-cols-[minmax(0,2.2fr)_minmax(110px,0.8fr)_minmax(130px,0.9fr)_minmax(130px,0.9fr)_auto] md:items-center md:rounded-none md:bg-transparent md:p-0" data-controller="purchase-item-total" data-nested-purchase-items-target="item">
   <%= form.hidden_field :_destroy, value: "0", data: { nested_purchase_items_target: "destroyField" } %>
   <div data-mobile-label="Product">
-    <%= form.collection_select :product_id, products, :id, :name, { prompt: "Select product" }, class: "field-input", data: { nested_purchase_items_target: "productField" } %>
+    <%= form.select :product_id,
+      options_for_select(
+        [["Select product", ""]] + products.map do |product|
+          [
+            product.name,
+            product.id,
+            { "data-current-unit-cost": (product.current_purchase_price_cents.present? ? MoneyPrecision.to_formatted_decimal(product.current_purchase_price_cents) : "") }
+          ]
+        end,
+        form.object.product_id
+      ),
+      {},
+      class: "field-input",
+      data: { action: "change->nested-purchase-items#productChanged", nested_purchase_items_target: "productField" } %>
   </div>
   <div data-mobile-label="Quantity">
     <%= form.number_field :quantity, step: 0.01, min: 0.01, class: "field-input", placeholder: "0.00", aria: { label: "Quantity" }, data: { action: "input->purchase-item-total#update", purchase_item_total_target: "quantity" } %>

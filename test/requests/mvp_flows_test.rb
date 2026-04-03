@@ -250,6 +250,18 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal 123_456, purchase_price.price_cents
   end
 
+  test "new purchase product options expose current supplier cost" do
+    @product.product_purchase_prices.create!(
+      effective_on: Date.current,
+      price_decimal: "45.6789"
+    )
+
+    get new_purchase_path
+
+    assert_response :success
+    assert_select "select[name='purchase[purchase_items_attributes][0][product_id]'] option[value='#{@product.id}'][data-current-unit-cost='45.6789']", text: @product.name
+  end
+
   test "expense form shows payables category and payable selector" do
     payable = @business.payables.create!(
       payable_type: :supplier,

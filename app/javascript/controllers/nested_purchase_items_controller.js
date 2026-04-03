@@ -43,6 +43,17 @@ export default class extends Controller {
     this.updateOverall()
   }
 
+  productChanged(event) {
+    const productField = event.target
+    const item = productField.closest("[data-nested-purchase-items-target='item']")
+    const unitCostField = item?.querySelector("[data-purchase-item-total-target='unitCost']")
+    if (!unitCostField) return
+
+    const currentUnitCost = productField.selectedOptions[0]?.dataset.currentUnitCost || ""
+    unitCostField.value = currentUnitCost
+    unitCostField.dispatchEvent(new Event("input", { bubbles: true }))
+  }
+
   updateOverall() {
     const subtotalElements = this.listTarget.querySelectorAll("[data-controller~='purchase-item-total']:not(.hidden)")
     const total = Array.from(subtotalElements).reduce((sum, element) => {
