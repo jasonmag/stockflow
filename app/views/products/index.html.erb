@@ -9,37 +9,56 @@
 </div>
 
 <% if @products.any? %>
-  <div class="table-wrap">
-    <table class="table-base">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>Brand</th>
-          <th>Unit</th>
-          <th>Barcode</th>
-          <th>Current Effective Price</th>
-          <th>Reorder Level</th>
-          <th>Status</th>
-          <th class="text-right">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @products.each do |row| %>
+  <div data-controller="products-filter">
+    <div class="mb-4">
+      <label for="products-search" class="mb-1 block text-sm font-medium text-slate-700">Search products</label>
+      <input
+        id="products-search"
+        type="search"
+        placeholder="Search by name, type, brand, unit, or barcode"
+        class="field-input max-w-xl"
+        data-products-filter-target="input"
+        data-action="input->products-filter#filter"
+      >
+    </div>
+
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
           <tr>
-            <td data-label="Name" class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
-            <td data-label="Type"><%= status_badge(row.inventory_type) %></td>
-            <td data-label="Brand"><%= row.brand.presence || "-" %></td>
-            <td data-label="Unit"><%= row.unit %></td>
-            <td data-label="Barcode"><%= row.barcode.presence || "-" %></td>
-            <td data-label="Current Effective Price"><%= row.current_price_cents.present? ? money(row.current_price_cents) : "-" %></td>
-            <td data-label="Reorder Level"><%= row.reorder_level || "-" %></td>
-            <td data-label="Status"><%= status_badge(row.active? ? :active : :inactive) %></td>
-            <td data-label="Actions" class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Brand</th>
+            <th>Unit</th>
+            <th>Barcode</th>
+            <th>Current Effective Price</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
           </tr>
-        <% end %>
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          <% @products.each do |row| %>
+            <tr
+              data-products-filter-target="row"
+              data-search-text="<%= [row.name, row.inventory_type, row.brand, row.unit, row.barcode, row.active? ? 'active' : 'inactive'].compact.join(' ') %>"
+            >
+              <td data-label="Name" class="font-medium text-slate-900"><%= link_to row.name, row, class: "hover:underline" %></td>
+              <td data-label="Type"><%= status_badge(row.inventory_type) %></td>
+              <td data-label="Brand"><%= row.brand.presence || "-" %></td>
+              <td data-label="Unit"><%= row.unit %></td>
+              <td data-label="Barcode"><%= row.barcode.presence || "-" %></td>
+              <td data-label="Current Effective Price"><%= row.current_price_cents.present? ? money(row.current_price_cents) : "-" %></td>
+              <td data-label="Reorder Level"><%= row.reorder_level || "-" %></td>
+              <td data-label="Status"><%= status_badge(row.active? ? :active : :inactive) %></td>
+              <td data-label="Actions" class="text-right"><%= link_to "View", row, class: "btn btn-ghost" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="empty-state hidden" data-products-filter-target="empty">No products match your search.</p>
   </div>
 <% else %>
   <p class="empty-state">No products yet. Add a product to start tracking inventory.</p>
