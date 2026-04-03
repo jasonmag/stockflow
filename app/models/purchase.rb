@@ -40,6 +40,7 @@ class Purchase < ApplicationRecord
         end
       end
 
+      sync_product_purchase_prices!(effective_on: purchased_on || actioned_at.to_date)
       update!(status: :received, received_at: actioned_at) unless received? && received_at.present?
       sync_expense!
     end
@@ -84,6 +85,14 @@ class Purchase < ApplicationRecord
         notes: "Auto-generated from purchase #{reference.presence || id}"
       )
       generated_expense.save!
+    end
+
+    def sync_product_purchase_prices!(effective_on:)
+      purchase_items.includes(:product).find_each do |item|
+        product_purchase_price = item.product.product_purchase_prices.find_or_initialize_by(effective_on:)
+        product_purchase_price.price_cents = item.unit_cost_cents
+        product_purchase_price.save! if product_purchase_price.changed?
+      end
     end
 
     def total_amount_cents

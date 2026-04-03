@@ -224,6 +224,32 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_equal "USD", Receivable.last.currency
   end
 
+  test "receiving a purchase updates the product supplier cost track" do
+    purchase = @business.purchases.create!(
+      supplier: @supplier,
+      purchased_on: Date.new(2026, 4, 2),
+      receiving_location: @location,
+      funding_source: "Cash",
+      status: :draft
+    )
+    purchase.purchase_items.create!(
+      product: @product,
+      quantity: 3,
+      unit_cost_decimal: "12.3456"
+    )
+
+    assert_difference("StockMovement.count", 1) do
+      patch receive_purchase_path(purchase)
+    end
+
+    assert_redirected_to purchase_path(purchase)
+    assert purchase.reload.received?
+
+    purchase_price = @product.reload.product_purchase_prices.find_by(effective_on: Date.new(2026, 4, 2))
+    assert_not_nil purchase_price
+    assert_equal 123_456, purchase_price.price_cents
+  end
+
   test "expense form shows payables category and payable selector" do
     payable = @business.payables.create!(
       payable_type: :supplier,
