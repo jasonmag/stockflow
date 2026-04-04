@@ -1781,6 +1781,85 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "td", text: @location.name
   end
 
+  test "self consumption preset page prefills stock out workflow" do
+    get new_self_consumption_stock_movements_path
+
+    assert_response :success
+    assert_select "h1", text: "Record Self Consumption"
+    assert_select "input[name='stock_movement[movement_type]'][value='out']", count: 1
+    assert_select "input[name='stock_movement[reason_code]'][value='self_consumption']", count: 1
+  end
+
+  test "spoilage preset page prefills stock out workflow" do
+    get new_spoilage_stock_movements_path
+
+    assert_response :success
+    assert_select "h1", text: "Record Spoilage"
+    assert_select "input[name='stock_movement[movement_type]'][value='out']", count: 1
+    assert_select "input[name='stock_movement[reason_code]'][value='spoilage']", count: 1
+  end
+
+  test "self consumption creates stock out movement and reduces inventory" do
+    StockMovement.create!(business: @business, movement_type: :in, product: @product, quantity: 10, unit_cost_cents: 100, to_location: @location, occurred_on: Date.current)
+
+    assert_difference("StockMovement.count", 1) do
+      post stock_movements_path, params: {
+        stock_movement: {
+          movement_type: :out,
+          reason_code: :self_consumption,
+          product_id: @product.id,
+          quantity: 3,
+          from_location_id: @location.id,
+          occurred_on: Date.current,
+          notes: "Used for office pantry"
+        }
+      }
+    end
+
+    movement = StockMovement.order(:id).last
+    assert_redirected_to stock_movements_path
+    assert_equal "self_consumption", movement.reason_code
+    assert_equal "out", movement.movement_type
+    assert_equal 7.0, Inventory::OnHandCalculator.new(business: @business).totals_by_product[@product.id]
+  end
+
+  test "spoilage requires notes" do
+    assert_no_difference("StockMovement.count") do
+      post stock_movements_path, params: {
+        stock_movement: {
+          movement_type: :out,
+          reason_code: :spoilage,
+          product_id: @product.id,
+          quantity: 1,
+          from_location_id: @location.id,
+          occurred_on: Date.current,
+          notes: ""
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_includes response.body, "Notes can&#39;t be blank"
+  end
+
+  test "stock movements index shows preset reason badges" do
+    StockMovement.create!(
+      business: @business,
+      movement_type: :out,
+      reason_code: :spoilage,
+      product: @product,
+      quantity: 2,
+      from_location: @location,
+      occurred_on: Date.current,
+      notes: "Expired stock"
+    )
+
+    get stock_movements_path
+
+    assert_response :success
+    assert_select "td", text: "Spoilage"
+  end
+
   test "receive purchase logs action date and uses it in inventory movement" do
     purchase = Purchase.create!(business: @business, supplier: @supplier, purchased_on: Date.current - 3.days, receiving_location: @location, funding_source: "Cash", status: :draft)
     purchase.purchase_items.create!(product: @product, quantity: 2, unit_cost_cents: 1250)
@@ -1972,5 +2051,168 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
   ensure
     clear_enqueued_jobs
     clear_performed_jobs
+  end
+
+  test "create manual count session freezes expected quantity for selected products" do
+    StockMovement.create!(
+      business: @business,
+      movement_type: :adjustment,
+      product: @product,
+      quantity: 10,
+      to_location: @location,
+      occurred_on: Date.current,
+      notes: "Opening stock"
+    )
+    other_product = Product.create!(business: @business, name: "Juice", unit: "pc", active: true, inventory_type: "stock_item")
+
+    assert_difference("StockCountSession.count", 1) do
+      assert_difference("StockCountItem.count", 1) do
+        post stock_count_sessions_path, params: {
+          stock_count_session: {
+            count_date: Date.current,
+            count_time: "18:00",
+            location_id: @location.id,
+            count_type: "end_of_day",
+            notes: "End-of-day count",
+            product_ids: [ @product.id ]
+          }
+        }
+      end
+    end
+
+    session = StockCountSession.order(:id).last
+    item = session.stock_count_items.find_by!(product: @product)
+
+    assert_redirected_to edit_stock_count_session_path(session)
+    assert_equal "draft", session.status
+    assert_equal @user, session.created_by
+    assert_equal 10, item.expected_quantity.to_i
+    assert_nil session.stock_count_items.find_by(product: other_product)
+
+    StockMovement.create!(
+      business: @business,
+      movement_type: :adjustment,
+      product: @product,
+      quantity: 5,
+      to_location: @location,
+      occurred_on: Date.current,
+      notes: "Late change"
+    )
+
+    assert_equal 10, item.reload.expected_quantity.to_i
+  end
+
+  test "saving and finalizing a manual count creates adjustments and locks the session" do
+    StockMovement.create!(
+      business: @business,
+      movement_type: :adjustment,
+      product: @product,
+      quantity: 10,
+      to_location: @location,
+      occurred_on: Date.current,
+      notes: "Opening stock"
+    )
+
+    post stock_count_sessions_path, params: {
+      stock_count_session: {
+        count_date: Date.current,
+        count_time: "19:00",
+        location_id: @location.id,
+        count_type: "weekly",
+        product_ids: [ @product.id ]
+      }
+    }
+
+    session = StockCountSession.order(:id).last
+    item = session.stock_count_items.first
+
+    patch stock_count_session_path(session), params: {
+      stock_count_session: {
+        stock_count_items_attributes: {
+          "0" => {
+            id: item.id,
+            actual_quantity: "8",
+            variance_reason: "Missing Item",
+            notes: "Shelf gap"
+          }
+        }
+      }
+    }
+
+    assert_redirected_to edit_stock_count_session_path(session)
+    assert_equal "in_progress", session.reload.status
+    assert_equal(-2, item.reload.variance.to_i)
+
+    assert_difference("InventoryAdjustment.count", 1) do
+      assert_difference("StockMovement.count", 1) do
+        patch finalize_stock_count_session_path(session)
+      end
+    end
+
+    session.reload
+    adjustment = session.inventory_adjustments.last
+
+    assert_redirected_to stock_count_session_path(session)
+    assert_equal "completed", session.status
+    assert_equal @user, session.performed_by
+    assert_equal(-2, adjustment.adjustment_quantity.to_i)
+    assert_equal "Missing Item", adjustment.reason
+    assert_equal 8, Inventory::OnHandCalculator.new(business: @business).totals_by_product[@product.id].to_i
+    assert_equal [ "created", "saved_progress", "finalized" ], session.stock_count_events.order(:created_at).pluck(:event_type)
+
+    get edit_stock_count_session_path(session)
+    assert_redirected_to stock_count_session_path(session)
+  end
+
+  test "stock variance report lists finalized variances and exports csv" do
+    StockMovement.create!(
+      business: @business,
+      movement_type: :adjustment,
+      product: @product,
+      quantity: 6,
+      to_location: @location,
+      occurred_on: Date.current,
+      notes: "Opening stock"
+    )
+
+    session = @business.stock_count_sessions.create!(
+      count_date: Date.current,
+      count_time: "20:00",
+      location: @location,
+      count_type: :monthly,
+      status: :completed,
+      started_at: Time.current,
+      completed_at: Time.current,
+      created_by: @user,
+      performed_by: @user
+    )
+    session.stock_count_items.create!(
+      product: @product,
+      expected_quantity: 6,
+      actual_quantity: 5,
+      variance: -1,
+      variance_reason: "Damaged Item"
+    )
+
+    get variance_report_stock_count_sessions_path, params: {
+      start_date: Date.current,
+      end_date: Date.current,
+      product_id: @product.id,
+      location_id: @location.id
+    }
+
+    assert_response :success
+    assert_includes response.body, "Damaged Item"
+    assert_includes response.body, session.reference_number
+
+    get variance_report_stock_count_sessions_path(format: :csv), params: {
+      start_date: Date.current,
+      end_date: Date.current
+    }
+
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_includes response.body, "Damaged Item"
+    assert_includes response.body, session.reference_number
   end
 end

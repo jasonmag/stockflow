@@ -8,13 +8,20 @@ class StockMovement < ApplicationRecord
   belongs_to :reference, polymorphic: true, optional: true
 
   enum :movement_type, { in: 0, out: 1, transfer: 2, adjustment: 3 }
+  enum :reason_code, {
+    self_consumption: "self_consumption",
+    spoilage: "spoilage"
+  }, prefix: true
 
   validates :occurred_on, :quantity, :movement_type, presence: true
   validates :unit_cost_cents, presence: true, if: :in?
+  validates :notes, presence: true, if: :reason_code_present?
   validates_same_business_of :product, :from_location, :to_location
   validate :unit_cost_decimal_is_valid
   validate :movement_locations_valid
   validate :reference_matches_business
+  validate :reason_code_matches_movement_type
+  validate :reason_code_is_known
 
   scope :inward, -> { where(movement_type: :in) }
   scope :outward, -> { where(movement_type: :out) }
@@ -50,6 +57,10 @@ class StockMovement < ApplicationRecord
   end
 
   private
+    def reason_code_present?
+      reason_code.present?
+    end
+
     def unit_cost_decimal_is_valid
       return unless @invalid_unit_cost_decimal
 
@@ -92,5 +103,19 @@ class StockMovement < ApplicationRecord
       return if reference.business_id == business_id
 
       errors.add(:reference, "must belong to the current business")
+    end
+
+    def reason_code_matches_movement_type
+      return if reason_code.blank?
+      return if out?
+
+      errors.add(:reason_code, "is only supported for stock out movements")
+    end
+
+    def reason_code_is_known
+      return if reason_code.blank?
+      return if self.class.reason_codes.key?(reason_code)
+
+      errors.add(:reason_code, "is not included in the list")
     end
 end

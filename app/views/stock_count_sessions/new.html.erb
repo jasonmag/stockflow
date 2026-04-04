@@ -1,0 +1,60 @@
+<div class="mb-4">
+  <h1 class="page-title">New Manual Count</h1>
+  <p class="mt-1 text-sm text-slate-600">Freeze expected stock, then enter physical counts and reconcile any differences.</p>
+</div>
+
+<%= form_with model: @stock_count_session, class: "card space-y-4" do |f| %>
+  <% if @stock_count_session.errors.any? %>
+    <div class="flash flash-alert">
+      <p class="font-semibold"><%= pluralize(@stock_count_session.errors.count, "error") %> prevented this session from being saved:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% @stock_count_session.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <%= f.label :count_date, class: "field-label" %>
+      <%= f.date_field :count_date, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :count_time, class: "field-label" %>
+      <%= f.time_field :count_time, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :location_id, "Location", class: "field-label" %>
+      <%= f.collection_select :location_id, @locations, :id, :name, { include_blank: @locations.many? ? "Select location" : "All locations" }, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :count_type, class: "field-label" %>
+      <%= f.select :count_type, StockCountSession.count_types.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :inventory_type, "Inventory Type Filter", class: "field-label" %>
+      <%= f.select :inventory_type, options_for_select(@inventory_type_options), { include_blank: "All inventory types" }, class: "field-input" %>
+    </div>
+
+    <div>
+      <%= f.label :product_ids, "Selected Products", class: "field-label" %>
+      <%= f.collection_select :product_ids, @available_products, :id, :name, {}, class: "field-input", multiple: true, size: 8 %>
+      <p class="mt-1 text-xs text-slate-500">Leave blank to count all active products.</p>
+    </div>
+
+    <div class="md:col-span-2">
+      <%= f.label :notes, class: "field-label" %>
+      <%= f.text_area :notes, class: "field-input", rows: 3 %>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <%= f.submit "Create Manual Count", class: "btn btn-primary" %>
+    <%= link_to "Cancel", stock_count_sessions_path, class: "btn btn-secondary" %>
+  </div>
+<% end %>

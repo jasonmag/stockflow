@@ -1,0 +1,50 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Manual Counts</h1>
+    <p class="mt-1 text-sm text-slate-600">Create, reconcile, and audit physical stock counts.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Stock Variance Report", variance_report_stock_count_sessions_path, class: "btn btn-secondary" %>
+    <%= link_to "New Manual Count", new_stock_count_session_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<% if @stock_count_sessions.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Reference</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Type</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Created By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @stock_count_sessions.each do |session| %>
+          <tr>
+            <td data-label="Reference" class="font-medium text-slate-900"><%= session.reference_number %></td>
+            <td data-label="Date"><%= session.count_date.to_fs(:long) %></td>
+            <td data-label="Time"><%= session.count_time.strftime("%H:%M") %></td>
+            <td data-label="Type"><%= status_badge(session.count_type) %></td>
+            <td data-label="Location"><%= session.display_location %></td>
+            <td data-label="Status"><%= status_badge(session.status) %></td>
+            <td data-label="Created By"><%= session.created_by.email_address %></td>
+            <td data-label="Actions" class="text-right">
+              <%= link_to "View", stock_count_session_path(session), class: "btn btn-ghost" %>
+              <% unless session.locked? %>
+                <%= link_to "Count", edit_stock_count_session_path(session), class: "btn btn-ghost" %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No manual count sessions yet. Create one to reconcile physical inventory.</p>
+<% end %>

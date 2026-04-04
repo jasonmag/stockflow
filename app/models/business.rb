@@ -31,6 +31,9 @@ class Business < ApplicationRecord
   has_many :products, dependent: :destroy
   has_many :locations, dependent: :destroy
   has_many :stock_movements, dependent: :destroy
+  has_many :stock_count_sessions, dependent: :destroy
+  has_many :stock_count_items, through: :stock_count_sessions
+  has_many :inventory_adjustments, dependent: :destroy
   has_many :purchase_funding_sources, dependent: :destroy
   has_many :suppliers, dependent: :destroy
   has_many :purchases, dependent: :destroy

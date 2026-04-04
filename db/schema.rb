@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_04_04_103000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -191,6 +191,22 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
     t.index ["purchase_id"], name: "index_expenses_on_purchase_id", unique: true
   end
 
+  create_table "inventory_adjustments", force: :cascade do |t|
+    t.integer "business_id", null: false
+    t.integer "product_id", null: false
+    t.integer "stock_count_session_id", null: false
+    t.integer "created_by_id", null: false
+    t.decimal "adjustment_quantity", precision: 12, scale: 2, null: false
+    t.string "reason", null: false
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["business_id"], name: "index_inventory_adjustments_on_business_id"
+    t.index ["created_by_id"], name: "index_inventory_adjustments_on_created_by_id"
+    t.index ["product_id"], name: "index_inventory_adjustments_on_product_id"
+    t.index ["stock_count_session_id"], name: "index_inventory_adjustments_on_stock_count_session_id"
+  end
+
   create_table "locations", force: :cascade do |t|
     t.integer "business_id", null: false
     t.string "name", null: false
@@ -365,6 +381,57 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "stock_count_events", force: :cascade do |t|
+    t.integer "stock_count_session_id", null: false
+    t.integer "user_id", null: false
+    t.string "event_type", null: false
+    t.text "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["stock_count_session_id", "created_at"], name: "idx_on_stock_count_session_id_created_at_5b66cb9310"
+    t.index ["stock_count_session_id"], name: "index_stock_count_events_on_stock_count_session_id"
+    t.index ["user_id"], name: "index_stock_count_events_on_user_id"
+  end
+
+  create_table "stock_count_items", force: :cascade do |t|
+    t.integer "stock_count_session_id", null: false
+    t.integer "product_id", null: false
+    t.decimal "expected_quantity", precision: 12, scale: 2, null: false
+    t.decimal "actual_quantity", precision: 12, scale: 2
+    t.decimal "variance", precision: 12, scale: 2, default: "0.0", null: false
+    t.string "variance_reason"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["product_id"], name: "index_stock_count_items_on_product_id"
+    t.index ["stock_count_session_id", "product_id"], name: "index_stock_count_items_on_session_and_product", unique: true
+    t.index ["stock_count_session_id"], name: "index_stock_count_items_on_stock_count_session_id"
+  end
+
+  create_table "stock_count_sessions", force: :cascade do |t|
+    t.integer "business_id", null: false
+    t.integer "location_id"
+    t.string "reference_number", null: false
+    t.date "count_date", null: false
+    t.time "count_time", null: false
+    t.integer "count_type", default: 0, null: false
+    t.integer "status", default: 0, null: false
+    t.text "notes"
+    t.integer "created_by_id", null: false
+    t.integer "performed_by_id"
+    t.integer "approved_by_id"
+    t.datetime "started_at", null: false
+    t.datetime "completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_stock_count_sessions_on_approved_by_id"
+    t.index ["business_id", "reference_number"], name: "index_stock_count_sessions_on_business_id_and_reference_number", unique: true
+    t.index ["business_id"], name: "index_stock_count_sessions_on_business_id"
+    t.index ["created_by_id"], name: "index_stock_count_sessions_on_created_by_id"
+    t.index ["location_id"], name: "index_stock_count_sessions_on_location_id"
+    t.index ["performed_by_id"], name: "index_stock_count_sessions_on_performed_by_id"
+  end
+
   create_table "stock_movements", force: :cascade do |t|
     t.integer "business_id", null: false
     t.integer "movement_type", null: false
@@ -379,6 +446,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "reason_code"
+    t.index ["business_id", "reason_code"], name: "index_stock_movements_on_business_id_and_reason_code"
     t.index ["business_id"], name: "index_stock_movements_on_business_id"
     t.index ["from_location_id"], name: "index_stock_movements_on_from_location_id"
     t.index ["product_id"], name: "index_stock_movements_on_product_id"
@@ -429,6 +498,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
   add_foreign_key "expenses", "businesses"
   add_foreign_key "expenses", "categories"
   add_foreign_key "expenses", "purchases"
+  add_foreign_key "inventory_adjustments", "businesses"
+  add_foreign_key "inventory_adjustments", "products"
+  add_foreign_key "inventory_adjustments", "stock_count_sessions"
+  add_foreign_key "inventory_adjustments", "users", column: "created_by_id"
   add_foreign_key "locations", "businesses"
   add_foreign_key "memberships", "businesses"
   add_foreign_key "memberships", "users"
@@ -451,6 +524,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_04_03_120000) do
   add_foreign_key "receivables", "businesses"
   add_foreign_key "receivables", "customers"
   add_foreign_key "sessions", "users"
+  add_foreign_key "stock_count_events", "stock_count_sessions"
+  add_foreign_key "stock_count_events", "users"
+  add_foreign_key "stock_count_items", "products"
+  add_foreign_key "stock_count_items", "stock_count_sessions"
+  add_foreign_key "stock_count_sessions", "businesses"
+  add_foreign_key "stock_count_sessions", "locations"
+  add_foreign_key "stock_count_sessions", "users", column: "approved_by_id"
+  add_foreign_key "stock_count_sessions", "users", column: "created_by_id"
+  add_foreign_key "stock_count_sessions", "users", column: "performed_by_id"
   add_foreign_key "stock_movements", "businesses"
   add_foreign_key "stock_movements", "locations", column: "from_location_id"
   add_foreign_key "stock_movements", "locations", column: "to_location_id"

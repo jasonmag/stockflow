@@ -3,7 +3,12 @@
     <h1 class="page-title">Stock Movements</h1>
     <p class="mt-1 text-sm text-slate-600">Inventory ledger of stock in, out, transfers, and adjustments.</p>
   </div>
-  <%= link_to "New Stock Movement", new_stock_movement_path, class: "btn btn-primary" %>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Manual Counts", stock_count_sessions_path, class: "btn btn-secondary" %>
+    <%= link_to "Self Consumption", new_self_consumption_stock_movements_path(reason_code: :self_consumption), class: "btn btn-secondary" %>
+    <%= link_to "Spoilage", new_spoilage_stock_movements_path(reason_code: :spoilage), class: "btn btn-secondary" %>
+    <%= link_to "New Stock Movement", new_stock_movement_path, class: "btn btn-primary" %>
+  </div>
 </div>
 
 <% if @current_inventory_rows.any? %>
@@ -47,6 +52,7 @@
           <th>Date</th>
           <th>Type</th>
           <th>Product</th>
+          <th>Reason</th>
           <th>Quantity</th>
           <th>From</th>
           <th>To</th>
@@ -58,6 +64,7 @@
             <td data-label="Date"><%= row.occurred_on.to_fs(:long) %></td>
             <td data-label="Type"><%= status_badge(row.movement_type) %></td>
             <td data-label="Product" class="font-medium text-slate-900"><%= row.product.name %></td>
+            <td data-label="Reason"><%= row.reason_code.present? ? status_badge(row.reason_code) : "-" %></td>
             <td data-label="Quantity"><%= row.quantity %></td>
             <td data-label="From"><%= row.from_label %></td>
             <td data-label="To"><%= row.to_label %></td>

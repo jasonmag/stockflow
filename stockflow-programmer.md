@@ -392,3 +392,222 @@ Treat this file as a current-state architecture guide:
 - prefer describing implemented behavior over desired behavior
 - call out gaps explicitly instead of mixing them into the main flow as if already complete
 - update routes, domain behavior, and timestamp/inventory semantics when the code changes
+
+Requested Feature Prompt
+------------------------
+Feature Name: Manual Inventory Count & Reconciliation
+
+Objective:
+Add a manual inventory counting feature to Stockflow that allows users to perform physical stock counts on specific dates and times. The system must reconcile counted quantities with expected stock quantities and record any discrepancies.
+
+Feature Description:
+Stockflow must support manual stock counts performed by users at scheduled or unscheduled times (for example: end of day, weekly audit, monthly audit). The system should compute the expected stock automatically and compare it with the actual counted stock entered by the user.
+
+Core Requirements:
+
+1. Manual Count Creation
+
+- Allow users to create a new "Manual Count Session".
+- Each session must include:
+  - Count Date
+  - Count Time
+  - Location (optional if multi-location)
+  - Count Type:
+    - End of Day
+    - Weekly
+    - Monthly
+    - Custom
+  - Notes field
+
+2. Expected Stock Calculation
+
+When a manual count session is created, the system must automatically calculate the expected stock for each product based on:
+
+Expected Stock = Opening Stock + Restocked Quantity - Sold Quantity +/- Adjustments
+
+The expected stock must be frozen at the moment the count session starts.
+
+3. Manual Stock Entry
+
+Users must manually input the actual counted quantity for each product.
+
+Fields per item:
+
+- Product ID
+- Product Name
+- Expected Quantity (readonly)
+- Actual Counted Quantity (editable)
+- Variance (auto-calculated)
+
+Variance Formula:
+
+Variance = Actual Count - Expected Quantity
+
+4. Variance Handling
+
+If variance exists, the system must:
+
+- Highlight the item
+- Allow user to select a variance reason:
+  - Counting Error
+  - Damaged Item
+  - Missing Item
+  - Theft
+  - Supplier Error
+  - Other (custom input)
+
+5. Inventory Adjustment
+
+After confirmation, the system must:
+
+- Create an Adjustment Record
+- Update the Product Current Stock to match the Actual Count
+- Log the adjustment history
+
+6. Session Status Flow
+
+Statuses:
+
+- Draft
+- In Progress
+- Completed
+- Approved (optional admin role)
+
+Rules:
+
+- Draft -> user can edit
+- Completed -> becomes locked
+- Approved -> final audit state
+
+7. Audit Trail
+
+All changes must be logged.
+
+Required logs:
+
+- Who created session
+- Who performed count
+- Date/time created
+- Date/time completed
+- All stock differences
+- All adjustments created
+
+Database Design:
+
+Table: stock_count_sessions
+
+- id
+- reference_number
+- count_date
+- count_time
+- count_type
+- status
+- notes
+- created_by
+- completed_at
+- approved_by
+- created_at
+- updated_at
+
+Table: stock_count_items
+
+- id
+- session_id
+- product_id
+- expected_quantity
+- actual_quantity
+- variance
+- variance_reason
+- notes
+
+Table: inventory_adjustments
+
+- id
+- product_id
+- session_id
+- adjustment_quantity
+- reason
+- created_at
+
+User Interface Requirements:
+
+Manual Count Workflow:
+
+Step 1:
+User clicks:
+"New Manual Count"
+
+Step 2:
+System generates:
+Manual Count Session
+
+Step 3:
+System loads:
+All active products
+
+Step 4:
+User enters:
+Actual counts
+
+Step 5:
+System calculates:
+Variance automatically
+
+Step 6:
+User confirms:
+"Finalize Count"
+
+Step 7:
+System creates:
+Inventory Adjustments
+
+Additional Functional Requirements:
+
+- Support partial counting (selected products only)
+- Support barcode scanning during count
+- Allow save progress (draft mode)
+- Allow export of count report (PDF/CSV)
+- Allow filtering by category/location
+
+Validation Rules:
+
+- Actual quantity must be >= 0
+- Session cannot be completed with missing quantities
+- Adjustments must be recorded before closing session
+
+Performance Considerations:
+
+- Expected stock calculation must be optimized
+- Should support large inventories (10,000+ items)
+- Use batch operations when creating adjustments
+
+Reporting:
+
+Add report:
+"Stock Variance Report"
+
+Includes:
+
+- Date range
+- Product
+- Variance
+- Reason
+- Adjusted quantity
+
+Future Enhancements (Optional):
+
+- Scheduled automatic reminders for counts
+- Mobile device support for counting
+- Offline counting support
+- Camera/barcode scanning
+- AI-based anomaly detection
+
+Acceptance Criteria:
+
+- User can create manual count sessions
+- Expected stock is calculated correctly
+- User can enter actual quantities
+- Variance is automatically calculated
+- Inventory adjustments are recorded
+- Audit logs are preserved
+- Final stock reflects counted quantities

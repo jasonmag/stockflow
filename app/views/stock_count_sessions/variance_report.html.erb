@@ -1,0 +1,68 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title">Stock Variance Report</h1>
+    <p class="mt-1 text-sm text-slate-600">Review counted variances, reasons, and adjusted quantities across manual count sessions.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Export CSV", variance_report_stock_count_sessions_path(request.query_parameters.merge(format: :csv)), class: "btn btn-secondary" %>
+    <%= link_to "Back to Counts", stock_count_sessions_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <%= form_with url: variance_report_stock_count_sessions_path, method: :get, class: "grid gap-4 md:grid-cols-4" do |f| %>
+    <div>
+      <%= f.label :start_date, class: "field-label" %>
+      <%= f.date_field :start_date, value: params[:start_date], class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :end_date, class: "field-label" %>
+      <%= f.date_field :end_date, value: params[:end_date], class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :product_id, "Product", class: "field-label" %>
+      <%= f.collection_select :product_id, current_business.products.order(:name), :id, :name, { include_blank: "All products", selected: params[:product_id] }, class: "field-input" %>
+    </div>
+    <div>
+      <%= f.label :location_id, "Location", class: "field-label" %>
+      <%= f.collection_select :location_id, current_business.locations.order(:name), :id, :name, { include_blank: "All locations", selected: params[:location_id] }, class: "field-input" %>
+    </div>
+    <div class="md:col-span-4 flex flex-wrap gap-2">
+      <%= f.submit "Filter", class: "btn btn-primary" %>
+      <%= link_to "Reset", variance_report_stock_count_sessions_path, class: "btn btn-secondary" %>
+    </div>
+  <% end %>
+</section>
+
+<% if @variance_rows.any? %>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Reference</th>
+          <th>Product</th>
+          <th>Variance</th>
+          <th>Reason</th>
+          <th>Adjusted Quantity</th>
+          <th>Location</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @variance_rows.each do |item| %>
+          <tr>
+            <td data-label="Date"><%= item.stock_count_session.count_date.to_fs(:long) %></td>
+            <td data-label="Reference"><%= link_to item.stock_count_session.reference_number, stock_count_session_path(item.stock_count_session), class: "font-medium text-slate-900" %></td>
+            <td data-label="Product"><%= item.product.name %></td>
+            <td data-label="Variance"><%= number_with_precision(item.variance, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td data-label="Reason"><%= item.variance_reason %></td>
+            <td data-label="Adjusted Quantity"><%= number_with_precision(item.variance, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td data-label="Location"><%= item.stock_count_session.display_location %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% else %>
+  <p class="empty-state">No stock variances matched the selected filters.</p>
+<% end %>

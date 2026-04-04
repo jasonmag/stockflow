@@ -43,7 +43,26 @@ Rails.application.routes.draw do
     resources :product_purchase_prices, only: %i[create destroy]
   end
   resources :locations
-  resources :stock_movements, only: %i[index new create]
+  resources :stock_movements, only: %i[index new create] do
+    collection do
+      get :new_self_consumption
+      get :new_spoilage
+    end
+  end
+
+  scope :stock_movements do
+    resources :stock_count_sessions, path: "manual_counts" do
+      collection do
+        get :variance_report
+      end
+      member do
+        patch :finalize
+        patch :approve
+        get :export
+      end
+    end
+  end
+
   resources :expenses
   resources :payables do
     member do

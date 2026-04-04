@@ -1,6 +1,6 @@
 <div class="mb-4">
-  <h1 class="page-title">New Stock Movement</h1>
-  <p class="mt-1 text-sm text-slate-600">Record stock in, out, transfers, or adjustments.</p>
+  <h1 class="page-title"><%= @stock_movement_form_title || "New Stock Movement" %></h1>
+  <p class="mt-1 text-sm text-slate-600"><%= @stock_movement_form_description || "Record stock in, out, transfers, or adjustments." %></p>
 </div>
 
 <%= form_with model: @stock_movement, class: "card space-y-4" do |f| %>
@@ -16,10 +16,29 @@
   <% end %>
 
   <div class="grid gap-4 md:grid-cols-2">
-    <div>
-      <%= f.label :movement_type, class: "field-label" %>
-      <%= f.select :movement_type, StockMovement.movement_types.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
-    </div>
+    <% if @stock_movement.reason_code.present? %>
+      <div>
+        <p class="field-label">Movement Type</p>
+        <p><%= status_badge(@stock_movement.movement_type) %></p>
+        <%= f.hidden_field :movement_type %>
+      </div>
+
+      <div>
+        <p class="field-label">Reason</p>
+        <p><%= status_badge(@stock_movement.reason_code) %></p>
+        <%= f.hidden_field :reason_code %>
+      </div>
+    <% else %>
+      <div>
+        <%= f.label :movement_type, class: "field-label" %>
+        <%= f.select :movement_type, StockMovement.movement_types.keys.map { |value| [value.humanize, value] }, {}, class: "field-input" %>
+      </div>
+
+      <div>
+        <%= f.label :reason_code, "Reason", class: "field-label" %>
+        <%= f.select :reason_code, StockMovement.reason_codes.keys.map { |value| [value.humanize, value] }, { include_blank: "General stock movement" }, class: "field-input" %>
+      </div>
+    <% end %>
 
     <div>
       <%= f.label :product_id, class: "field-label" %>
@@ -53,7 +72,7 @@
 
     <div class="md:col-span-2">
       <%= f.label :notes, class: "field-label" %>
-      <%= f.text_area :notes, class: "field-input", rows: 3 %>
+      <%= f.text_area :notes, class: "field-input", rows: 3, placeholder: (@stock_movement.reason_code.present? ? "Describe internal use, damage, expiry, or other details" : nil) %>
     </div>
   </div>
 

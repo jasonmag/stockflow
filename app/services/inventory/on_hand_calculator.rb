@@ -1,7 +1,8 @@
 module Inventory
   class OnHandCalculator
-    def initialize(business:)
+    def initialize(business:, as_of: nil)
       @business = business
+      @as_of = as_of
     end
 
     def per_product_and_location
@@ -31,9 +32,14 @@ module Inventory
 
     private
       attr_reader :business
+      attr_reader :as_of
 
       def movements
-        @movements ||= business.stock_movements.includes(:product)
+        @movements ||= begin
+          scope = business.stock_movements.includes(:product)
+          scope = scope.where("created_at <= ?", as_of) if as_of.present?
+          scope
+        end
       end
   end
 end

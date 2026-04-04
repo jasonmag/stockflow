@@ -62,6 +62,7 @@ export default class extends Controller {
         const value = result.getText()?.trim()
         if (value) {
           this.inputTarget.value = value
+          this.inputTarget.dispatchEvent(new Event("input", { bubbles: true }))
           this.updateStatus(`Barcode captured: ${value}`)
           this.stop()
         }

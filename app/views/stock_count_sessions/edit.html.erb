@@ -1,0 +1,119 @@
+<div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @stock_count_session.reference_number %></h1>
+    <p class="mt-1 text-sm text-slate-600">Expected stock is frozen at session start. Enter actual quantities and finalize when the count is complete.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "View Session", stock_count_session_path(@stock_count_session), class: "btn btn-secondary" %>
+    <%= link_to "Back", stock_count_sessions_path, class: "btn btn-secondary" %>
+  </div>
+</div>
+
+<%= form_with model: @stock_count_session, class: "space-y-4" do |f| %>
+  <% if @stock_count_session.errors.any? %>
+    <div class="flash flash-alert">
+      <p class="font-semibold"><%= pluralize(@stock_count_session.errors.count, "error") %> prevented this session from being saved:</p>
+      <ul class="mt-2 list-disc pl-5">
+        <% @stock_count_session.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <section class="card">
+    <div class="grid gap-4 md:grid-cols-4">
+      <div>
+        <p class="field-label">Count Date</p>
+        <p><%= @stock_count_session.count_date.to_fs(:long) %></p>
+      </div>
+      <div>
+        <p class="field-label">Count Time</p>
+        <p><%= @stock_count_session.count_time.strftime("%H:%M") %></p>
+      </div>
+      <div>
+        <p class="field-label">Location</p>
+        <p><%= @stock_count_session.display_location %></p>
+      </div>
+      <div>
+        <p class="field-label">Status</p>
+        <p><%= status_badge(@stock_count_session.status) %></p>
+      </div>
+    </div>
+  </section>
+
+  <section class="card space-y-4" data-controller="stock-count-items-filter barcode-scanner">
+    <div class="flex flex-wrap items-end gap-3">
+      <div class="min-w-0 flex-1">
+        <label class="field-label" for="stock-count-filter">Find Product</label>
+        <input id="stock-count-filter"
+               type="text"
+               class="field-input"
+               placeholder="Search by name, SKU, or barcode"
+               data-stock-count-items-filter-target="query"
+               data-barcode-scanner-target="input"
+               data-action="input->stock-count-items-filter#filter">
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" class="btn btn-secondary" data-action="barcode-scanner#start" data-barcode-scanner-target="startButton">Scan Barcode</button>
+        <button type="button" class="btn btn-ghost hidden" data-action="barcode-scanner#stop" data-barcode-scanner-target="stopButton">Stop Scan</button>
+      </div>
+    </div>
+    <video data-barcode-scanner-target="preview" class="hidden max-h-64 w-full rounded-xl border border-slate-200 bg-slate-950/90" playsinline></video>
+    <p class="text-sm text-slate-600" data-barcode-scanner-target="status">Use barcode scan or search to jump to a product.</p>
+
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Expected</th>
+            <th>Actual Count</th>
+            <th>Variance</th>
+            <th>Reason</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%= f.fields_for :stock_count_items, @stock_count_items do |item_fields| %>
+            <% item = item_fields.object %>
+            <tr class="<%= 'bg-amber-50' if item.variance_present? %>"
+                data-stock-count-items-filter-target="row"
+                data-controller="stock-count-variance"
+                data-stock-count-variance-expected-value="<%= item.expected_quantity.to_f %>"
+                data-stock-count-items-filter-name="<%= item.product.name %>"
+                data-stock-count-items-filter-sku="<%= item.product.sku %>"
+                data-stock-count-items-filter-barcode="<%= item.product.barcode %>">
+              <td data-label="Product">
+                <div class="font-medium text-slate-900"><%= item.product.name %></div>
+                <div class="text-xs text-slate-500"><%= item.product.sku %><%= " | #{item.product.barcode}" if item.product.barcode.present? %></div>
+                <%= item_fields.hidden_field :id %>
+              </td>
+              <td data-label="Expected" data-stock-count-variance-target="expected"><%= number_with_precision(item.expected_quantity, precision: 2, strip_insignificant_zeros: true) %></td>
+              <td data-label="Actual Count">
+                <%= item_fields.number_field :actual_quantity, min: 0, step: 0.01, class: "field-input min-w-28", data: { stock_count_variance_target: "actual", action: "input->stock-count-variance#refresh" } %>
+              </td>
+              <td data-label="Variance" class="<%= item.variance_present? ? 'font-semibold text-amber-700' : '' %>" data-stock-count-variance-target="variance">
+                <%= number_with_precision(item.variance, precision: 2, strip_insignificant_zeros: true) %>
+              </td>
+              <td data-label="Reason">
+                <%= item_fields.select :variance_reason, options_for_select(StockCountItem::VARIANCE_REASONS, item.variance_reason), { include_blank: "Select reason" }, class: "field-input min-w-40", data: { stock_count_variance_target: "reason" } %>
+              </td>
+              <td data-label="Notes">
+                <%= item_fields.text_field :notes, class: "field-input min-w-40", placeholder: "Optional note" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="flex flex-wrap gap-2">
+    <%= f.submit "Save Progress", class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<div class="mt-4 flex flex-wrap gap-2">
+  <%= button_to "Finalize Count", finalize_stock_count_session_path(@stock_count_session), method: :patch, class: "btn btn-secondary", form: { data: { turbo_confirm: "Finalize this count and create inventory adjustments?" } } %>
+</div>

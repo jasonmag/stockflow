@@ -38,9 +38,9 @@ module ApplicationHelper
     tone = case status.to_s
     when "paid", "collected", "delivered", "sent", "read", "received", "business", "cash_business", "card_business", "active", "attached", "enabled", "approved"
       "badge-success"
-    when "overdue", "late", "failed", "void"
+    when "overdue", "late", "failed", "void", "spoilage"
       "badge-danger"
-    when "queued", "draft", "pending", "unpaid", "personal", "cash_personal", "card_personal", "inactive", "missing", "disabled"
+    when "queued", "draft", "pending", "unpaid", "personal", "cash_personal", "card_personal", "inactive", "missing", "disabled", "in_progress", "weekly", "monthly", "custom", "self_consumption"
       "badge-warning"
     else
       "badge-neutral"

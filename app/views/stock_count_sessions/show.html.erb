@@ -1,0 +1,139 @@
+<div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="page-title"><%= @stock_count_session.reference_number %></h1>
+    <p class="mt-1 text-sm text-slate-600">Physical count summary, variances, adjustments, and audit trail.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <%= link_to "Export CSV", export_stock_count_session_path(@stock_count_session, format: :csv), class: "btn btn-secondary" %>
+    <%= link_to "Export PDF", export_stock_count_session_path(@stock_count_session, format: :pdf), class: "btn btn-secondary", target: "_blank", rel: "noopener noreferrer" %>
+    <% unless @stock_count_session.locked? %>
+      <%= link_to "Continue Count", edit_stock_count_session_path(@stock_count_session), class: "btn btn-primary" %>
+    <% end %>
+    <% if @stock_count_session.completed? && owner? %>
+      <%= button_to "Approve", approve_stock_count_session_path(@stock_count_session), method: :patch, class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<section class="card mb-4">
+  <div class="grid gap-4 md:grid-cols-4">
+    <div>
+      <p class="field-label">Status</p>
+      <p><%= status_badge(@stock_count_session.status) %></p>
+    </div>
+    <div>
+      <p class="field-label">Count Type</p>
+      <p><%= @stock_count_session.count_type.humanize %></p>
+    </div>
+    <div>
+      <p class="field-label">Location</p>
+      <p><%= @stock_count_session.display_location %></p>
+    </div>
+    <div>
+      <p class="field-label">Created By</p>
+      <p><%= @stock_count_session.created_by.email_address %></p>
+    </div>
+    <div>
+      <p class="field-label">Performed By</p>
+      <p><%= @stock_count_session.performed_by&.email_address || "-" %></p>
+    </div>
+    <div>
+      <p class="field-label">Completed At</p>
+      <p><%= @stock_count_session.completed_at&.to_fs(:long) || "-" %></p>
+    </div>
+    <div>
+      <p class="field-label">Approved By</p>
+      <p><%= @stock_count_session.approved_by&.email_address || "-" %></p>
+    </div>
+    <div>
+      <p class="field-label">Total Variance</p>
+      <p><%= number_with_precision(@stock_count_session.total_variance_quantity, precision: 2, strip_insignificant_zeros: true) %></p>
+    </div>
+  </div>
+  <% if @stock_count_session.notes.present? %>
+    <div class="mt-4">
+      <p class="field-label">Notes</p>
+      <p><%= simple_format(@stock_count_session.notes) %></p>
+    </div>
+  <% end %>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Count Items</h2>
+  <div class="table-wrap">
+    <table class="table-base">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Expected</th>
+          <th>Actual</th>
+          <th>Variance</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @stock_count_items.each do |item| %>
+          <tr class="<%= 'bg-amber-50' if item.variance_present? %>">
+            <td data-label="Product" class="font-medium text-slate-900"><%= item.product.name %></td>
+            <td data-label="Expected"><%= number_with_precision(item.expected_quantity, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td data-label="Actual"><%= item.actual_quantity.nil? ? "-" : number_with_precision(item.actual_quantity, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td data-label="Variance"><%= number_with_precision(item.variance, precision: 2, strip_insignificant_zeros: true) %></td>
+            <td data-label="Reason"><%= item.variance_reason.presence || "-" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card mb-4">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Adjustments Created</h2>
+  <% if @stock_count_session.inventory_adjustments.any? %>
+    <div class="table-wrap">
+      <table class="table-base">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Adjusted Quantity</th>
+            <th>Reason</th>
+            <th>Created At</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @stock_count_session.inventory_adjustments.includes(:product).order(created_at: :desc).each do |adjustment| %>
+            <tr>
+              <td data-label="Product" class="font-medium text-slate-900"><%= adjustment.product.name %></td>
+              <td data-label="Adjusted Quantity"><%= number_with_precision(adjustment.adjustment_quantity, precision: 2, strip_insignificant_zeros: true) %></td>
+              <td data-label="Reason"><%= adjustment.reason %></td>
+              <td data-label="Created At"><%= adjustment.created_at.to_fs(:long) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No adjustment records have been created yet.</p>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold text-slate-900">Audit Trail</h2>
+  <% if @stock_count_events.any? %>
+    <div class="space-y-3">
+      <% @stock_count_events.each do |event| %>
+        <div class="rounded-lg border border-slate-200 px-4 py-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="font-medium text-slate-900"><%= event.event_type.humanize %></p>
+            <p class="text-sm text-slate-500"><%= event.created_at.to_fs(:long) %></p>
+          </div>
+          <p class="mt-1 text-sm text-slate-600"><%= event.user.email_address %></p>
+          <% if event.details.present? %>
+            <p class="mt-2 text-sm text-slate-700"><%= event.details %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="text-sm text-slate-600">No audit events recorded.</p>
+  <% end %>
+</section>
