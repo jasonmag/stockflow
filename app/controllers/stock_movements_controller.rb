@@ -38,13 +38,14 @@ class StockMovementsController < ApplicationController
       params.require(:stock_movement).permit(:movement_type, :reason_code, :product_id, :quantity, :unit_cost_decimal, :unit_cost_cents, :from_location_id, :to_location_id, :occurred_on, :notes)
     end
 
-    def build_preset_stock_movement(reason_code)
-      current_business.stock_movements.new(
-        movement_type: :out,
-        reason_code:,
-        occurred_on: Date.current
-      )
-    end
+  def build_preset_stock_movement(reason_code)
+    current_business.stock_movements.new(
+      movement_type: :out,
+      reason_code:,
+      from_location: current_business.locations.first,
+      occurred_on: Date.current
+    )
+  end
 
     def build_stock_movement_form_copy
       @stock_movement_form_title =

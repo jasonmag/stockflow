@@ -1788,6 +1788,8 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Record Self Consumption"
     assert_select "input[name='stock_movement[movement_type]'][value='out']", count: 1
     assert_select "input[name='stock_movement[reason_code]'][value='self_consumption']", count: 1
+    assert_select "select[name='stock_movement[from_location_id]']"
+    assert_select "select[name='stock_movement[to_location_id]']", count: 0
   end
 
   test "spoilage preset page prefills stock out workflow" do
@@ -1797,6 +1799,8 @@ class MvpFlowsTest < ActionDispatch::IntegrationTest
     assert_select "h1", text: "Record Spoilage"
     assert_select "input[name='stock_movement[movement_type]'][value='out']", count: 1
     assert_select "input[name='stock_movement[reason_code]'][value='spoilage']", count: 1
+    assert_select "select[name='stock_movement[from_location_id]']"
+    assert_select "select[name='stock_movement[to_location_id]']", count: 0
   end
 
   test "self consumption creates stock out movement and reduces inventory" do

@@ -60,10 +60,14 @@
       <%= f.collection_select :from_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
     </div>
 
-    <div>
-      <%= f.label :to_location_id, class: "field-label" %>
-      <%= f.collection_select :to_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
-    </div>
+    <% if @stock_movement.reason_code.present? %>
+      <%= f.hidden_field :to_location_id %>
+    <% else %>
+      <div>
+        <%= f.label :to_location_id, class: "field-label" %>
+        <%= f.collection_select :to_location_id, current_business.locations.order(:name), :id, :name, { include_blank: true }, class: "field-input" %>
+      </div>
+    <% end %>
 
     <div>
       <%= f.label :occurred_on, class: "field-label" %>
